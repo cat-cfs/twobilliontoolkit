@@ -1,0 +1,3 @@
+# requirements.txt
+git+https://github.com/cat-cfs/RippleUnzipple.git
+# Add any other dependencies here
