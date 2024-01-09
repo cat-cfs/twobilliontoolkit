@@ -29,12 +29,12 @@ You should then be set up to use the tool!
 
 ## Usage
 
-**Note**: This will need to be run in an ArcGIS Pro environment because it uses its library called Arcpy. If you do not know how to do this, please contact someone who is before continuing because the tool would not work.
+**Note**: This will need to be run in an ArcGIS Pro environment because it uses its library called Arcpy. If you do not know how to do this, please contact someone who for help before continuing because the tool would not work. Or if you are able to use the arcpy library on your machine without any restrictions and issues that may also work but has not been tested.
 
 To use the Spatial Transformer, run the script from the command line with the following syntax:
 
 ```
-python /path/to/spatial_transformer.py [-h] [--log_path LOG_PATH] [--debug] --load {datatracker,database} --save {datatracker,database} unzipper_input_path unzipper_output_path gdb_path data_tracker_path
+arcpy_environment_python_path /path/to/spatial_transformer.py [-h] [--log_path LOG_PATH] [--debug] --load {datatracker,database} --save {datatracker,database} unzipper_input_path unzipper_output_path gdb_path data_tracker_path
 ```
 - [-h, --help] (optional): List all of the available commands and a description for help.
 - [--log_path log_path] (optional): Path to the log file. If provided, detailed logs will be saved to this file. 
@@ -44,7 +44,6 @@ python /path/to/spatial_transformer.py [-h] [--log_path LOG_PATH] [--debug] --lo
 - unzipper_output_path: Path to the output directory where the uncompressed data will be stored.
 - gdb_path: Path to where the resulting GeoDatabase will be stored, it can be an existing GeoDatabase, else it will create the GeoDatabase itself.
 - data_tracker_path: Path to where the resulting Data Tracker Excell sheet will be stored, it can be an existing datasheet, else it will create it when it is complete.
-
 
 Example from root of project:
 ```

@@ -8,7 +8,6 @@ This repo stands as a singular place for all the tools that will be developed fo
 
 ## Table of Contents
 
-- [Project Title](#project-title)
 - [Project Description](#project-description)
 - [Installation](#installation)
 - [Usage](#usage)
