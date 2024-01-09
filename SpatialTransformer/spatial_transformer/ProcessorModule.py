@@ -103,7 +103,7 @@ class Processor:
                 in_raw_gdb=False, 
                 contains_pdf=False, 
                 contains_image=False,
-                attachments_path=None
+                extracted_attachments_path=None
             )
             
             try: 
@@ -260,7 +260,7 @@ class Processor:
                     in_raw_gdb=False,
                     contains_pdf=False,
                     contains_image=False,
-                    attachments_path=None
+                    extracted_attachments_path=None
                 )
                 
                 # Update the formatted project spatial ID
@@ -378,7 +378,7 @@ class Processor:
                     in_raw_gdb=False,
                     contains_pdf=False,
                     contains_image=False,
-                    attachments_path=None
+                    extracted_attachments_path=None
                 )
                 
                 # Update the formatted project spatial ID
@@ -425,7 +425,7 @@ class Processor:
             # Update the entry of the Geodatabase feature class
             data.set_data(
                 project_spatial_id=key.replace('proj_', ''), 
-                attachments_path=value, 
+                extracted_attachments_path=value, 
             )
             
     def __str__(self):

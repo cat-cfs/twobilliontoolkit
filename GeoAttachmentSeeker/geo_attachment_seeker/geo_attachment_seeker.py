@@ -50,6 +50,16 @@ def find_attachments(gdb_path, output_path):
     Return:
     - attachment_dict (dict): A dictionary of key value pairs to tie each project id that had attachments to the path they were extracted to.
     ''' 
+    # validate the gdb_path
+    if not isinstance(gdb_path, str) or not gdb_path.strip():
+            raise ValueError(f'The provided gdb_path must be a non-empty string.')
+
+    if not gdb_path.endswith('.gdb'):
+        raise ValueError(f'The provided gdb_path must be of type ".gdb".')
+
+    if not os.path.exists(gdb_path):
+        raise ValueError(f'The provided gdb_path path does not exist.')
+    
     # Set the arc environment
     arcpy.env.workspace = gdb_path
     
@@ -75,7 +85,7 @@ def find_attachments(gdb_path, output_path):
         attachment_dict[project_id] = output_project_path
            
     # Uncomment following line to print out the resulting dictionary
-    # print(attachment_dict)
+    print(attachment_dict)
     
     # Return the attachement dictionary
     return attachment_dict
