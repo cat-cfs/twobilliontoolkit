@@ -40,7 +40,7 @@ import time
 # Classes
 #========================================================
 class StartupParameters:
-    def __init__(self, input_path, output_path, gdb_path, master_data_path, load_from='database', save_to='database', data_tracker_path, attachments_path, log_path='', debug=False):
+    def __init__(self, input_path, output_path, gdb_path, master_data_path, data_tracker_path, attachments_path, load_from='database', save_to='database', log_path='', debug=False):
        
         '''
         Initializes the StartupParameters class with input parameters.
@@ -201,7 +201,7 @@ def main():
     
     try:        
         # Initialize StartupParameters class
-        setup_parameters = StartupParameters(input_path, output_path, gdb_path, master_data_path, load_from, save_to, data_tracker_path, attachments_path, log_path, debug)
+        setup_parameters = StartupParameters(input_path, output_path, gdb_path, master_data_path, data_tracker_path, attachments_path, load_from, save_to,  log_path, debug)
         
         # Uncomment to print out everything contained in class
         # print(setup_parameters)

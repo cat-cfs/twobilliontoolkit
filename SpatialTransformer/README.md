@@ -72,7 +72,7 @@ def main():
     log_path = './Testing/OutputLog.txt'
     debug = True
     
-    setup_parameters = StartupParameters(input_path, output_path, gdb_path, master_data_path, load_from, save_to, data_tracker_path, attachments_path, log_path, debug)
+    setup_parameters = StartupParameters(input_path, output_path, gdb_path, master_data_path, data_tracker_path, attachments_path, load_from, save_to,  log_path, debug)
     processor = Processor(self.startparams)
     datatracker = DataTracker(self.startparams.datatracker)
 ```
