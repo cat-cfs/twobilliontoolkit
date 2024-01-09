@@ -75,7 +75,7 @@ def find_attachments(gdb_path, output_path):
         
         # Build the output project paths
         project_id = table.replace('__ATTACH', '')
-        output_project_path = os.path.normpath(os.path.join(output_path, project_id))
+        output_project_path = os.path.abspath(os.path.join(output_path, project_id))
         table_path = os.path.join(gdb_path, table)
         
         # Call the processing function
