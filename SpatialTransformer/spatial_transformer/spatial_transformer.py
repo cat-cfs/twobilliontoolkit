@@ -22,7 +22,7 @@ Description:
     The spatial_transformer.py script is a Python tool for processing spatial data. It handles tasks like geodatabase creation, file validation, and checking project numbers against a master data sheet. 
 
 Usage:
-    python spatial_transformer/spatial_transformer.py [-h] [--log_path LOG_PATH] [--debug] --load {datatracker,database} --save {datatracker,database} input_path output_path gdb_path data_tracker_path
+    python spatial_transformer/[-h] [--data_tracker_path DATA_TRACKER_PATH] [--log_path LOG_PATH] [--master_data_path MASTER_DATA_PATH] [--debug] --load {datatracker,database} --save {datatracker,database} input_path output_path gdb_path
 """
 #========================================================
 # Imports
@@ -57,13 +57,13 @@ class StartupParameters:
             print('test')
             raise argparse.ArgumentTypeError("If --load or --save is 'datatracker', --data_tracker_path {path} must not be empty.")
         elif (load_from == 'datatracker' or save_to == 'datatracker') and data_tracker_path != '':
-            self.validate_path(data_tracker_path, must_ends_with=DATA_SHEET_EXTENSIONS)
+            self.validate_path('data_tracker_path', data_tracker_path, must_ends_with=DATA_SHEET_EXTENSIONS)
             
         # Validate and set paths
-        self.validate_path(input_path, must_exists=True)
-        self.validate_path(output_path)
-        self.validate_path(gdb_path, must_ends_with='.gdb')
-        self.validate_path(master_data_path, must_exists=True, must_ends_with='.xlsx')
+        self.validate_path('input_path', input_path, must_exists=True)
+        self.validate_path('output_path', output_path)
+        self.validate_path('gdb_path', gdb_path, must_ends_with='.gdb')
+        self.validate_path('master_data_path', master_data_path, must_exists=True, must_ends_with='.xlsx')
         
         self.input = input_path
         self.output = output_path
@@ -80,11 +80,12 @@ class StartupParameters:
             raise ValueError(f"The column 'Project Number' does not exist in the master data.")
 
         
-    def validate_path(self, param, must_exists=False, must_ends_with=None):
+    def validate_path(self, argument, param, must_exists=False, must_ends_with=None):
         '''
         Validates the given path.
 
         Parameters:
+        - argument (str): The key value of the param passed.
         - param (str): Path to be validated.
         - must_exists (bool, optional): If True, the path must exist. Defaults to False.
         - must_ends_with (str, optional): If provided, the path must end with this string.
@@ -96,13 +97,13 @@ class StartupParameters:
             None
         '''
         if not isinstance(param, str) or not param.strip():
-            raise ValueError(f'{param} must be a non-empty string.')
+            raise ValueError(f'{argument}: {param} must be a non-empty string.')
 
         if must_ends_with is not None and not param.endswith(must_ends_with):
-            raise ValueError(f'{param} must be of type {must_ends_with}.')
+            raise ValueError(f'{argument}: {param} must be of type {must_ends_with}.')
 
         if must_exists and not os.path.exists(param):
-            raise ValueError(f'{param} path does not exist.')
+            raise ValueError(f'{argument}: {param} path does not exist.')
     
     def handle_unzip(self):
         '''

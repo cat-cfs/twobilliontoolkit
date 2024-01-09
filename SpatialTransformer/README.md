@@ -110,7 +110,7 @@ If you would like to contribute to Spatial Transformer, follow these guidelines:
 
 ## License
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+This project is licensed under the MIT License. [Click here to view the license file](../LICENSE) and review the terms and conditions of the MIT License.
 
 ## Contact
 

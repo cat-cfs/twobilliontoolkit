@@ -83,11 +83,11 @@ def process_attachment(output_project_path, table_path):
     Proccesses any attachments handed to it.
 
     Parameters:
-    - gdb_path (str): Path to input GDB.
-    - output_path (str): Path to export the attachments to.
+    - output_project_path (str): The path of where the attachments will be exported.
+    - table_path (str): The path to a __ATTACH table in a GDB.
     
     Return:
-    - attachment_dict (dict): A dictionary of key value pairs to tie each project id that had attachments to the path they were extracted to.
+    - None
     '''                 
     # Check if the directory exists, if not, create it
     if not os.path.exists(output_project_path):
