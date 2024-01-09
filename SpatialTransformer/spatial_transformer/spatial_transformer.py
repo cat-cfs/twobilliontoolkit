@@ -22,7 +22,9 @@ Description:
     The spatial_transformer.py script is a Python tool for processing spatial data. It handles tasks like geodatabase creation, file validation, and checking project numbers against a master data sheet. 
 
 Usage:
-    python spatial_transformer/[-h] [--data_tracker_path DATA_TRACKER_PATH] [--log_path LOG_PATH] [--master_data_path MASTER_DATA_PATH] [--debug] --load {datatracker,database} --save {datatracker,database} input_path output_path gdb_path
+    python path/to/spatial_transformer.py [-h] --input input_path --output output_path --gdb gdb_path --master master_data_path --load {datatracker,database} --save {datatracker,database} [--data_tracker_path data_tracker_path] [--attachments attachments_path] [--log_path LOG_PATH] [--debug]
+
+
 """
 #========================================================
 # Imports
@@ -38,7 +40,7 @@ import time
 # Classes
 #========================================================
 class StartupParameters:
-    def __init__(self, input_path, output_path, gdb_path, data_tracker_path, master_data_path, log_path='', debug=False, load_from='database', save_to='database'):
+    def __init__(self, input_path, output_path, gdb_path, master_data_path, load_from='database', save_to='database', data_tracker_path, attachments_path, log_path='', debug=False):
        
         '''
         Initializes the StartupParameters class with input parameters.
@@ -47,33 +49,41 @@ class StartupParameters:
         - input_path (str): Path to input data.
         - output_path (str): Path to output data.
         - gdb_path (str): Path to geodatabase file.
-        - data_tracker_path (str): Path to data tracker file.
         - master_data_path (str): Path to the aspatial master data.
+        - load_from (str): Either 'database' or 'datatracker' to determine what to load the data from.
+        - save_to (str): Either 'database' or 'datatracker' to determine what to save the data to.
+        - data_tracker_path (str): Path to data tracker file.
+        - attachments_path (str): Path where the extracted attachments will be.
         - log_path (str, optional): Path to log file. Defaults to an empty string.
         - debug (bool, optional): Determines if program is in debug mode
         ''' 
         # Ensure that if a datatracker is specified for loading or saving, then a path must be passed
         if (load_from == 'datatracker' or save_to == 'datatracker') and data_tracker_path == '':
-            print('test')
-            raise argparse.ArgumentTypeError("If --load or --save is 'datatracker', --data_tracker_path {path} must not be empty.")
+            raise argparse.ArgumentTypeError("If --load or --save is 'datatracker', --data_tracker_path must be specified.")
         elif (load_from == 'datatracker' or save_to == 'datatracker') and data_tracker_path != '':
             self.validate_path('data_tracker_path', data_tracker_path, must_ends_with=DATA_SHEET_EXTENSIONS)
+            
+        # If nothing was specified for the attachments path, set it to the same place as the output of the ripple unzipple tool.
+        if attachments_path == '':
+            attachments_path = output_path
             
         # Validate and set paths
         self.validate_path('input_path', input_path, must_exists=True)
         self.validate_path('output_path', output_path)
         self.validate_path('gdb_path', gdb_path, must_ends_with='.gdb')
         self.validate_path('master_data_path', master_data_path, must_exists=True, must_ends_with='.xlsx')
+        self.validate_path('attachments_path', attachments_path)
         
         self.input = input_path
         self.output = output_path
         self.gdb = gdb_path
-        self.datatracker = data_tracker_path
         self.masterdata = pd.read_excel(master_data_path)
-        self.log = log_path
-        self.debug = debug
         self.load_from = load_from
         self.save_to = save_to
+        self.datatracker = data_tracker_path
+        self.attachments = attachments_path
+        self.log = log_path
+        self.debug = debug
         
         # Extra validation on master data to check it has project number column
         if 'Project Number' not in self.masterdata.columns:
@@ -159,36 +169,39 @@ def main():
     print(f'Tool is starting...')
     
     # Initialize the argument parse
-    parser = argparse.ArgumentParser(description='This tools purpose is to ')
+    parser = argparse.ArgumentParser(description='Spatial Transformer Tool')
     
     # Define command-line arguments
-    parser.add_argument('input_path', help='Input path')
-    parser.add_argument('output_path', help='Output path')
-    parser.add_argument('gdb_path', help='GDB path')
-    parser.add_argument('--data_tracker_path', default='', help='Data tracker path')
-    parser.add_argument('--log_path', default='', help='Log path (optional)')
-    parser.add_argument('--master_data_path', default='', help='Master Aspatial Datasheet Path')
-    parser.add_argument('--debug', action='store_true', default=False, help='Enable debug mode')
+    parser.add_argument('--input', required=True, default='', help='Directory or Compressed file location that will be handed to Ripple Unzipple')
+    parser.add_argument('--output', required=True, default='', help='Where to output the result from Ripple Unzipple')
+    parser.add_argument('--gdb', required=True, default='', help='The new location or where an exsiting Geodatabase is located')
+    parser.add_argument('--master', required=True, default='', help='The location of the master aspatial datasheet')
     parser.add_argument('--load', choices=['datatracker', 'database'], required=True, default='database', help='Specify what to load from (datatracker or database)')
     parser.add_argument('--save', choices=['datatracker', 'database'], required=True, default='database', help='Specify what to save to (datatracker or database)')
+    parser.add_argument('--data_tracker', default='', help='The new location or where an exsiting data tracker is located')
+    parser.add_argument('--attachments', default='', help='The location where the attachments will be extracted to if applicable (optional, defaults to same root output as Ripple Unzipple)')
+    parser.add_argument('--log', default='', help='The new location or where an existing log file is located (optional)')
+    parser.add_argument('--debug', action='store_true', default=False, help='Enable debug mode')
     
     # Parse the command-line arguments
     args = parser.parse_args()
 
     # Access the values using the attribute notation
-    input_path = args.input_path
-    output_path = args.output_path
-    gdb_path = args.gdb_path
-    data_tracker_path = args.data_tracker_path
-    master_data_path = args.master_data_path
-    log_path = args.log_path
-    debug = args.debug
+    input_path = args.input
+    output_path = args.output
+    gdb_path = args.gdb
+    master_data_path = args.master
     load_from = args.load
     save_to = args.save
+    data_tracker_path = args.data_tracker
+    attachments_path = args.attachments
+    log_path = args.log
+    debug = args.debug
+    
     
     try:        
         # Initialize StartupParameters class
-        setup_parameters = StartupParameters(input_path, output_path, gdb_path, data_tracker_path, master_data_path, log_path, debug, load_from, save_to)
+        setup_parameters = StartupParameters(input_path, output_path, gdb_path, master_data_path, load_from, save_to, data_tracker_path, attachments_path, log_path, debug)
         
         # Uncomment to print out everything contained in class
         # print(setup_parameters)

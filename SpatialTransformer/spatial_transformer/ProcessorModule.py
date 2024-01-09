@@ -418,7 +418,7 @@ class Processor:
             data (dict): Data dictionary.
         '''
         #
-        attachment_dict = find_attachments(self.params.gdb, r'./Output')
+        attachment_dict = find_attachments(self.params.gdb, self.params.attachments)
         
         # Iterating through key-value pairs using items()
         for key, value in attachment_dict.items():

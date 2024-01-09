@@ -125,7 +125,7 @@ def main():#
     print(f'Tool is starting...')
     
     # Initialize the argument parse
-    parser = argparse.ArgumentParser(description='This tools purpose is to ')
+    parser = argparse.ArgumentParser(description='')
     
     # Define command-line arguments
     parser.add_argument('gdb_path', help='Input GDB path')

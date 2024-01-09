@@ -34,20 +34,23 @@ You should then be set up to use the tool!
 To use the Spatial Transformer, run the script from the command line with the following syntax:
 
 ```
-arcpy_environment_python_path /path/to/spatial_transformer.py [-h] [--log_path LOG_PATH] [--debug] --load {datatracker,database} --save {datatracker,database} unzipper_input_path unzipper_output_path gdb_path data_tracker_path
+arcpy_environment_python_path /path/to/spatial_transformer.py [-h] --input input_path --output output_path --gdb gdb_path --master master_data_path --load {datatracker,database} --save {datatracker,database} [--data_tracker_path data_tracker_path] [--attachments attachments_path] [--log_path LOG_PATH] [--debug]
 ```
 - [-h, --help] (optional): List all of the available commands and a description for help.
-- [--log_path log_path] (optional): Path to the log file. If provided, detailed logs will be saved to this file. 
+- --input input_path : Path to the input directory or compressed file.
+- --output output_path: Path to the output directory where the uncompressed data will be stored.
+- --gdb gdb_path: Path to where the resulting GeoDatabase will be stored, it can be an existing GeoDatabase, else it will create the GeoDatabase itself.
+- --master master_data_path: Path to where the aspatial master datasheet is located.
 - --load {datatracker,database}: Specify wheather the tool loads the data from an exisiting datatracker or a database connection. 
 - --save {datatracker,database}: Specify wheather the tool saves the data to a specified datatracker or a database connection. 
-- unzipper_input_path: Path to the input directory or compressed file.
-- unzipper_output_path: Path to the output directory where the uncompressed data will be stored.
-- gdb_path: Path to where the resulting GeoDatabase will be stored, it can be an existing GeoDatabase, else it will create the GeoDatabase itself.
-- data_tracker_path: Path to where the resulting Data Tracker Excell sheet will be stored, it can be an existing datasheet, else it will create it when it is complete.
+- [--data_tracker_path data_tracker_path] (conditional): Path to where the resulting Data Tracker Excell sheet will be stored, it can be an existing datasheet, else it will create it when it is complete.
+- [--attachments attachments_path] (optional): The location that the attachments from the geodatabase will be located, if left empty it will be located in the same output folder as ripple zipple outputs to in the end.
+- [--log_path log_path] (optional): Path to the log file. If provided, detailed logs will be saved to this file. 
+- [--debug] (optional): include to enable debugging mode, giving some more information.
 
 Example from root of project:
 ```
-python ./spatial_transformer/spatial_transformer.py ./Testing/Data/TestFolder.zip ./Testing/OutputFolder ./Testing/OutputGDB.gdb ./Testing/OutputDataSheet.xlsx --log_path ./Testing/OutputLog.txt --load datatracker --save datatracker
+python ./spatial_transformer/spatial_transformer.py --input ./Testing/Data/TestFolder.zip --output ./Testing/OutputFolder --gdb ./Testing/OutputGDB.gdb --data_tracker ./Testing/OutputDataSheet.xlsx --log ./Testing/OutputLog.txt --load datatracker --save datatracker --master ./MasterDatasheet --attachments ./Testing/Attachments
 ```
 
 You also have the option of calling this function from a module import with the following syntax (you may need to use relative or absolute paths depending on your environment and where you are calling from):
@@ -61,13 +64,15 @@ def main():
     input_path = './Testing/Data/TestFolder.zip'
     output_path = './Testing/OutputFolder'
     gdb_path = './Testing/OutputGDB.gdb'
-    datatracker_path = './Testing/OutputDataSheet.xlsx'
-    log_path = './Testing/OutputLog.txt'
+    master_data_path = './MasterDatasheet'
     load_from = 'database'
     save_to = 'database'
+    datatracker_path = './Testing/OutputDataSheet.xlsx'
+    attachments_path = './Testing/Attachments'
+    log_path = './Testing/OutputLog.txt'
+    debug = True
     
-    startparams = StartupParameters(input_path, output_path, gdb_path,
-      datatracker_path, log_path, load_from, save_to)
+    setup_parameters = StartupParameters(input_path, output_path, gdb_path, master_data_path, load_from, save_to, data_tracker_path, attachments_path, log_path, debug)
     processor = Processor(self.startparams)
     datatracker = DataTracker(self.startparams.datatracker)
 ```
