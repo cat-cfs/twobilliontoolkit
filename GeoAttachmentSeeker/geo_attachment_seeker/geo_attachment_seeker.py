@@ -19,7 +19,7 @@ Organization:     Natural Resources of Canada
 Team:             Carbon Accounting Team
 
 Description: 
-    
+    The script identifies and processes attachment tables within the specified GDB, filtering out non-attachment tables. It then extracts attachment files from each table and exports them to a specified output directory. The attachments are exported to a directory structure organized by project IDs. Each attachment file is named with a prefix (e.g., "ATT{attachment_id}_") to distinguish them.
 
 Usage:
     python path/to/geo_attachment_seeker.py gdb_path output_path
@@ -60,11 +60,12 @@ def find_attachments(gdb_path, output_path):
         if '__ATTACH' not in table:
             continue
         
-        print(table)
+        # Uncomment following line to print out the names of the _ATTACH Tables in the gdb
+        # print(table)
         
         # Build the output project paths
         project_id = table.replace('__ATTACH', '')
-        output_project_path = os.path.join(output_path, project_id)
+        output_project_path = os.path.normpath(os.path.join(output_path, project_id))
         table_path = os.path.join(gdb_path, table)
         
         # Call the processing function
@@ -72,8 +73,9 @@ def find_attachments(gdb_path, output_path):
         
         # Add to the dictionary
         attachment_dict[project_id] = output_project_path
-            
-    print(attachment_dict)
+           
+    # Uncomment following line to print out the resulting dictionary
+    # print(attachment_dict)
     
     # Return the attachement dictionary
     return attachment_dict
@@ -94,18 +96,14 @@ def process_attachment(output_project_path, table_path):
         os.makedirs(output_project_path)
     
     # Extract the attachment files from each table
-    # Credits: To Andrea for finding method and original author at
-    # https://support.esri.com/en-us/knowledge-base/how-to-batch-export-attachments-from-a-feature-class-in-000011912
+    # Credits: A Modified version of the method Andrea found at https://support.esri.com/en-us/knowledge-base/how-to-batch-export-attachments-from-a-feature-class-in-000011912
     with arcpy.da.SearchCursor(table_path, ['DATA', 'ATT_NAME', 'ATTACHMENTID']) as cursor:
-        for item in cursor:
-            attachment = item[0]
-            filenum = "ATT" + str(item[2]) + "_"
-            filename = filenum + str(item[1])
-            open(output_project_path + os.sep + filename, 'wb').write(attachment.tobytes())
-            del item
-            del filenum
-            del filename
-            del attachment
+        for attachment, att_name, attachment_id in cursor:
+            filenum = f"ATT{attachment_id}_"
+            filename = os.path.join(output_project_path, filenum + att_name)
+            
+            with open(filename, 'wb') as file:
+                file.write(attachment.tobytes())
             
 #========================================================
 # Main

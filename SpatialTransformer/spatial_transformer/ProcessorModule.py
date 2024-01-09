@@ -102,7 +102,8 @@ class Processor:
                 raw_data_path=raw_data_path, 
                 in_raw_gdb=False, 
                 contains_pdf=False, 
-                contains_image=False
+                contains_image=False,
+                attachments_path=None
             )
             
             try: 
@@ -134,6 +135,9 @@ class Processor:
             except Exception as error:
                 logging(self.params.log, Colors.ERROR, error)
 
+        #
+        self.extract_attachments(data)
+        
         # Save the data tracker before returning
         data._save_data()
         logging(self.params.log, Colors.INFO, f'The data tracker "{self.params.datatracker}" has been created successfully.')
@@ -205,39 +209,6 @@ class Processor:
         
         # Change the flag to indicate it was succefully put into the Geodatabase
         data.set_data(project_spatial_id=formatted_project_spatial_id, in_raw_gdb=True)
-
-
-    def remove_cascading_style(self, file):
-        """
-        Remove cascading styles from KML-XML.
-        
-        Parameters:
-            file (str): Path to the KML file.
-        
-        Returns:
-            str: Path to modified XML root.
-        """
-        # Register XML namespaces
-        ET.register_namespace("", "http://www.opengis.net/kml/2.2")
-        ET.register_namespace("gx", "http://www.google.com/kml/ext/2.2")
-        ET.register_namespace("atom", "http://www.w3.org/2005/Atom")
-
-        # Read KML content from file
-        with open(file, 'r', encoding='utf-8') as file:
-            kml_content = file.read()
-        
-        root = ET.fromstring(kml_content)
-        cascading_styles = root.findall(".//{http://www.google.com/kml/ext/2.2}CascadingStyle")
-
-        for cascading_style in cascading_styles:
-            parent = root.find(".//{http://www.opengis.net/kml/2.2}Document")
-            parent.remove(cascading_style)
-
-        # Write modified KML content to a new file
-        kml_output_no_gx_path = os.path.join(self.temp_directory, 'KMLWithoutGX.kml')
-        ET.ElementTree(root).write(kml_output_no_gx_path, encoding="utf-8", xml_declaration=True)
-
-        return kml_output_no_gx_path  
     
     def _process_kml_kmz(self, file, formatted_project_spatial_id, data): 
         """
@@ -288,7 +259,8 @@ class Processor:
                     raw_data_path=current_feature_data['raw_data_path'],
                     in_raw_gdb=False,
                     contains_pdf=False,
-                    contains_image=False
+                    contains_image=False,
+                    attachments_path=None
                 )
                 
                 # Update the formatted project spatial ID
@@ -313,7 +285,39 @@ class Processor:
                 raw_data_path=new_raw_data_path, 
                 in_raw_gdb=True
             )
+            
+    def remove_cascading_style(self, file):
+        """
+        Remove cascading styles from KML-XML.
         
+        Parameters:
+            file (str): Path to the KML file.
+        
+        Returns:
+            str: Path to modified XML root.
+        """
+        # Register XML namespaces
+        ET.register_namespace("", "http://www.opengis.net/kml/2.2")
+        ET.register_namespace("gx", "http://www.google.com/kml/ext/2.2")
+        ET.register_namespace("atom", "http://www.w3.org/2005/Atom")
+
+        # Read KML content from file
+        with open(file, 'r', encoding='utf-8') as file:
+            kml_content = file.read()
+        
+        root = ET.fromstring(kml_content)
+        cascading_styles = root.findall(".//{http://www.google.com/kml/ext/2.2}CascadingStyle")
+
+        for cascading_style in cascading_styles:
+            parent = root.find(".//{http://www.opengis.net/kml/2.2}Document")
+            parent.remove(cascading_style)
+
+        # Write modified KML content to a new file
+        kml_output_no_gx_path = os.path.join(self.temp_directory, 'KMLWithoutGX.kml')
+        ET.ElementTree(root).write(kml_output_no_gx_path, encoding="utf-8", xml_declaration=True)
+
+        return kml_output_no_gx_path  
+    
     def _process_json(self, file, formatted_project_spatial_id, data):
         """
         Process GeoJSON files.
@@ -373,7 +377,8 @@ class Processor:
                     raw_data_path=current_feature_data['raw_data_path'],
                     in_raw_gdb=False,
                     contains_pdf=False,
-                    contains_image=False
+                    contains_image=False,
+                    attachments_path=None
                 )
                 
                 # Update the formatted project spatial ID
@@ -405,6 +410,24 @@ class Processor:
                 raw_data_path=new_raw_data_path, 
             )
 
+    def extract_attachments(self, data):
+        '''
+        Call the GeoAttachmentSeeker module function to find, extract and note down any attachments in the result GDB.
+
+        Parameters:
+            data (dict): Data dictionary.
+        '''
+        #
+        attachment_dict = find_attachments(self.params.gdb, r'./Output')
+        
+        # Iterating through key-value pairs using items()
+        for key, value in attachment_dict.items():
+            # Update the entry of the Geodatabase feature class
+            data.set_data(
+                project_spatial_id=key.replace('proj_', ''), 
+                attachments_path=value, 
+            )
+            
     def __str__(self):
         '''
         Redefines the string representation of the class.

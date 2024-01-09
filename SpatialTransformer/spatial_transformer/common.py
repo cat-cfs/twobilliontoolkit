@@ -2,8 +2,6 @@
 #========================================================
 # Imports
 #========================================================
-# from ripple_unzipple import ripple_unzip, logging, Colors
-
 import os
 import arcpy
 import pandas as pd
