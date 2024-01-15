@@ -1,3 +1,4 @@
 # requirements.txt
 git+https://github.com/cat-cfs/RippleUnzipple.git
+pywin32==306
 # Add any other dependencies here

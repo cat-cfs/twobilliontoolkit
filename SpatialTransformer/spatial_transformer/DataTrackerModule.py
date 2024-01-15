@@ -30,7 +30,7 @@ class DataTracker:
         if os.path.exists(data_traker_path):
             self._load_data()
     
-    def add_data(self, project_spatial_id, project_number, project_path, raw_data_path, in_raw_gdb, contains_pdf, contains_image, extracted_attachments_path):
+    def add_data(self, project_spatial_id, project_number, project_path, raw_data_path, absolute_file_path, in_raw_gdb, contains_pdf, contains_image, extracted_attachments_path, processed):
         '''
         Adds project data to the data tracker.
 
@@ -39,10 +39,12 @@ class DataTracker:
             project_number (int): Project number.
             project_path (str): Project path.
             raw_data_path (str): Raw data path.
+            absolute_file_path (str): The full absolute file path.
             in_raw_gdb (bool): Indicates whether data is in raw GDB.
             contains_pdf (bool): Indicates whether data contains PDF files.
             contains_image (bool): Indicates whether data contains image files.
             extracted_attachments_path (str): The path to the extracted attachments if applicable.
+            processed (bool): Indicates whether data has been processed yet.
 
         Returns:
             None
@@ -51,13 +53,15 @@ class DataTracker:
             'project_number': project_number,
             'project_path': project_path,
             'raw_data_path': raw_data_path,
+            'absolute_file_path': absolute_file_path,
             'in_raw_gdb': in_raw_gdb,
             'contains_pdf': contains_pdf,
             'contains_image': contains_image,
-            'extracted_attachments_path': extracted_attachments_path
+            'extracted_attachments_path': extracted_attachments_path,
+            'processed': processed
         }
         
-    def set_data(self, project_spatial_id, project_number=None, raw_data_path=None, in_raw_gdb=None, contains_pdf=None, contains_image=None, extracted_attachments_path=None):
+    def set_data(self, project_spatial_id, project_number=None, raw_data_path=None, absolute_file_path=None, in_raw_gdb=None, contains_pdf=None, contains_image=None, extracted_attachments_path=None, processed=None):
         '''
         Updates project data in the data tracker.
 
@@ -65,10 +69,12 @@ class DataTracker:
             project_spatial_id (str): Project spatial ID. Acts as key in dictionary.
             project_number (str): Project number (optional).
             raw_data_path (str): Raw data path (optional).
+            absolute_file_path (str): The full absolute file path.
             in_raw_gdb (bool): Indicates whether data is in raw GDB (optional).
             contains_pdf (bool): Indicates whether data contains PDF files (optional).
             contains_image (bool): Indicates whether data contains image files (optional).
-            extracted_attachments_path(str): The path to the extracted attachments if applicable. (optional)
+            extracted_attachments_path (str): The path to the extracted attachments if applicable (optional).
+            processed (bool): Indicates whether data has been processed yet (optional).
 
         Returns:
             None
@@ -79,6 +85,8 @@ class DataTracker:
             project_data['project_number'] = project_number
         if raw_data_path is not None:
             project_data['raw_data_path'] = raw_data_path
+        if absolute_file_path is not None:
+            project_data['absolute_file_path'] = absolute_file_path
         if in_raw_gdb is not None:
             project_data['in_raw_gdb'] = in_raw_gdb
         if contains_pdf is not None:
@@ -87,6 +95,8 @@ class DataTracker:
             project_data['contains_image'] = contains_image
         if extracted_attachments_path is not None:
             project_data['extracted_attachments_path'] = extracted_attachments_path
+        if processed is not None:
+            project_data['processed'] = processed
     
     def get_data(self, project_spatial_id):
         '''
@@ -116,6 +126,26 @@ class DataTracker:
                 project_spatial_id
                 for project_spatial_id, project_data in self.data_dict.items()
                 if project_data.get('raw_data_path') == raw_data_path
+            ),
+            None
+        )
+        
+    def find(self, criteria):
+        '''
+        Find any criteria from the global data class.
+
+        Parameters:
+            criteria (dict): A dictionary of criteria of what to search the data class for.
+
+        Returns:
+            data_entry: A matching row of the dictionary if the criteria is all returned true, otherwise return None.
+        '''        
+        #
+        return next(
+            (
+                data_entry
+                for data_entry in self.data_dict.values()
+                if all(data_entry.get(field) == value for field, value in criteria.items())
             ),
             None
         )
@@ -175,10 +205,12 @@ class DataTracker:
                 row['project_number'],
                 row['project_path'],
                 row['raw_data_path'],
+                row['absolute_file_path'],
                 row['in_raw_gdb'],
                 row['contains_pdf'],
                 row['contains_image'],
-                row['extracted_attachments_path']
+                row['extracted_attachments_path'],
+                row['processed']
             ), axis=1)
 
     def _save_data(self, save_to='database'):
@@ -195,13 +227,13 @@ class DataTracker:
         
         else: 
             # Create a DataFrame and save it to Excel if the data tracker file doesn't exist
-            df = pd.DataFrame(list(self.data_dict.values()), columns=['project_number', 'project_path', 'raw_data_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path'])
+            df = pd.DataFrame(list(self.data_dict.values()), columns=['project_number', 'project_path', 'raw_data_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'processed'])
 
             # Add 'project_spatial_id' to the DataFrame
             df['project_spatial_id'] = list(self.data_dict.keys())
 
             # Reorder columns to have 'project_spatial_id' as the first column
-            df = df[['project_spatial_id', 'project_number', 'project_path', 'raw_data_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path']]
+            df = df[['project_spatial_id', 'project_number', 'project_path', 'raw_data_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'processed']]
 
             # Sort the rows by the project_spatial_id column
             df = df.sort_values(by=['project_spatial_id'])
@@ -213,14 +245,6 @@ class DataTracker:
             
             # Convert dataframe to excel
             df.to_excel(self.data_tracker, index=False)
-                
-    def __str__(self):
-        '''
-        Redefines the string representation of the class.
-
-        Returns:
-        - str: String representation of the Data class.
-        '''
-        # Returning Pretty JSON
-        return f'\nData Class\nData Dictionary: {json.dumps(self.data_dict, indent=4)}'
-    
+            
+            print(f'The data tracker "{self.data_tracker}" has been created/updated successfully.')
+                    

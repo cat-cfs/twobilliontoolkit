@@ -22,7 +22,7 @@ Description:
     The spatial_transformer.py script is a Python tool for processing spatial data. It handles tasks like geodatabase creation, file validation, and checking project numbers against a master data sheet. 
 
 Usage:
-    python path/to/spatial_transformer.py [-h] --input input_path --output output_path --gdb gdb_path --master master_data_path --load {datatracker,database} --save {datatracker,database} [--data_tracker_path data_tracker_path] [--attachments attachments_path] [--log_path LOG_PATH] [--debug]
+    python path/to/spatial_transformer.py [-h] --input input_path --output output_path --gdb gdb_path --master master_data_path --load {datatracker,database} --save {datatracker,database} [--data_tracker_path data_tracker_path] [--attachments attachments_path] [--log_path LOG_PATH] [--debug] [--resume]
 
 
 """
@@ -40,7 +40,7 @@ import time
 # Classes
 #========================================================
 class StartupParameters:
-    def __init__(self, input_path, output_path, gdb_path, master_data_path, data_tracker_path, attachments_path, load_from='database', save_to='database', log_path='', debug=False):
+    def __init__(self, input_path, output_path, gdb_path, master_data_path, data_tracker_path, attachments_path, load_from='database', save_to='database', log_path='', debug=False, resume=False):
        
         '''
         Initializes the StartupParameters class with input parameters.
@@ -56,6 +56,7 @@ class StartupParameters:
         - attachments_path (str): Path where the extracted attachments will be.
         - log_path (str, optional): Path to log file. Defaults to an empty string.
         - debug (bool, optional): Determines if program is in debug mode
+        - resume (bool, optional): Determines if program should resume from where a crash happened
         ''' 
         # Ensure that if a datatracker is specified for loading or saving, then a path must be passed
         if (load_from == 'datatracker' or save_to == 'datatracker') and data_tracker_path == '':
@@ -84,6 +85,7 @@ class StartupParameters:
         self.attachments = attachments_path
         self.log = log_path
         self.debug = debug
+        self.resume = resume
         
         # Extra validation on master data to check it has project number column
         if 'Project Number' not in self.masterdata.columns:
@@ -124,6 +126,10 @@ class StartupParameters:
         Returns:
             None
         '''
+        # If the resume after crash flag was specified, skip
+        if self.resume:
+            return
+        
         ripple_unzip(self.input, self.output, self.log)
         
     def create_gdb(self):
@@ -135,6 +141,10 @@ class StartupParameters:
         Returns:
             None
         '''
+        # If the resume after crash flag was specified, skip
+        if self.resume:
+            return
+        
         # Create the .gdb if it does not already exists
         if not arcpy.Exists(self.gdb):
             try:
@@ -149,16 +159,7 @@ class StartupParameters:
                 logging(self.log, Colors.INFO, f'Geodatabase: {file} created successfully')
             except arcpy.ExecuteError:
                 logging(self.log, Colors.ERROR, arcpy.GetMessages(2))
-        
-    def __str__(self):
-        '''
-        Redefines the string representation of the class.
-
-        Returns:
-            str: String representation of the StartupParameters class.
-        '''
-        return f'\nStartupParameters Class\nInput path: {self.input}\nOutput path: {self.output}\nGeodatabase path: {self.gdb}\nDatatracker path: {self.datatracker}\nLog path: {self.log}\n' 
-     
+             
 #========================================================
 # Main
 #========================================================
@@ -182,6 +183,7 @@ def main():
     parser.add_argument('--attachments', default='', help='The location where the attachments will be extracted to if applicable (optional, defaults to same root output as Ripple Unzipple)')
     parser.add_argument('--log', default='', help='The new location or where an existing log file is located (optional)')
     parser.add_argument('--debug', action='store_true', default=False, help='Enable debug mode')
+    parser.add_argument('--resume', action='store_true', default=False, help='Resume from where a crash happened')
     
     # Parse the command-line arguments
     args = parser.parse_args()
@@ -197,17 +199,18 @@ def main():
     attachments_path = args.attachments
     log_path = args.log
     debug = args.debug
+    resume = args.resume
     
     
     try:        
         # Initialize StartupParameters class
-        setup_parameters = StartupParameters(input_path, output_path, gdb_path, master_data_path, data_tracker_path, attachments_path, load_from, save_to,  log_path, debug)
+        setup_parameters = StartupParameters(input_path, output_path, gdb_path, master_data_path, data_tracker_path, attachments_path, load_from, save_to, log_path, debug, resume)
         
         # Uncomment to print out everything contained in class
         # print(setup_parameters)
         
         # # Start the unzip tool 
-        setup_parameters.handle_unzip()
+        # setup_parameters.handle_unzip()
         
         # Create the GDB
         setup_parameters.create_gdb()
@@ -224,13 +227,16 @@ def main():
         # Start the processing
         spatial_data.process_spatial_files()
             
-    except ValueError as error:
+    except (ValueError, Exception) as error:
+        # Log the error
         logging(log_path, Colors.ERROR, error)
+        
+        # Save the data to the datatracker in case of crashing
+        spatial_data.data._save_data()
+        logging(log_path, Colors.INFO, 'A checkpoint has been made at the point of faliure.')
+        
         exit(1)
-    except Exception as error:
-        logging(log_path, Colors.ERROR, error)
-        exit(1)
-                
+                        
     # Get the end time of the script and calculate the elapsed time
     end_time = time.time()
     print(f'\nTool has completed')

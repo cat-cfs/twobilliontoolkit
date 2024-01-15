@@ -85,7 +85,7 @@ def find_attachments(gdb_path, output_path):
         attachment_dict[project_id] = output_project_path
            
     # Uncomment following line to print out the resulting dictionary
-    print(attachment_dict)
+    # print(attachment_dict)
     
     # Return the attachement dictionary
     return attachment_dict

@@ -4,6 +4,7 @@
 #========================================================
 import os
 import arcpy
+import datetime
 import pandas as pd
 import shutil
 import sys
@@ -19,5 +20,3 @@ SPATIAL_FILE_EXTENSIONS = ('.shp', '.kml', '.kmz', '.geojson', '.gpkg', '.sqlite
 DATA_SHEET_EXTENSIONS = ('.xlsx', '.csv')
 LAYOUT_FILE_EXTENSIONS = ('.mxd', '.aprx', '.pagx', '.qgs', '.qgz', '.qlr')
 IMAGE_FILE_EXTENSIONS = ('pdf', '.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tif','.tiff')
-
-DEBUG = False
