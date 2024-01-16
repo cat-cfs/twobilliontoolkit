@@ -77,8 +77,8 @@ class Processor:
 
             # Print file information if debugging is enabled
             if self.params.debug:
-                print(file)
-                print(formatted_project_spatial_id)
+                log(None, Colors.INFO, file)
+                log(None, Colors.INFO, formatted_project_spatial_id)
 
             # Convert the raw data path to a relative path and extract the project path
             raw_data_path = os.path.relpath(file, self.params.output)
@@ -111,11 +111,11 @@ class Processor:
             # Check the file type and call the appropriate processing method
             lowercase_file = file.lower()
             if lowercase_file.endswith(LAYOUT_FILE_EXTENSIONS):
-                logging(self.params.log, Colors.WARNING, f'Layout file: {file} will be added to data tracker but not resulting gdb.\n')
+                log(self.params.log, Colors.WARNING, f'Layout file: {file} will be added to data tracker but not resulting gdb.\n')
             elif lowercase_file.endswith(DATA_SHEET_EXTENSIONS):
-                logging(self.params.log, Colors.WARNING, f'Datasheet: {file} will be added to data tracker but not resulting gdb.\n')
+                log(self.params.log, Colors.WARNING, f'Datasheet: {file} will be added to data tracker but not resulting gdb.\n')
             elif lowercase_file.endswith(IMAGE_FILE_EXTENSIONS):
-                logging(self.params.log, Colors.WARNING, f'Image/PDF file: {file} will be added to data tracker but not resulting gdb.\n')
+                log(self.params.log, Colors.WARNING, f'Image/PDF file: {file} will be added to data tracker but not resulting gdb.\n')
                 
                 # Update data tracker based on specific file types
                 if lowercase_file.endswith('.pdf'):
@@ -132,7 +132,7 @@ class Processor:
             elif lowercase_file.endswith('.gdb'):
                 self._process_gdb(file, formatted_project_spatial_id)
             elif lowercase_file.endswith(('.gpkg', '.sqlite')):
-                logging(self.params.log, Colors.WARNING, f'GeoPackage/SQLite file: {file} will be added to data tracker but not resulting gdb.\n')
+                log(self.params.log, Colors.WARNING, f'GeoPackage/SQLite file: {file} will be added to data tracker but not resulting gdb.\n')
 
             self.data.set_data(project_spatial_id=formatted_project_spatial_id, processed=True)
 
@@ -162,7 +162,7 @@ class Processor:
         
         # If no match is found, log a warning and assign an arbitrary project number
         if not search:
-            logging(self.params.log, Colors.WARNING, f'Could not find a project number for: {file_path} - Giving it an arbitrary project number "0000 XXX - 000"')
+            log(self.params.log, Colors.WARNING, f'Could not find a project number for: {file_path} - Giving it an arbitrary project number "0000 XXX - 000"')
             formatted_result = '0000 XXX - 000'
         else:
             # Format the result using the matched groups
@@ -171,7 +171,7 @@ class Processor:
         # Check if the project number is found in the master datasheet
         project_found = master_df['Project Number'].str.replace(' ', '').eq(formatted_result.replace(' ', '').upper()).any()
         if not project_found:
-            logging(self.params.log, Colors.WARNING, f'The project number does not match any in the master datasheet')
+            log(self.params.log, Colors.WARNING, f'The project number does not match any in the master datasheet')
             
         return formatted_result
         
@@ -189,7 +189,7 @@ class Processor:
         # Find a corresponding project spatial ID in the data dictionary based on the raw data path
         found_match = self.data._find_matching_spatial_id(raw_data_path)
         if found_match is not None:
-            logging(self.params.log, Colors.WARNING, f'Raw path: {raw_data_path} already exists in the data tracker! -  Current Spatial ID: {current_spatial_id} Matching Spatial ID: {found_match}')    
+            log(self.params.log, Colors.WARNING, f'Raw path: {raw_data_path} already exists in the data tracker! -  Current Spatial ID: {current_spatial_id} Matching Spatial ID: {found_match}')    
 
     def _process_shp(self, file, formatted_project_spatial_id):
         """
@@ -430,7 +430,7 @@ class Processor:
         
         # Print file information if debugging is enabled
         if self.params.debug:
-            print(attachment_dict)
+            log(None, Colors.INFO, attachment_dict)
         
         # Iterating through key-value pairs using items()
         for key, value in attachment_dict.items():
@@ -441,7 +441,7 @@ class Processor:
             )
         
         # Log completion of this task
-        logging(self.params.log, Colors.INFO, 'All attachments have been extracted from the result Geodatabase.')
+        log(self.params.log, Colors.INFO, 'All attachments have been extracted from the result Geodatabase.')
             
     def enable_version_control(self):
         '''
@@ -463,9 +463,9 @@ class Processor:
             try:
                 arcpy.EnableEditorTracking_management(feature_class, "created_by", "date_created", "last_edited_by", "date_edited", "ADD_FIELDS", "UTC")
             except Exception as error:
-                logging(self.params.log, Colors.ERROR, f'An error has been caught while trying to enable editor tracking in resulting gdb: {error}\n')
+                log(self.params.log, Colors.ERROR, f'An error has been caught while trying to enable editor tracking in resulting gdb: {error}\n')
             
         # Log completion of this task
-        logging(self.params.log, Colors.INFO, 'Enabling version control for feature classes in the Geodatabase has completed.')
+        log(self.params.log, Colors.INFO, 'Enabling version control for feature classes in the Geodatabase has completed.')
         
             

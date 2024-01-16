@@ -22,7 +22,7 @@ Description:
     The spatial_transformer.py script is a Python tool for processing spatial data. It handles tasks like geodatabase creation, file validation, and checking project numbers against a master data sheet. 
 
 Usage:
-    python path/to/spatial_transformer.py [-h] --input input_path --output output_path --gdb gdb_path --master master_data_path --load {datatracker,database} --save {datatracker,database} [--data_tracker_path data_tracker_path] [--attachments attachments_path] [--log_path LOG_PATH] [--debug] [--resume]
+    python path/to/spatial_transformer.py [-h] --input input_path --output output_path --gdb gdb_path --master master_data_path --load {datatracker,database} --save {datatracker,database} [--data_tracker data_tracker_path] [--attachments attachments_path] [--log LOG_PATH] [--debug] [--resume]
 
 
 """
@@ -32,6 +32,7 @@ Usage:
 from common import *
 from ProcessorModule import Processor
 
+
 import argparse
 import sys
 import time
@@ -40,7 +41,7 @@ import time
 # Classes
 #========================================================
 class StartupParameters:
-    def __init__(self, input_path, output_path, gdb_path, master_data_path, data_tracker_path, attachments_path, load_from='database', save_to='database', log_path='', debug=False, resume=False):
+    def __init__(self, input_path, output_path, gdb_path, master_data_path, data_tracker_path, attachments_path, load_from='database', save_to='database', log_path=None, debug=False, resume=False):
        
         '''
         Initializes the StartupParameters class with input parameters.
@@ -156,9 +157,9 @@ class StartupParameters:
                 # Create the file geodatabase
                 file = os.path.basename(self.gdb)
                 arcpy.management.CreateFileGDB(directory_path, file)
-                logging(self.log, Colors.INFO, f'Geodatabase: {file} created successfully')
+                log(self.log, Colors.INFO, f'Geodatabase: {file} created successfully')
             except arcpy.ExecuteError:
-                logging(self.log, Colors.ERROR, arcpy.GetMessages(2))
+                log(self.log, Colors.ERROR, arcpy.GetMessages(2))
              
 #========================================================
 # Main
@@ -167,7 +168,7 @@ def main():
     """ The main function of the spatial_transformer.py script """
     # Get the start time of the script
     start_time = time.time()
-    print(f'Tool is starting...')
+    log(None, Colors.INFO, 'Tool is starting...')
     
     # Initialize the argument parse
     parser = argparse.ArgumentParser(description='Spatial Transformer Tool')
@@ -181,7 +182,7 @@ def main():
     parser.add_argument('--save', choices=['datatracker', 'database'], required=True, default='database', help='Specify what to save to (datatracker or database)')
     parser.add_argument('--data_tracker', default='', help='The new location or where an exsiting data tracker is located')
     parser.add_argument('--attachments', default='', help='The location where the attachments will be extracted to if applicable (optional, defaults to same root output as Ripple Unzipple)')
-    parser.add_argument('--log', default='', help='The new location or where an existing log file is located (optional)')
+    parser.add_argument('--log', default=None, help='The new location or where an existing log file is located (optional)')
     parser.add_argument('--debug', action='store_true', default=False, help='Enable debug mode')
     parser.add_argument('--resume', action='store_true', default=False, help='Resume from where a crash happened')
     
@@ -200,14 +201,13 @@ def main():
     log_path = args.log
     debug = args.debug
     resume = args.resume
-    
-    
+        
     try:        
         # Initialize StartupParameters class
         setup_parameters = StartupParameters(input_path, output_path, gdb_path, master_data_path, data_tracker_path, attachments_path, load_from, save_to, log_path, debug, resume)
         
         # Uncomment to print out everything contained in class
-        # print(setup_parameters)
+        # log(None, Colors.INFO, setup_parameters)
         
         # # Start the unzip tool 
         # setup_parameters.handle_unzip()
@@ -222,25 +222,25 @@ def main():
         spatial_data.search_for_spatial_data()
         
         # Uncomment to print out everything contained in class
-        # print(spatial_data)
+        # log(None, Colors.INFO, spatial_data)
         
         # Start the processing
         spatial_data.process_spatial_files()
             
     except (ValueError, Exception) as error:
         # Log the error
-        logging(log_path, Colors.ERROR, error)
+        log(log_path, Colors.ERROR, error)
         
         # Save the data to the datatracker in case of crashing
         spatial_data.data._save_data()
-        logging(log_path, Colors.INFO, 'A checkpoint has been made at the point of faliure.')
+        log(None, Colors.INFO, 'A checkpoint has been made at the point of faliure.')
         
         exit(1)
                         
     # Get the end time of the script and calculate the elapsed time
     end_time = time.time()
-    print(f'\nTool has completed')
-    print(f'Elapsed time: {end_time - start_time:.2f} seconds')
+    log(None, Colors.INFO, 'Tool has completed')
+    log(None, Colors.INFO, f'Elapsed time: {end_time - start_time:.2f} seconds')
 
 
 #========================================================

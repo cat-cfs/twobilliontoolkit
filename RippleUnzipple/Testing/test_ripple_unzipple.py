@@ -59,32 +59,7 @@ class TestRecursiveUnzip(unittest.TestCase):
             
         expected_error_message = "Unsupported input type. Please provide a directory or a compressed file."
         self.assertEqual(str(context.exception), expected_error_message)
-        
-    def test_log_no_error(self):
-        # Test logging when no errors occur
-        ripple_unzip(self.input_path, self.output_path, self.log_path)
-
-        # Assert that the log file does not exist when no errors occur
-        self.assertFalse(os.path.exists(self.log_path))
-
-    def test_log_with_error(self):
-        # Test logging when an error occurs
-        invalid_input_path = "Invalid/Path"
-
-        # Use assertRaises to check if ValueError is raised with the correct error message
-        with self.assertRaises(ValueError) as context:
-            ripple_unzip(invalid_input_path, self.output_path, self.log_path)
-
-        # Check if the correct error message is raised
-        expected_error_message = f"The specified path does not exist: {invalid_input_path}"
-        self.assertEqual(str(context.exception), expected_error_message)
-
-        # Check if the log file is created and contains the expected error message
-        self.assertTrue(os.path.exists(self.log_path))
-        with open(self.log_path, 'r') as log_file:
-            log_content = log_file.read()
-        self.assertIn('[ERROR]', log_content)
-        
+                
     def test_recursive_unzip(self):
         # Test recursive unzipping within a directory
         # define some test paths to make sure the recursion worked

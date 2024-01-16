@@ -7,6 +7,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         'git+https://github.com/cat-cfs/RippleUnzipple.git',
+        
         # List your dependencies here if you have any
     ],
 )

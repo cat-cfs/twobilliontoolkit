@@ -25,7 +25,6 @@ Usage:
     python ripple_unzipple.py input_path output_path [log_path]
 """
 
-
 #========================================================
 # Imports
 #========================================================
@@ -36,56 +35,9 @@ from datetime import datetime
 from zipfile import ZipFile, BadZipFile
 from py7zr import SevenZipFile, Bad7zFile
 from distutils.dir_util import copy_tree
-
-
-#========================================================
-# Global Classes
-#========================================================
-# ANSI escape codes for colors
-class Colors:
-    ERROR = '\033[91m' # red
-    WARNING = '\033[93m' # yellow
-    INFO = '\033[94m' # blue
-    END = '\033[0m'
-      
-
-#========================================================
-# Logging
-#========================================================   
-def logging(file_path, type, message):
-    """
-    Log messages with colored tags and timestamps.
-
-    Args:
-        file_path (str): Path to the log file.
-        type (str): Color code for the log message type.
-        message (str): The log message.
-        
-    Return:
-        None.
-    """
-    # Set the tag, 'ERROR' is default.
-    tag = 'ERROR'
-    if type == Colors.INFO:
-        tag = 'INFO'
-    elif type == Colors.WARNING:
-        tag = 'WARNING'
-        
-    # Print the colored log message to the console
-    print(f'{type}[{tag}] {message}{Colors.END}')
-    
-    # If there is a file path provided
-    if file_path != '':
-        # Check if the directory exists, if not, create it
-        directory = os.path.dirname(file_path)
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-        
-        # Open the file in append mode and append a log message
-        with open(file_path, 'a') as log_file:
-            log_file.write(f'{datetime.now().strftime("%d/%m/%Y %H:%M:%S")} [{tag}] {message}\n')
-    
-
+  
+from ...Logger.logger.logger import log
+  
 #========================================================
 # Unzipping Functions
 #========================================================
@@ -123,10 +75,10 @@ def ripple_unzip(input_path, output_path, log_path = ''):
             raise ValueError("ValueError: Unsupported input type. Please provide a directory or a compressed file.")
         
     except ValueError as error:
-        logging(log_path, Colors.ERROR, str(error))
+        log(log_path, Colors.ERROR, error)
         raise ValueError(error)   
     except Exception as error:
-        logging(log_path, Colors.ERROR, str(error))
+        log(log_path, Colors.ERROR, error)
         raise Exception(error)  
     
 def recursive_unzip(input_path, output_path, original_input_path, log_path = ''):   
@@ -171,19 +123,17 @@ def recursive_unzip(input_path, output_path, original_input_path, log_path = '')
                         file_to_remove = extract_path + '.zip' if file.endswith(".zip") else extract_path + '.7z'
                 except FileNotFoundError as error:
                     error_message = f"FileNotFoundError: {error.strerror} in ({file_path})\n\nA common cause for this issue may be that the MAX_PATH_LENGTH for your machine's directory is surpassed. The compressed directory will be placed in the folder for you to extract manually. Please read the Configuration section in the README to resolve this issue."
-                    logging(log_path, Colors.ERROR, error_message)
+                    log(log_path, Colors.ERROR, error_message)
                     continue
                 except (BadZipFile, Bad7zFile) as error:
                     error_message = f"BadZipFile or Bad7ZFile: {error.strerror} with ({file_path})\n\nContinuing the tool and placing file for manual extracting."
-                    logging(log_path, Colors.ERROR, error_message)
+                    log(log_path, Colors.ERROR, error_message)
                     continue
 
                 # Remove the original compressed file from the new output folder
                 if os.path.exists(file_to_remove):
                     os.remove(file_to_remove)
-
-
-            
+  
 #========================================================
 # Main
 #========================================================
@@ -191,7 +141,7 @@ def main():
     """ The main function of the ripple_unzipple.py script """
     # Get the start time of the script
     start_time = time.time()
-    print(f'\n{Colors.INFO}Tool is starting...{Colors.END}')
+    log(None, Colors.INFO, 'Tool is starting...')
     
     log_path = ''
     try:
@@ -208,14 +158,13 @@ def main():
         ripple_unzip(sys.argv[1], sys.argv[2], log_path)
 
     except Exception as error:
-        logging(log_path, Colors.ERROR, error)
+        log(log_path, Colors.ERROR, error)
         exit(1)
         
     # Get the end time of the script and calculate the elapsed time
     end_time = time.time()
-    print(f'\n{Colors.INFO}Tool has completed{Colors.END}')
-    print(f'{Colors.INFO}Elapsed time: {end_time - start_time:.2f} seconds{Colors.END}')
-
+    log(None, Colors.INFO, 'Tool has completed')
+    log(None, Colors.INFO, f'Elapsed time: {end_time - start_time:.2f} seconds')
 
 #========================================================
 # Main Guard

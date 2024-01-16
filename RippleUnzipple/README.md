@@ -42,12 +42,12 @@ python ./ripple_unzipple/ripple_unzipple.py /Testing/Data/TestFolder.zip /Testin
 
 You also have the option of calling this function from a module import with the following syntax:
 ```
-from /path/to/ripple_unzipple import ripple_unzip, logging, Colors
+from /path/to/ripple_unzipple import ripple_unzip
 
 def main():
     ripple_unzip(input_path, output_path, log_path)
 ```
-**Note**: to use the logging functionality you would need to import logging, and to get colors in compatible terminals you would need to import Colors. Otherwise you should only need to import ripple_unzip.
+**Note**: logging functionality has been pulled out into its own module to be more easily used by other packages and whatnot. To use this module you can either relative import it or it might be packaged up in the future.
 
 **Note**: Another thing that you should keep in mind is that the output path folder name will overwrite the initial input path folder or file name in the final result. So if you wish to preserve that root object's name you can name your output path folder the same, or put the original input object in another folder and call the folder instead.
 

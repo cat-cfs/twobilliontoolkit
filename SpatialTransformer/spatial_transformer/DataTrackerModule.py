@@ -15,7 +15,7 @@ SCHEMA='bt_spatial_test'
 # Helper Class
 #========================================================
 class DataTracker:
-    def __init__(self, data_traker_path, load_from='database', save_to='database'):
+    def __init__(self, data_traker_path, load_from='database', save_to='database', log_path=None):
         '''
         Initializes the Data class with input parameters. Used to store the data tracker information.
 
@@ -23,6 +23,7 @@ class DataTracker:
             data_traker_path (str): Path to data tracker to load data if exists.
             load_from (str): Flag to determine if loading dataframe should be done from the {database, datatracker}. Default: 'database'.
             save_to (str): Flag to determine if saving the dataframe should be done to the {database, datatracker}. Default: 'database'.
+            log_path (str, optional): The path to the log file if you wish to keep any errors that occur.
 
         Returns:
             None
@@ -31,6 +32,7 @@ class DataTracker:
         self.data_tracker = data_traker_path
         self.load_from = load_from
         self.save_to = save_to
+        self.log_path = log_path
         
         self._load_data()
     
@@ -202,7 +204,7 @@ class DataTracker:
                 params = config()
 
                 # Connect to the PostgreSQL server using the parameters
-                print('Opening connection to the PostgreSQL database...')
+                log(None, Colors.INFO, 'Opening connection to the PostgreSQL database...')
                 conn = psycopg2.connect(**params)
                 
                 # Create a cursor to execute SQL queries
@@ -237,7 +239,7 @@ class DataTracker:
                         self.data_dict[project_spatial_id] = values
                         
                 finally:
-                    logging(LOG_PATH, Colors.INFO, f"Successfully retrieved data from the database.") 
+                    log(None, Colors.INFO, "Successfully retrieved data from the database.") 
 
                 # close the communication with the PostgreSQL
                 cur.close()
@@ -245,7 +247,7 @@ class DataTracker:
             finally:
                 if conn is not None:
                     conn.close()
-                    print('Database connection closed.') 
+                    log(None, Colors.INFO, 'Database connection closed.') 
         else:    
             # Check to see if the data tracker exists before loading from it
             if not os.path.exists(self.data_tracker):
@@ -283,7 +285,7 @@ class DataTracker:
                 params = config()
 
                 # Connect to the PostgreSQL server using the parameters
-                print('Opening connection to the PostgreSQL database...')
+                log(None, Colors.INFO, 'Opening connection to the PostgreSQL database...')
                 conn = psycopg2.connect(**params)
                 
                 # Create a cursor to execute SQL queries
@@ -299,7 +301,7 @@ class DataTracker:
                     
                     # Check if the key contains the arbitrary project ID 'XXX'; if yes, skip the insertion for that key
                     if 'XXX' in key:
-                        print(f"Skipping key {key} because it contains 'XXX'.")
+                        log(None, Colors.INFO, f"Skipping key {key} because it contains 'XXX'.")
                         continue
                     else:
                         try:
@@ -309,18 +311,18 @@ class DataTracker:
                             # Commit the changes to the database
                             conn.commit()
                             
-                            print(f"Successfully inserted data for key {key}.")
+                            log(None, Colors.INFO, f"Successfully inserted data for key {key}.")
                         except Exception as e:
-                            print(f"Error inserting data for key {key}: {e}")
+                            log(self.log_path, Colors.ERROR, f"Was unable to inser data for {key}: {e}")
 
                 # close the communication with the PostgreSQL
                 cur.close()
             except (Exception, psycopg2.DatabaseError) as e:
-                print(e)
+                log(self.log_path, Colors.ERROR, e)
             finally:
                 if conn is not None:
                     conn.close()
-                    print('Database connection closed.')   
+                    log(None, Colors.INFO, 'Database connection closed.')   
                 
         else: 
             # Create a DataFrame and save it to Excel if the data tracker file doesn't exist
@@ -343,5 +345,5 @@ class DataTracker:
             # Convert dataframe to excel
             df.to_excel(self.data_tracker, index=False)
             
-            print(f'The data tracker "{self.data_tracker}" has been created/updated successfully.')
+            log(None, Colors.INFO, f'The data tracker "{self.data_tracker}" has been created/updated successfully.')
                 

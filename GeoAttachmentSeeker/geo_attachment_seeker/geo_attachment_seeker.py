@@ -25,7 +25,6 @@ Usage:
     python path/to/geo_attachment_seeker.py gdb_path output_path
 """
 
-
 #========================================================
 # Imports
 #========================================================
@@ -35,6 +34,7 @@ import time
 import argparse
 import arcpy 
 
+from ...Logger.logger.logger import log
 
 #========================================================
 # Functions
@@ -52,7 +52,7 @@ def find_attachments(gdb_path, output_path):
     ''' 
     # validate the gdb_path
     if not isinstance(gdb_path, str) or not gdb_path.strip():
-            raise ValueError(f'The provided gdb_path must be a non-empty string.')
+        raise ValueError(f'The provided gdb_path must be a non-empty string.')
 
     if not gdb_path.endswith('.gdb'):
         raise ValueError(f'The provided gdb_path must be of type ".gdb".')
@@ -71,7 +71,7 @@ def find_attachments(gdb_path, output_path):
             continue
         
         # Uncomment following line to print out the names of the _ATTACH Tables in the gdb
-        # print(table)
+        # log(None, Colors.INFO, table)
         
         # Build the output project paths
         project_id = table.replace('__ATTACH', '')
@@ -85,7 +85,7 @@ def find_attachments(gdb_path, output_path):
         attachment_dict[project_id] = output_project_path
            
     # Uncomment following line to print out the resulting dictionary
-    # print(attachment_dict)
+    # log(None, Colors.INFO, attachment_dict)
     
     # Return the attachement dictionary
     return attachment_dict
@@ -122,7 +122,7 @@ def main():#
     """ The main function of the geo_attachment_seeker.py script """
     # Get the start time of the script
     start_time = time.time()
-    print(f'Tool is starting...')
+    log(None, Colors.INFO, 'Tool is starting...')
     
     # Initialize the argument parse
     parser = argparse.ArgumentParser(description='')
@@ -143,9 +143,8 @@ def main():#
         
     # Get the end time of the script and calculate the elapsed time
     end_time = time.time()
-    print(f'\nTool has completed')
-    print(f'Elapsed time: {end_time - start_time:.2f} seconds')
-
+    log(None, Colors.INFO, 'Tool has completed')
+    log(None, Colors.INFO, f'Elapsed time: {end_time - start_time:.2f} seconds')
 
 #========================================================
 # Main Guard

@@ -10,7 +10,8 @@ import shutil
 import sys
 sys.path.append(r'\\vic-fas1\projects_a\2BT\02_Tools\2BT_Toolkit')
 
-from RippleUnzipple.ripple_unzipple.ripple_unzipple import ripple_unzip, logging, Colors
+from Logger.logger.logger import log, Colors
+from RippleUnzipple.ripple_unzipple.ripple_unzipple import ripple_unzip
 from GeoAttachmentSeeker.geo_attachment_seeker.geo_attachment_seeker import find_attachments
 
 #========================================================
