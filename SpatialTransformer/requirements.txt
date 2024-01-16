@@ -1,4 +1,5 @@
 # requirements.txt
 git+https://github.com/cat-cfs/RippleUnzipple.git
 pywin32==306
+psycopg2==2.9.9
 # Add any other dependencies here
