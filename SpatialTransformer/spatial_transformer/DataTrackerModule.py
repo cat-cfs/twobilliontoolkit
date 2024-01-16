@@ -5,6 +5,11 @@
 from common import *
 
 import json
+import psycopg2
+
+from config import config
+
+SCHEMA='bt_spatial_test'
 
 #========================================================
 # Helper Class
@@ -27,8 +32,7 @@ class DataTracker:
         self.load_from = load_from
         self.save_to = save_to
         
-        if os.path.exists(data_traker_path):
-            self._load_data()
+        self._load_data()
     
     def add_data(self, project_spatial_id, project_number, project_path, raw_data_path, absolute_file_path, in_raw_gdb, contains_pdf, contains_image, extracted_attachments_path, processed):
         '''
@@ -191,11 +195,62 @@ class DataTracker:
             None
         """
         if self.load_from == 'database':
-            # TODO: add functionality to connect and add data to dataframe from the database
-            print('Loading from database is currently not implemented, please try again with the data tracker excel sheets.')
-            exit(1)
-            
+            # Initialize the connection variable to None
+            conn = None
+            try:
+                # Read connection parameters from the configuration file
+                params = config()
+
+                # Connect to the PostgreSQL server using the parameters
+                print('Opening connection to the PostgreSQL database...')
+                conn = psycopg2.connect(**params)
+                
+                # Create a cursor to execute SQL queries
+                cur = conn.cursor()
+                
+                # SQL query to retrieve data from the database
+                sql = "SELECT project_spatial_id, project_number, project_path, raw_data_path, in_raw_gdb, contains_pdf, contains_image FROM bt_spatial_test.raw_data_tracker;"        
+
+                try:
+                    # Execute the SQL query
+                    cur.execute(sql)
+                    
+                    # Fetch all the rows from the result set
+                    rows = cur.fetchall()
+                    
+                    # Initialize an empty dictionary to store the extracted data
+                    for row in rows:
+                        # Extract the project_spatial_id from the row
+                        project_spatial_id = row[0]
+
+                        # Extract the rest of the row values into a dictionary
+                        values = {
+                            'project_number': row[1],
+                            'project_path': row[2],
+                            'raw_data_path': row[3],
+                            'in_raw_gdb': row[4],
+                            'contains_pdf': row[5],
+                            'contains_image': row[6]
+                        }
+                        
+                        # Store the values dictionary in the data_dict with project_spatial_id as the key
+                        self.data_dict[project_spatial_id] = values
+                        
+                finally:
+                    logging(LOG_PATH, Colors.INFO, f"Successfully retrieved data from the database.") 
+
+                # close the communication with the PostgreSQL
+                cur.close()
+
+            finally:
+                if conn is not None:
+                    conn.close()
+                    print('Database connection closed.') 
         else:    
+            # Check to see if the data tracker exists before loading from it
+            if not os.path.exists(self.data_tracker):
+                raise Exception('Datatracker path that was provided does not exist.')
+            
             # Read the data tracker
             data_df = pd.read_excel(self.data_tracker)
 
@@ -220,11 +275,53 @@ class DataTracker:
         Returns:
             None
         """
-        if self.save_to == 'database':
-            # TODO: add functionality to connect and add data from dataframe to database
-            print('Saving to database is currently not implemented, please try again with the data tracker excel sheets.')
-            exit(1)
-        
+        if self.save_to == 'database':            
+            # Initialize the connection variable to None
+            conn = None
+            try:
+                # Read connection parameters from the configuration file
+                params = config()
+
+                # Connect to the PostgreSQL server using the parameters
+                print('Opening connection to the PostgreSQL database...')
+                conn = psycopg2.connect(**params)
+                
+                # Create a cursor to execute SQL queries
+                cur = conn.cursor()
+                
+                # Define the SQL query for inserting data into the database
+                sql = "INSERT INTO bt_spatial_test.raw_data_tracker (project_spatial_id, project_number, project_path, raw_data_path, in_raw_gdb, contains_pdf, contains_image) VALUES (%s, %s, %s, %s, %s, %s, %s);"
+                
+                # Iterate through each key-value pair in the data_dict
+                for key, value in self.data_dict.items():
+                    # Prepare the parameterized values for the SQL query
+                    values = (key, value['project_number'], value['project_path'], value['raw_data_path'], value['in_raw_gdb'], value['contains_pdf'], value['contains_image'])
+                    
+                    # Check if the key contains the arbitrary project ID 'XXX'; if yes, skip the insertion for that key
+                    if 'XXX' in key:
+                        print(f"Skipping key {key} because it contains 'XXX'.")
+                        continue
+                    else:
+                        try:
+                            # Execute the SQL query to insert data into the database
+                            cur.execute(sql, values)
+                            
+                            # Commit the changes to the database
+                            conn.commit()
+                            
+                            print(f"Successfully inserted data for key {key}.")
+                        except Exception as e:
+                            print(f"Error inserting data for key {key}: {e}")
+
+                # close the communication with the PostgreSQL
+                cur.close()
+            except (Exception, psycopg2.DatabaseError) as e:
+                print(e)
+            finally:
+                if conn is not None:
+                    conn.close()
+                    print('Database connection closed.')   
+                
         else: 
             # Create a DataFrame and save it to Excel if the data tracker file doesn't exist
             df = pd.DataFrame(list(self.data_dict.values()), columns=['project_number', 'project_path', 'raw_data_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'processed'])
@@ -247,4 +344,4 @@ class DataTracker:
             df.to_excel(self.data_tracker, index=False)
             
             print(f'The data tracker "{self.data_tracker}" has been created/updated successfully.')
-                    
+                
