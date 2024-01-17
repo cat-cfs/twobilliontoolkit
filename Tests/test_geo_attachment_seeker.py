@@ -13,7 +13,7 @@ class TestGeoAttachmentSeeker(unittest.TestCase):
     def setUp(self):
         # Create a temporary directory for testing
         self.temp_dir = TemporaryDirectory()
-        self.input_path = "Testing/Data"
+        self.input_path = "Testing/Data2"
         self.output_path = os.path.join(self.temp_dir.name, 'output')
 
     def tearDown(self):

@@ -40,6 +40,7 @@ import dash
 from dash import html
 import webbrowser
 
+from twobilliontoolkit.Logger.logger import log, Colors
 from Logger.logger import log, Colors
 
 # from Logger.logger.logger import log, Colors

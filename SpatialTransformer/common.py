@@ -7,7 +7,7 @@ import datetime
 import pandas as pd
 import shutil
 import sys
-sys.path.append(r'\\vic-fas1\projects_a\2BT\02_Tools\2BT_Toolkit')
+sys.path.append(r'\\vic-fas1\projects_a\2BT\02_Tools\twobilliontoolkit')
 
 from Logger.logger.logger import log, Colors
 from RippleUnzipple.ripple_unzipple.ripple_unzipple import ripple_unzip
