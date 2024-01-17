@@ -42,13 +42,22 @@ def log(file_path=None, type=Colors.ERROR, message=''):
     # Set the tag
     if type == Colors.INFO:
         tag = 'INFO'
+        
+        # Print the colored log message to the console
+        print(f'{type}[{tag}] {message}{Colors.END}')
+        
     elif type == Colors.WARNING:
         tag = 'WARNING'
+        
+        # Print the colored log message to the console
+        print(f'{type}[{tag}] {filename}:{line_number} - {message}{Colors.END}')
+        
     elif type == Colors.ERROR:
         tag = 'ERROR'
         
-    # Print the colored log message to the console
-    print(f'{type}[{tag}] {filename}:{line_number} - {message}{Colors.END}')
+        # Print the colored log message to the console
+        print(f'{type}[{tag}] {filename}:{line_number} - {message}{Colors.END}')
+        
     
     # If there is a file path provided
     if file_path is not None:

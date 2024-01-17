@@ -239,7 +239,7 @@ class DataTracker:
                         self.data_dict[project_spatial_id] = values
                         
                 finally:
-                    log(None, Colors.INFO, "Successfully retrieved data from the database.") 
+                    log(None, Colors.INFO, "Successfully retrieved data from the database.")
 
                 # close the communication with the PostgreSQL
                 cur.close()
@@ -310,10 +310,10 @@ class DataTracker:
                             
                             # Commit the changes to the database
                             conn.commit()
-                            
-                            log(None, Colors.INFO, f"Successfully inserted data for key {key}.")
                         except Exception as e:
-                            log(self.log_path, Colors.ERROR, f"Was unable to inser data for {key}: {e}")
+                            log(self.log_path, Colors.ERROR, f"Was unable to insert data for {key}: {e}")
+                        else: 
+                            log(None, Colors.INFO, f"Successfully inserted data for key {key}.")
 
                 # close the communication with the PostgreSQL
                 cur.close()

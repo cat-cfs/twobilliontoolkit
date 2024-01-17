@@ -111,11 +111,11 @@ class Processor:
             # Check the file type and call the appropriate processing method
             lowercase_file = file.lower()
             if lowercase_file.endswith(LAYOUT_FILE_EXTENSIONS):
-                log(self.params.log, Colors.WARNING, f'Layout file: {file} will be added to data tracker but not resulting gdb.\n')
+                log(self.params.log, Colors.WARNING, f'Layout file: {file} will be added to data tracker but not resulting gdb.')
             elif lowercase_file.endswith(DATA_SHEET_EXTENSIONS):
-                log(self.params.log, Colors.WARNING, f'Datasheet: {file} will be added to data tracker but not resulting gdb.\n')
+                log(self.params.log, Colors.WARNING, f'Datasheet: {file} will be added to data tracker but not resulting gdb.')
             elif lowercase_file.endswith(IMAGE_FILE_EXTENSIONS):
-                log(self.params.log, Colors.WARNING, f'Image/PDF file: {file} will be added to data tracker but not resulting gdb.\n')
+                log(self.params.log, Colors.WARNING, f'Image/PDF file: {file} will be added to data tracker but not resulting gdb.')
                 
                 # Update data tracker based on specific file types
                 if lowercase_file.endswith('.pdf'):
@@ -132,7 +132,7 @@ class Processor:
             elif lowercase_file.endswith('.gdb'):
                 self._process_gdb(file, formatted_project_spatial_id)
             elif lowercase_file.endswith(('.gpkg', '.sqlite')):
-                log(self.params.log, Colors.WARNING, f'GeoPackage/SQLite file: {file} will be added to data tracker but not resulting gdb.\n')
+                log(self.params.log, Colors.WARNING, f'GeoPackage/SQLite file: {file} will be added to data tracker but not resulting gdb.')
 
             self.data.set_data(project_spatial_id=formatted_project_spatial_id, processed=True)
 
@@ -441,7 +441,7 @@ class Processor:
             )
         
         # Log completion of this task
-        log(self.params.log, Colors.INFO, 'All attachments have been extracted from the result Geodatabase.')
+        log(None, Colors.INFO, 'All attachments have been extracted from the result Geodatabase.')
             
     def enable_version_control(self):
         '''
@@ -463,9 +463,9 @@ class Processor:
             try:
                 arcpy.EnableEditorTracking_management(feature_class, "created_by", "date_created", "last_edited_by", "date_edited", "ADD_FIELDS", "UTC")
             except Exception as error:
-                log(self.params.log, Colors.ERROR, f'An error has been caught while trying to enable editor tracking in resulting gdb: {error}\n')
+                log(self.params.log, Colors.ERROR, f'An error has been caught while trying to enable editor tracking for {feature_class} in resulting gdb: {error}\n')
             
         # Log completion of this task
-        log(self.params.log, Colors.INFO, 'Enabling version control for feature classes in the Geodatabase has completed.')
+        log(None, Colors.INFO, 'Enabling version control for feature classes in the Geodatabase has completed.')
         
             

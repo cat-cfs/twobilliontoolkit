@@ -8,7 +8,13 @@ import os
 #========================================================
 # Function
 #========================================================
-def config(filename=os.path.abspath('./database.ini'), section='postgresql'):   
+def config(filename=None, section='postgresql'):
+    # Get the directory of the current script
+    script_directory = os.path.dirname(os.path.abspath(__file__))
+
+    # Join the script directory with the relative path to database.ini
+    filename = os.path.join(script_directory, '../database.ini')
+       
     # create a parser
     parser = ConfigParser()
     

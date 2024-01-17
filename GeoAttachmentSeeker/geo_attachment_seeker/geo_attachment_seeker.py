@@ -34,7 +34,9 @@ import time
 import argparse
 import arcpy 
 
-from ...Logger.logger.logger import log
+sys.path.append('.')
+
+from Logger.logger.logger import log
 
 #========================================================
 # Functions

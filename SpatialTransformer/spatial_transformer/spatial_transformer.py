@@ -67,7 +67,7 @@ class StartupParameters:
             
         # If nothing was specified for the attachments path, set it to the same place as the output of the ripple unzipple tool.
         if attachments_path == '':
-            attachments_path = output_path
+            attachments_path = output_path + 'Attachments'
             
         # Validate and set paths
         self.validate_path('input_path', input_path, must_exists=True)
@@ -157,7 +157,8 @@ class StartupParameters:
                 # Create the file geodatabase
                 file = os.path.basename(self.gdb)
                 arcpy.management.CreateFileGDB(directory_path, file)
-                log(self.log, Colors.INFO, f'Geodatabase: {file} created successfully')
+                
+                log(None, Colors.INFO, f'Geodatabase: {file} created successfully')
             except arcpy.ExecuteError:
                 log(self.log, Colors.ERROR, arcpy.GetMessages(2))
              
@@ -209,8 +210,8 @@ def main():
         # Uncomment to print out everything contained in class
         # log(None, Colors.INFO, setup_parameters)
         
-        # # Start the unzip tool 
-        # setup_parameters.handle_unzip()
+        # Start the unzip tool 
+        setup_parameters.handle_unzip()
         
         # Create the GDB
         setup_parameters.create_gdb()
