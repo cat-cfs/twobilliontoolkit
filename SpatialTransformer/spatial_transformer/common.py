@@ -3,7 +3,6 @@
 # Imports
 #========================================================
 import os
-import arcpy
 import datetime
 import pandas as pd
 import shutil

@@ -5,6 +5,7 @@
 from common import *
 from DataTrackerModule import DataTracker
 
+import arcpy
 import re
 import tempfile
 import xml.etree.ElementTree as ET
