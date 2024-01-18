@@ -29,14 +29,15 @@ Usage:
 #========================================================
 # Imports
 #========================================================
-from common import *
-from ProcessorModule import Processor
-
-
 import argparse
 import arcpy
 import sys
 import time
+
+import twobilliontoolkit.SpatialTransformer.common
+from twobilliontoolkit.RippleUnzipple.ripple_unzipple import ripple_unzip
+from twobilliontoolkit.SpatialTransformer.ProcessorModule import Processor
+
 
 #========================================================
 # Classes

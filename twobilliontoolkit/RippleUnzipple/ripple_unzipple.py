@@ -35,10 +35,8 @@ from datetime import datetime
 from zipfile import ZipFile, BadZipFile
 from py7zr import SevenZipFile, Bad7zFile
 from distutils.dir_util import copy_tree
-  
-sys.path.append('.')
-
-from Logger.logger.logger import log
+ 
+from twobilliontoolkit.Logger.logger import log, Colors
   
 #========================================================
 # Unzipping Functions

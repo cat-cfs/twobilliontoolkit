@@ -1,3 +1,6 @@
+dash==2.14.2
+pandas==2.1.4
+psycopg2==2.9.9
 py7zr==0.20.8
 pywin32==306
-psycopg2==2.9.9
+setuptools==68.2.2

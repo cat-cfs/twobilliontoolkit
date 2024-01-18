@@ -34,9 +34,7 @@ import time
 import argparse
 import arcpy 
 
-sys.path.append('.')
-
-from Logger.logger.logger import log
+from twobilliontoolkit.Logger.logger import log, Colors
 
 #========================================================
 # Functions

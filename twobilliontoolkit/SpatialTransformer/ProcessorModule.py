@@ -2,14 +2,15 @@
 #========================================================
 # Imports
 #========================================================
-from common import *
-from DataTrackerModule import DataTracker
-
 import arcpy
 import re
 import tempfile
 import xml.etree.ElementTree as ET
 import win32wnet
+
+import twobilliontoolkit.SpatialTransformer.common
+from twobilliontoolkit.GeoAttachmentSeeker.geo_attachment_seeker import find_attachments
+from twobilliontoolkit.SpatialTransformer.DataTrackerModule import DataTracker
 
 #========================================================
 # Helper Class

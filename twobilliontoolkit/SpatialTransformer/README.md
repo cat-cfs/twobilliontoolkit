@@ -123,4 +123,4 @@ If you have any questions, feedback, or suggestions, you can reach out here:
 - Anthony Rodway
 - Email: anthony.rodway@nrcan-rncan.gc.ca
 
-Feel free to provide your input to help improve Ripple Unzipple!
+Feel free to provide your input to help improve Spatial Transformer!
