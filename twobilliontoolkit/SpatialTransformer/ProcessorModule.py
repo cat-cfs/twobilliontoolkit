@@ -9,6 +9,7 @@ import xml.etree.ElementTree as ET
 import win32wnet
 
 import twobilliontoolkit.SpatialTransformer.common
+from twobilliontoolkit.Logger.logger import log, Colors
 from twobilliontoolkit.GeoAttachmentSeeker.geo_attachment_seeker import find_attachments
 from twobilliontoolkit.SpatialTransformer.DataTrackerModule import DataTracker
 
@@ -100,6 +101,7 @@ class Processor:
             self.data.add_data(
                 project_spatial_id=formatted_project_spatial_id, 
                 project_number=formatted_result, 
+                dropped=False,
                 project_path=project_path, 
                 raw_data_path=raw_data_path, 
                 absolute_file_path=absolute_file_path,
@@ -261,6 +263,7 @@ class Processor:
                 self.data.add_data(
                     project_spatial_id=spatial_project_id,
                     project_number=current_feature_data['project_number'],
+                    dropped=False,
                     project_path=current_feature_data['project_path'],
                     absolute_file_path=win32wnet.WNetGetUniversalName(os.path.abspath(file), 1),    
                     raw_data_path=current_feature_data['raw_data_path'],
@@ -381,6 +384,7 @@ class Processor:
                 self.data.add_data(
                     project_spatial_id=spatial_project_id,
                     project_number=current_feature_data['project_number'],
+                    dropped=False,
                     project_path=current_feature_data['project_path'],
                     raw_data_path=current_feature_data['raw_data_path'],
                     absolute_file_path=win32wnet.WNetGetUniversalName(os.path.abspath(file), 1),

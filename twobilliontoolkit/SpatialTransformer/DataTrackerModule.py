@@ -2,12 +2,12 @@
 #========================================================
 # Imports
 #========================================================
-from common import *
-
 import json
 import psycopg2
 
-from config import config
+import twobilliontoolkit.SpatialTransformer.common
+from twobilliontoolkit.Logger.logger import log, Colors
+from twobilliontoolkit.SpatialTransformer.config import config
 
 SCHEMA='bt_spatial_test'
 
@@ -36,13 +36,14 @@ class DataTracker:
         
         self._load_data()
     
-    def add_data(self, project_spatial_id, project_number, project_path, raw_data_path, absolute_file_path, in_raw_gdb, contains_pdf, contains_image, extracted_attachments_path, processed):
+    def add_data(self, project_spatial_id, project_number, dropped, project_path, raw_data_path, absolute_file_path, in_raw_gdb, contains_pdf, contains_image, extracted_attachments_path, processed):
         '''
         Adds project data to the data tracker.
 
         Parameters:
             project_spatial_id (int): Project spatial ID. Acts as key in dictionary.
             project_number (int): Project number.
+            dropped (bool): Indicates whether the entry is dropped, non-valid etc.
             project_path (str): Project path.
             raw_data_path (str): Raw data path.
             absolute_file_path (str): The full absolute file path.
@@ -58,6 +59,7 @@ class DataTracker:
         self.data_dict[project_spatial_id] = {
             'project_number': project_number,
             'project_path': project_path,
+            'dropped': dropped,
             'raw_data_path': raw_data_path,
             'absolute_file_path': absolute_file_path,
             'in_raw_gdb': in_raw_gdb,
@@ -67,13 +69,14 @@ class DataTracker:
             'processed': processed
         }
         
-    def set_data(self, project_spatial_id, project_number=None, raw_data_path=None, absolute_file_path=None, in_raw_gdb=None, contains_pdf=None, contains_image=None, extracted_attachments_path=None, processed=None):
+    def set_data(self, project_spatial_id, project_number=None, dropped=None, raw_data_path=None, absolute_file_path=None, in_raw_gdb=None, contains_pdf=None, contains_image=None, extracted_attachments_path=None, processed=None):
         '''
         Updates project data in the data tracker.
 
         Parameters:
             project_spatial_id (str): Project spatial ID. Acts as key in dictionary.
             project_number (str): Project number (optional).
+            dropped (bool): Indicates whether the entry is dropped, non-valid etc.
             raw_data_path (str): Raw data path (optional).
             absolute_file_path (str): The full absolute file path.
             in_raw_gdb (bool): Indicates whether data is in raw GDB (optional).
@@ -89,6 +92,8 @@ class DataTracker:
         project_data = self.data_dict.get(project_spatial_id, {})
         if project_number is not None:
             project_data['project_number'] = project_number
+        if dropped is not None:
+            project_data['dropped'] = dropped
         if raw_data_path is not None:
             project_data['raw_data_path'] = raw_data_path
         if absolute_file_path is not None:
@@ -211,7 +216,7 @@ class DataTracker:
                 cur = conn.cursor()
                 
                 # SQL query to retrieve data from the database
-                sql = "SELECT project_spatial_id, project_number, project_path, raw_data_path, in_raw_gdb, contains_pdf, contains_image FROM bt_spatial_test.raw_data_tracker;"        
+                sql = "SELECT project_spatial_id, project_number, dropped, project_path, raw_data_path, in_raw_gdb, contains_pdf, contains_image FROM bt_spatial_test.raw_data_tracker;"        
 
                 try:
                     # Execute the SQL query
@@ -229,10 +234,11 @@ class DataTracker:
                         values = {
                             'project_number': row[1],
                             'project_path': row[2],
-                            'raw_data_path': row[3],
-                            'in_raw_gdb': row[4],
-                            'contains_pdf': row[5],
-                            'contains_image': row[6]
+                            'dropped': row[3]
+                            'raw_data_path': row[4],
+                            'in_raw_gdb': row[5],
+                            'contains_pdf': row[6],
+                            'contains_image': row[7]
                         }
                         
                         # Store the values dictionary in the data_dict with project_spatial_id as the key
@@ -260,6 +266,7 @@ class DataTracker:
             data_df.apply(lambda row: self.add_data(
                 row['project_spatial_id'],
                 row['project_number'],
+                row['dropped'],
                 row['project_path'],
                 row['raw_data_path'],
                 row['absolute_file_path'],
@@ -292,12 +299,12 @@ class DataTracker:
                 cur = conn.cursor()
                 
                 # Define the SQL query for inserting data into the database
-                sql = "INSERT INTO bt_spatial_test.raw_data_tracker (project_spatial_id, project_number, project_path, raw_data_path, in_raw_gdb, contains_pdf, contains_image) VALUES (%s, %s, %s, %s, %s, %s, %s);"
+                sql = "INSERT INTO bt_spatial_test.raw_data_tracker (project_spatial_id, project_number, dropped, project_path, raw_data_path, in_raw_gdb, contains_pdf, contains_image) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);"
                 
                 # Iterate through each key-value pair in the data_dict
                 for key, value in self.data_dict.items():
                     # Prepare the parameterized values for the SQL query
-                    values = (key, value['project_number'], value['project_path'], value['raw_data_path'], value['in_raw_gdb'], value['contains_pdf'], value['contains_image'])
+                    values = (key, value['project_number'], value['dropped'], value['project_path'], value['raw_data_path'], value['in_raw_gdb'], value['contains_pdf'], value['contains_image'])
                     
                     # Check if the key contains the arbitrary project ID 'XXX'; if yes, skip the insertion for that key
                     if 'XXX' in key:
@@ -326,13 +333,13 @@ class DataTracker:
                 
         else: 
             # Create a DataFrame and save it to Excel if the data tracker file doesn't exist
-            df = pd.DataFrame(list(self.data_dict.values()), columns=['project_number', 'project_path', 'raw_data_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'processed'])
+            df = pd.DataFrame(list(self.data_dict.values()), columns=['project_number', 'project_path', 'dropped', 'raw_data_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'processed'])
 
             # Add 'project_spatial_id' to the DataFrame
             df['project_spatial_id'] = list(self.data_dict.keys())
 
             # Reorder columns to have 'project_spatial_id' as the first column
-            df = df[['project_spatial_id', 'project_number', 'project_path', 'raw_data_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'processed']]
+            df = df[['project_spatial_id', 'project_number', 'dropped', 'project_path', 'raw_data_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'processed']]
 
             # Sort the rows by the project_spatial_id column
             df = df.sort_values(by=['project_spatial_id'])
