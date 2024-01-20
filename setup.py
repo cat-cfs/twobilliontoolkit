@@ -14,6 +14,8 @@ setup(
         'setuptools==68.2.2'
     ],
     extras_require={},
-    package_data={},
+    package_data={
+        'twobilliontoolkit.SpatialTransformer': ['database.ini']
+    },
     python_requires=">=3.7"
 )

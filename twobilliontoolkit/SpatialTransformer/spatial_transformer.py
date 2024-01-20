@@ -35,6 +35,7 @@ import sys
 import time
 
 import twobilliontoolkit.SpatialTransformer.common
+from twobilliontoolkit.Logger.logger import log, Colors
 from twobilliontoolkit.RippleUnzipple.ripple_unzipple import ripple_unzip
 from twobilliontoolkit.SpatialTransformer.ProcessorModule import Processor
 
