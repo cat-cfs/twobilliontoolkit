@@ -5,11 +5,9 @@
 import json
 import psycopg2
 
-import twobilliontoolkit.SpatialTransformer.common
+from twobilliontoolkit.SpatialTransformer.common import *
 from twobilliontoolkit.Logger.logger import log, Colors
 from twobilliontoolkit.SpatialTransformer.config import config
-
-SCHEMA='bt_spatial_test'
 
 #========================================================
 # Helper Class
@@ -233,12 +231,14 @@ class DataTracker:
                         # Extract the rest of the row values into a dictionary
                         values = {
                             'project_number': row[1],
-                            'project_path': row[2],
-                            'dropped': row[3]
+                            'dropped': row[2],
+                            'project_path': row[3],
                             'raw_data_path': row[4],
                             'in_raw_gdb': row[5],
                             'contains_pdf': row[6],
-                            'contains_image': row[7]
+                            'contains_image': row[7],
+                            'extracted_attachments_path': None,
+                            'Processed': True
                         }
                         
                         # Store the values dictionary in the data_dict with project_spatial_id as the key
@@ -257,10 +257,25 @@ class DataTracker:
         else:    
             # Check to see if the data tracker exists before loading from it
             if not os.path.exists(self.data_tracker):
-                raise Exception('Datatracker path that was provided does not exist.')
+                return
             
             # Read the data tracker
-            data_df = pd.read_excel(self.data_tracker)
+            data_df = pd.read_excel(
+                self.data_tracker,
+                dtype= { # Force types
+                    'project_spatial_id': object,
+                    'project_number': object,
+                    'dropped': bool,
+                    'project_path': object,
+                    'raw_data_path': object,
+                    'absolute_file_path': object,
+                    'in_raw_gdb': bool,
+                    'contains_pdf': bool,
+                    'contains_image': bool,
+                    'extracted_attachments_path': object,
+                    'processed': bool
+                }
+            )
 
             # Use apply with a lambda function to add data to the data_dict
             data_df.apply(lambda row: self.add_data(
@@ -298,20 +313,35 @@ class DataTracker:
                 # Create a cursor to execute SQL queries
                 cur = conn.cursor()
                 
+                # Fetch all existing project_spatial_id values from the database
+                cur.execute("SELECT project_spatial_id FROM bt_spatial_test.raw_data_tracker;")
+                existing_ids = set(row[0] for row in cur.fetchall())
+
+                
                 # Define the SQL query for inserting data into the database
                 sql = "INSERT INTO bt_spatial_test.raw_data_tracker (project_spatial_id, project_number, dropped, project_path, raw_data_path, in_raw_gdb, contains_pdf, contains_image) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);"
                 
                 # Iterate through each key-value pair in the data_dict
                 for key, value in self.data_dict.items():
-                    # Prepare the parameterized values for the SQL query
-                    values = (key, value['project_number'], value['dropped'], value['project_path'], value['raw_data_path'], value['in_raw_gdb'], value['contains_pdf'], value['contains_image'])
-                    
                     # Check if the key contains the arbitrary project ID 'XXX'; if yes, skip the insertion for that key
                     if 'XXX' in key:
                         log(None, Colors.INFO, f"Skipping key {key} because it contains 'XXX'.")
                         continue
-                    else:
+                    
+                    if key not in existing_ids:
                         try:
+                            # Prepare the parameterized values for the SQL query
+                            values = (
+                                key, 
+                                value['project_number'], 
+                                value['dropped'], 
+                                value['project_path'], 
+                                value['raw_data_path'], 
+                                value['in_raw_gdb'], 
+                                value['contains_pdf'], 
+                                value['contains_image']
+                            )
+                            
                             # Execute the SQL query to insert data into the database
                             cur.execute(sql, values)
                             
@@ -324,6 +354,7 @@ class DataTracker:
 
                 # close the communication with the PostgreSQL
                 cur.close()
+                
             except (Exception, psycopg2.DatabaseError) as e:
                 log(self.log_path, Colors.ERROR, e)
             finally:

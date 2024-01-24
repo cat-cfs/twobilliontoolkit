@@ -32,7 +32,10 @@ import os
 import sys
 import time
 import argparse
+import ast
 import pandas as pd
+import arcpy
+
 from PyQt5.QtWidgets import QApplication, QTableWidget, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QTableWidgetItem
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
@@ -44,23 +47,45 @@ from twobilliontoolkit.SpatialTransformer.DataTrackerModule import DataTracker
 # Classes
 #========================================================
 class DataTableApp(QWidget):
-    def __init__(self, data):
+    def __init__(self, data, gdb=None):
+        """
+        Initialize the DataTableApp with the provided data.
+
+        Parameters:
+            data (dict): The initial data for the application.   
+            gdb (str, optional): The path to the gdb that changes will be made to if applicable.  
+        """
         super().__init__()
 
-        self.original_data = self.format_data(data)
-        # save the original data to the current state
-        self.data = self.original_data
+        # Store the original and current dataframes
+        self.data = data
+        self.original_dataframe = self.format_data(data)
+        self.dataframe = self.original_dataframe.copy()
+        self.gdb = gdb
+        print(self.data.data_dict)
+        print(self.dataframe.dtypes)
+        
+        # Columns that are not editable
+        self.columns_noedit = ['project_spatial_id', 'dropped', 'project_path', 'raw_data_path']
+
+        # Initialize the user interface
         self.init_ui()
         
     def init_ui(self):
+        """
+        Initialize the user interface components.
+        """
+         # Create the main layout
         self.layout = QVBoxLayout()
 
+        # Create the table and populate it
         self.table = QTableWidget()
         self.populate_table()
 
-        # Create a QHBoxLayout for the buttons
+        # Create a QHBoxLayout for buttons
         button_layout = QHBoxLayout()
 
+        # Create Save and Reset buttons
         self.edit_button = QPushButton('Save')
         self.edit_button.clicked.connect(self.save_data)
 
@@ -74,76 +99,150 @@ class DataTableApp(QWidget):
         # Add the table and button layout to the main layout
         self.layout.addWidget(self.table)
         self.layout.addLayout(button_layout)
-        
+
+        # Set the main layout for the widget
         self.setLayout(self.layout)
         self.setGeometry(100, 100, 800, 600)
         self.setWindowTitle('Data Table App')
         self.show()
 
-    def item_changed(self, item):
-        item.setForeground(QColor('red'))
+    def refresh_data(self, data):
+        """
+        Refresh the data in the application.
+
+        Parameters:
+            data: The new data to be displayed.
+        """
+        # Update the data, original and current dataframe
+        self.data = data
+        self.original_dataframe = self.format_data(data)
+        self.dataframe = self.original_dataframe.copy()
 
     def format_data(self, data):
-        df = pd.DataFrame.from_dict(data.data_dict, orient='index').reset_index()
-        df.rename(columns={'index': 'project_spatial_id'}, inplace=True)
-        return df
+        """
+        Format the raw data into a pandas DataFrame.
+
+        Parameters:
+            data (dict): Raw data to be formatted.
+
+        Returns:
+            A formatted pandas DataFrame.
+        """
+        # Convert raw data to a DataFrame and rename index column
+        dataframe = pd.DataFrame.from_dict(data.data_dict, orient='index').reset_index()
+        dataframe.rename(columns={'index': 'project_spatial_id'}, inplace=True)
+        return dataframe 
 
     def populate_table(self):
-        self.table.setColumnCount(len(self.data.columns))
-        self.table.setRowCount(len(self.data))
+        """
+        Populate the table with data from the dataframe.
+        """
+        # Set the number of columns and rows in the table
+        self.table.setColumnCount(len(self.dataframe.columns))
+        self.table.setRowCount(len(self.dataframe))
         
-        # Set headers
-        headers = [str(header) for header in self.data.columns]
+        # Set headers in the table
+        headers = [str(header) for header in self.dataframe.columns]
         self.table.setHorizontalHeaderLabels(headers)
 
-        for i in range(len(self.data.index)):
-            for j in range(len(self.data.columns)):
-                item = QTableWidgetItem(str(self.data.iloc[i, j]))
+        # Populate each cell in the table with corresponding data
+        for i in range(len(self.dataframe.index)):
+            for j in range(len(self.dataframe.columns)):
+                item = QTableWidgetItem(str(self.dataframe.iloc[i, j]))
 
-                # Check if the current column is in non_editable_columns
-                if self.data.columns[j] in ['project_spatial_id', 'dropped']:
+                # Set flags for non-editable columns
+                if self.dataframe.columns[j] in self.columns_noedit:
                     item.setFlags(item.flags() & ~Qt.ItemIsEditable | Qt.ItemIsSelectable)
 
-                self.table.setItem(i, j, item)
+                self.table.setItem(i, j, item) 
+                
+        # Resize columns to fit the content
+        self.table.resizeColumnsToContents()   
 
         # Connect the itemChanged signal to a custom slot (function)
         self.table.itemChanged.connect(self.item_changed)
 
-    def save_data(self):
-        edited_rows = {}
+    def item_changed(self, item):
+        """
+        Handle changes in the table items.
 
-        for i in range(len(self.data.index)):
+        Parameters:
+            item: The changed item in the table.
+        """
+        # Check if the changed value is different from the original value
+        row = item.row()
+        col = item.column()
+        edited_value = item.text()
+        original_value = str(self.original_dataframe.iloc[row, col])
+
+        # Highlight the cell if the value is different
+        if edited_value != original_value:
+            item.setForeground(QColor('red'))
+        else:
+            item.setForeground(QColor('black'))
+
+    def save_data(self):
+        """
+        Save the changes made in the GUI.
+        """
+        # Dictionary to store changes made in the GUI
+        changes_dict = {}
+
+        # Iterate over rows and columns to identify changes
+        for i in range(len(self.dataframe.index)):
             row_changes = {}
 
-            for j in range(len(self.data.columns)):
+            for j in range(len(self.dataframe.columns)):
                 item = self.table.item(i, j)
                 if item is not None:
                     edited_value = item.text()
-                    original_value = str(self.original_data.iloc[i, j])
+                    original_value = str(self.original_dataframe.iloc[i, j])
 
+                    # Record changes if the value is different
                     if edited_value != original_value:
-                        row_changes[self.data.columns[j]] = edited_value
+                        row_changes[self.dataframe.columns[j]] = edited_value
 
             if row_changes:
-                # Assuming 'project_spatial_id' is the name of the column to use as the project_spatial_id
-                project_spatial_id_value = self.data.at[i, 'project_spatial_id']
-                edited_rows[project_spatial_id_value] = row_changes
+                # Store changes with project_spatial_id as key
+                project_spatial_id_value = self.dataframe.at[i, 'project_spatial_id']
+                changes_dict[project_spatial_id_value] = row_changes
 
-        print("Rows with differences:")
-        print(edited_rows)
+        # Log the changes
+        log(None, Colors.INFO, f'The changes made in the GUI were: {changes_dict}')
+
+        # Update the original data with the changes
+        for project_spatial_id, changes in changes_dict.items():
+            row_index = self.dataframe[self.dataframe['project_spatial_id'] == project_spatial_id].index[0]
+            for column, value in changes.items():
+                # Explicitly convert 'value' to the appropriate data type
+                if self.original_dataframe[column].dtype == bool:
+                    value = bool(value)
+                elif self.original_dataframe[column].dtype == int:
+                    value = int(value)
+                elif self.original_dataframe[column].dtype == float:
+                    value = float(value)
+
+                self.original_dataframe.at[row_index, column] = value
+
+        # Update the records in the original data class
+        update_records(self.data, changes_dict, self.gdb)
         
-        # Update the original data to the current state
-        self.original_data = self.data
+        # Refresh the data being put into the table and reset the table to the current state
+        self.refresh_data(self.data)
         self.reset_data()
         
     def reset_data(self):
+        """
+        Reset the data in the table to its original state.
+        """
         # Disconnect the itemChanged signal temporarily
         self.table.itemChanged.disconnect(self.item_changed)
 
         # Clear the table
         self.table.clear()
         
-        self.data = self.original_data
+        # Reset the dataframe to the original state
+        self.dataframe = self.original_dataframe.copy()
 
         # Repopulate the table with the original data
         self.populate_table()
@@ -152,19 +251,115 @@ class DataTableApp(QWidget):
         self.table.itemChanged.connect(self.item_changed)
 
         # Print a message or perform any other necessary actions
-        print("Data reset to original state")
+        log(None, Colors.INFO, f'GUI data has been reset to original state')
 
 #========================================================
 # Functions
 #========================================================
 
-def create_duplicate():
-    pass
+def create_duplicate(data, project_spatial_id, new_project_number):
+    """
+    Create a duplicate entry in the data for a given project with a new project number.
 
-def update_record(gdb, data, changes):
-    pass
+    Parameters:
+        data (Datatracker object): An instance of DataTracker.
+        project_spatial_id (str): The unique identifier of the project to duplicate.
+        new_project_number (str): The new project number for the duplicated entry.
 
+    Returns:
+        new_project_spatial_id: The spatial identifier of the newly created duplicate entry.
+    """
+    # Retrieve data for the project to duplicate
+    entry_to_duplicate = data.get_data(project_spatial_id)
 
+    # Create a new spatial identifier for the duplicated project
+    new_project_spatial_id = data._create_project_spatial_id(new_project_number)
+
+    # Add the duplicated entry with the new project number to the data
+    data.add_data(
+        project_spatial_id=new_project_spatial_id,
+        project_number=new_project_number,
+        dropped=entry_to_duplicate.get('dropped'),
+        project_path=entry_to_duplicate.get('project_path'),
+        raw_data_path=entry_to_duplicate.get('raw_data_path'),
+        absolute_file_path=entry_to_duplicate.get('absolute_file_path'),
+        in_raw_gdb=entry_to_duplicate.get('in_raw_gdb'),
+        contains_pdf=entry_to_duplicate.get('contains_pdf'),
+        contains_image=entry_to_duplicate.get('contains_image'),
+        extracted_attachments_path=entry_to_duplicate.get('extracted_attachments_path'),
+        processed=entry_to_duplicate.get('processed')
+    )
+
+    # Set the 'dropped' attribute to True for the original project
+    data.set_data(project_spatial_id, dropped=True)
+
+    return new_project_spatial_id
+
+def update_records(data, changes_dict, gdb=None): 
+    """
+    Update records in the data based on the changes provided in the dictionary.
+
+    Parameters:
+        data (Datatracker object): An instance of DataTracker.
+        changes_dict (dict): A dictionary containing changes for each project.
+        gdb (str, optional): The geodatabase path. If provided, updates are applied to the geodatabase.
+
+    Returns:
+        None
+    """  
+    # Iterate through the changes
+    for project_spatial_id, value in changes_dict.items():
+        # Check if the current change updated the project number
+        new_project_number = value.get('project_number')
+        if new_project_number:
+            # Duplicate the project with the new project number
+            old_project_spatial_id = 'proj_' + project_spatial_id
+            project_spatial_id = create_duplicate(data, project_spatial_id, new_project_number)
+
+            if gdb:
+                # If geodatabase is provided, rename the corresponding entries
+                arcpy.management.Rename(
+                    os.path.join(gdb, old_project_spatial_id),
+                    'proj_' + project_spatial_id
+                )
+
+                # Rename attachments path if it exists
+                attachments_path = str(data.get_data(project_spatial_id).get('extracted_attachments_path'))
+                if attachments_path.lower() != 'nan':
+                    # update the attachment path
+                    new_attachments_path = attachments_path.split('proj_')[0] + 'proj_' + project_spatial_id
+                    
+                    # Rename the path to the attachments
+                    os.rename(
+                        attachments_path, 
+                        new_attachments_path
+                    )
+                    
+                    # Set the corresponding attachments path
+                    data.set_data(
+                        project_spatial_id, extracted_attachments_path=new_attachments_path
+                    )
+                    
+                    # Also need to update the linked geodatabase things
+                    arcpy.management.Rename(
+                        os.path.join(gdb, old_project_spatial_id) + '__ATTACH',
+                        'proj_' + project_spatial_id + '__ATTACH'
+                    )
+                    arcpy.management.Rename(
+                        os.path.join(gdb, old_project_spatial_id) + '__ATTACHREL',
+                        'proj_' + project_spatial_id + '__ATTACHREL'
+                    )
+
+        # Update other attributes in the data
+        data.set_data(
+            project_spatial_id,
+            in_raw_gdb=value.get('in_raw_gdb'),
+            contains_pdf=value.get('contains_pdf'),
+            contains_image=value.get('contains_image')
+        )
+
+    # Save the updated data
+    data._save_data(data.save_to)
 
 #========================================================
 # Main
@@ -179,23 +374,20 @@ def main():
     parser = argparse.ArgumentParser(description='')
     
     # Define command-line arguments
-    # parser.add_argument('--gdb', required=True, default='', help='The new location or where an exsiting Geodatabase is located')
+    parser.add_argument('--gdb', required=True, default='', help='The new location or where an exsiting Geodatabase is located')
     parser.add_argument('--load', choices=['datatracker', 'database'], required=True, default='database', help='Specify what to load from (datatracker or database)')
     parser.add_argument('--save', choices=['datatracker', 'database'], required=True, default='database', help='Specify what to save to (datatracker or database)')
     parser.add_argument('--data_tracker', default=None, help='The new location or where an exsiting data tracker is located')
     parser.add_argument('--log', default=None, help='The new location or where an existing log file is located (optional)')
-    # parser.add_argument('--changes', required=True, default=None, help='The changes that you want to update, in form "{project_spaital_id: {field: newvalue, field2:newvalue2...}, project_spatial_id: {field: newfield...}"')
+    parser.add_argument('--changes', required=False, default=None, help='The changes that you want to update, in form "{project_spaital_id: {field: newvalue, field2:newvalue2...}, project_spatial_id: {field: newfield}..."')
     
     # Parse the command-line arguments
     args = parser.parse_args()
 
     # Access the values using the attribute notation
-    # gdb_path = args.gdb
-    data_tracker_path = args.data_tracker
     load_from = args.load
     save_to = args.save
-    log_path = args.log
-    # changes = args.changes
+    data_tracker_path = args.data_tracker
     
     # Ensure that if a datatracker is specified for loading or saving, then a path must be passed
     if (load_from == 'datatracker' or save_to == 'datatracker') and data_tracker_path == None:
@@ -208,18 +400,26 @@ def main():
         if not os.path.exists(data_tracker_path):
             raise ValueError(f'data_tracker_path: {data_tracker_path} path does not exist.')
     
+    gdb_path = args.gdb
+    log_path = args.log
+    
+    # Create an instance of the DataTracker class
     data = DataTracker(data_tracker_path, load_from, save_to, log_path)
     
-    app = QApplication([])
-    window = DataTableApp(data)
-    app.exec_()
-    
-    # # Ask for confirmation before opening Dash table
-    # confirm_and_open_dash_table(data)
-    
-    # Call the function to perform the processing
-    # update_record(gdb_path, data)
-        
+    if args.changes:
+        try:
+            # Parse the changes argument and update records
+            changes_dict = ast.literal_eval(args.changes)
+            update_records(data, changes_dict)
+        except (ValueError, SyntaxError) as e:
+            log(None, Colors.INFO, f'Error parsing changes argument: {e}')
+    else:
+        # If no changes are provided, open a PyQt application for data visualization
+        changes_dict = None
+        app = QApplication([])
+        window = DataTableApp(data, gdb_path)
+        app.exec_()  
+         
     # Get the end time of the script and calculate the elapsed time
     end_time = time.time()
     log(None, Colors.INFO, 'Tool has completed')

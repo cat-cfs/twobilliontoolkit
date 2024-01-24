@@ -25,11 +25,26 @@ This repo stands as a singular place for all the tools that will be developed fo
 
 ## Configuration
 
-[If your project requires any configuration, such as API keys, environment variables, or specific settings, explain how users can configure the project to work properly.]
+If you are going to be working with a database, one of the first things that you must do when trying to use this package is to fill in the information to establish a connection. This is needed for a couple of tools . Navigate to [/twobilliontoolkit/SpatialTransformer/database.ini](/twobilliontoolkit/SpatialTransformer/database.ini) and fill out the postgresql section
+
+```
+[postgresql]
+host = 
+port = 
+database = 
+user = 
+password = 
+```
+This will allow you to connect to a database that you have set up, however you may need to make changes to the code or to the database to make sure everything works properly.
 
 ## Contributing
 
-[Explain how other developers or users can contribute to your project. Include guidelines for submitting bug reports, feature requests, or pull requests.]
+This project might not be maintained or up to date.
+
+If you would like to contribute to RecordReviser, follow these guidelines:
+
+1. Submit bug reports or feature requests via the GitHub issue tracker.
+2. Fork the repository, make your changes, and submit a pull request.
 
 ## License
 
@@ -37,4 +52,9 @@ This project is licensed under the MIT License. [Click here to view the license 
 
 ## Contact
 
-[Provide your contact information or social media handles if you would like to receive feedback or suggestions from users.]
+If you have any questions, feedback, or suggestions, you can reach out here:
+
+- Anthony Rodway
+- Email: anthony.rodway@nrcan-rncan.gc.ca
+
+Feel free to provide your input to help improve RecordReviser!

@@ -8,7 +8,7 @@ import tempfile
 import xml.etree.ElementTree as ET
 import win32wnet
 
-import twobilliontoolkit.SpatialTransformer.common
+from twobilliontoolkit.SpatialTransformer.common import *
 from twobilliontoolkit.Logger.logger import log, Colors
 from twobilliontoolkit.GeoAttachmentSeeker.geo_attachment_seeker import find_attachments
 from twobilliontoolkit.SpatialTransformer.DataTrackerModule import DataTracker
@@ -428,9 +428,7 @@ class Processor:
     def extract_attachments(self):
         '''
         Call the GeoAttachmentSeeker module function to find, extract and note down any attachments in the result GDB.
-        '''
-        # TODO: Something mey need to to change becuase when not given a path, it goes to the same output as ruipple unzipple, but if program crashes and needs to resume from where it left off, then it will look at those attachment too!
-        
+        '''        
         # Find and process attachments from the gdb
         attachment_dict = find_attachments(self.params.gdb, self.params.attachments)
         
@@ -453,14 +451,14 @@ class Processor:
         '''
         Enable the editor tracking version control for each feature class in the Geodatabase.
         '''
-        # TODO: Possibly add in the "created_by" and "date_created" fields to each feature class and populate them with the current computer username and date and then afterwards enable the editor tracking, it should not overwrite and will actually fill out the fields
-
         # Set the arc environement to the resulting GDB
         arcpy.env.workspace = self.params.gdb
         
         # Set editor tracking for each feature class in the GDB
         feature_classes = arcpy.ListFeatureClasses()
         for feature_class in feature_classes:
+            # TODO: Possibly add in the "created_by" and "date_created" fields to each feature class and populate them with the current computer username and date and then afterwards enable the editor tracking, it should not overwrite and will actually fill out the fields
+            
             # arcpy.management.AddFields(
             #     feature_class, 
             #     [['created_by', 'TEXT', 'created_by', 255, os.getlogin().upper(), ''], 

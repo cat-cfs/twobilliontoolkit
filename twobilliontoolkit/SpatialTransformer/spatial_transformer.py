@@ -34,7 +34,7 @@ import arcpy
 import sys
 import time
 
-import twobilliontoolkit.SpatialTransformer.common
+from twobilliontoolkit.SpatialTransformer.common import *
 from twobilliontoolkit.Logger.logger import log, Colors
 from twobilliontoolkit.RippleUnzipple.ripple_unzipple import ripple_unzip
 from twobilliontoolkit.SpatialTransformer.ProcessorModule import Processor
@@ -67,6 +67,8 @@ class StartupParameters:
             raise argparse.ArgumentTypeError("If --load or --save is 'datatracker', --data_tracker_path must be specified.")
         elif (load_from == 'datatracker' or save_to == 'datatracker') and data_tracker_path != '':
             self.validate_path('data_tracker_path', data_tracker_path, must_ends_with=DATA_SHEET_EXTENSIONS)
+            if resume:
+                self.validate_path('data_tracker_path', data_tracker_path, must_exists=True)
             
         # If nothing was specified for the attachments path, set it to the same place as the output of the ripple unzipple tool.
         if attachments_path == '':
@@ -206,6 +208,7 @@ def main():
     debug = args.debug
     resume = args.resume
         
+    spatial_data = None
     try:        
         # Initialize StartupParameters class
         setup_parameters = StartupParameters(input_path, output_path, gdb_path, master_data_path, data_tracker_path, attachments_path, load_from, save_to, log_path, debug, resume)
@@ -214,11 +217,11 @@ def main():
         # log(None, Colors.INFO, setup_parameters)
         
         # Start the unzip tool 
-        setup_parameters.handle_unzip()
+        # setup_parameters.handle_unzip()
         
         # Create the GDB
         setup_parameters.create_gdb()
-
+        
         # Initialize the SpatialData class
         spatial_data = Processor(setup_parameters)
         
@@ -236,8 +239,9 @@ def main():
         log(log_path, Colors.ERROR, error)
         
         # Save the data to the datatracker in case of crashing
-        spatial_data.data._save_data()
-        log(None, Colors.INFO, 'A checkpoint has been made at the point of faliure.')
+        if spatial_data:
+            spatial_data.data._save_data()
+            log(None, Colors.INFO, 'A checkpoint has been made at the point of failure.')
         
         exit(1)
                         
