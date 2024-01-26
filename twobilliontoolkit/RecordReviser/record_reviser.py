@@ -19,10 +19,11 @@ Organization:     Natural Resources of Canada
 Team:             Carbon Accounting Team
 
 Description: 
-    The script 
+    The script will be used to revise any records that have been created in the 2BT Spatial Tools. It provides a graphical user interface (GUI) for viewing and updating records in the Data Tracker. The GUI allows users to make changes to various fields, including 'project_spatial_id', 'project_number', 'in_raw_gdb', 'contains_pdf', 'contains_image', and 'contains_attachment'. Additionally, the script supports the creation of duplicate records when updating 'project_number', ensuring data integrity. Changes made through the GUI can be committed to either the Data Tracker Excel file or a Postgres DB table. The script also offers functionality to update associated Raw Data GDB layers and attachment folders.
 
 Usage:
-    python path/to/
+    python path/to/record_reviser.py --gdb /path/to/geodatabase --load [datatracker/database] --save [datatracker/database] --data_tracker /path/to/data_tracker.xlsx --log /path/to/logfile.txt --changes "{project_spatial_id: {field: newvalue, field2: newvalue2...}, project_spatial_id: {field: newfield}...}"
+
 """
 
 #========================================================
@@ -62,8 +63,6 @@ class DataTableApp(QWidget):
         self.original_dataframe = self.format_data(data)
         self.dataframe = self.original_dataframe.copy()
         self.gdb = gdb
-        print(self.data.data_dict)
-        print(self.dataframe.dtypes)
         
         # Columns that are not editable
         self.columns_noedit = ['project_spatial_id', 'dropped', 'project_path', 'raw_data_path']
@@ -256,7 +255,6 @@ class DataTableApp(QWidget):
 #========================================================
 # Functions
 #========================================================
-
 def create_duplicate(data, project_spatial_id, new_project_number):
     """
     Create a duplicate entry in the data for a given project with a new project number.
@@ -295,7 +293,7 @@ def create_duplicate(data, project_spatial_id, new_project_number):
 
     return new_project_spatial_id
 
-def update_records(data, changes_dict, gdb=None): 
+def update_records(data: DataTracker, changes_dict, gdb=None): 
     """
     Update records in the data based on the changes provided in the dictionary.
 
@@ -307,16 +305,26 @@ def update_records(data, changes_dict, gdb=None):
     Returns:
         None
     """  
-    # Iterate through the changes
     for project_spatial_id, value in changes_dict.items():
         # Check if the current change updated the project number
         new_project_number = value.get('project_number')
         if new_project_number:
+            # Check if the project number entered was valid
+            data.database_connection.connect(data.database_connection.get_params())
+            found = data.database_connection.read(
+                table='bt_spatial_test.project_number',
+                condition=f"project_number='{new_project_number}'"
+            )               
+            data.database_connection.disconnect()
+            if not found:
+                print(f'Project number {new_project_number} is not a valid project number in the database. Skipping changing this...')
+                continue
+            
             # Duplicate the project with the new project number
             old_project_spatial_id = 'proj_' + project_spatial_id
             project_spatial_id = create_duplicate(data, project_spatial_id, new_project_number)
 
-            if gdb:
+            if gdb and data.get_data(project_spatial_id).get('in_raw_gdb') == True:
                 # If geodatabase is provided, rename the corresponding entries
                 arcpy.management.Rename(
                     os.path.join(gdb, old_project_spatial_id),
@@ -325,7 +333,7 @@ def update_records(data, changes_dict, gdb=None):
 
                 # Rename attachments path if it exists
                 attachments_path = str(data.get_data(project_spatial_id).get('extracted_attachments_path'))
-                if attachments_path.lower() != 'nan':
+                if attachments_path not in ['nan', None, 'None']:
                     # update the attachment path
                     new_attachments_path = attachments_path.split('proj_')[0] + 'proj_' + project_spatial_id
                     
@@ -359,7 +367,7 @@ def update_records(data, changes_dict, gdb=None):
         )
 
     # Save the updated data
-    data._save_data(data.save_to)
+    data.save_data(update=True)
 
 #========================================================
 # Main

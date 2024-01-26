@@ -7,7 +7,7 @@ import psycopg2
 
 from twobilliontoolkit.SpatialTransformer.common import *
 from twobilliontoolkit.Logger.logger import log, Colors
-from twobilliontoolkit.SpatialTransformer.config import config
+from twobilliontoolkit.SpatialTransformer.DatabaseConnectionModule import DatabaseConnection
 
 #========================================================
 # Helper Class
@@ -31,10 +31,11 @@ class DataTracker:
         self.load_from = load_from
         self.save_to = save_to
         self.log_path = log_path
+        self.database_connection = DatabaseConnection()
         
         self._load_data()
     
-    def add_data(self, project_spatial_id, project_number, dropped, project_path, raw_data_path, absolute_file_path, in_raw_gdb, contains_pdf, contains_image, extracted_attachments_path, processed):
+    def add_data(self, project_spatial_id, project_number, dropped, project_path, raw_data_path, absolute_file_path, in_raw_gdb, contains_pdf, contains_image, extracted_attachments_path, editor_tracking_enabled, processed):
         '''
         Adds project data to the data tracker.
 
@@ -49,6 +50,7 @@ class DataTracker:
             contains_pdf (bool): Indicates whether data contains PDF files.
             contains_image (bool): Indicates whether data contains image files.
             extracted_attachments_path (str): The path to the extracted attachments if applicable.
+            editor_tracking_enabled (bool): Indicates whether the editor tracking has been enabled for the layer in the gdb.
             processed (bool): Indicates whether data has been processed yet.
 
         Returns:
@@ -64,10 +66,11 @@ class DataTracker:
             'contains_pdf': contains_pdf,
             'contains_image': contains_image,
             'extracted_attachments_path': extracted_attachments_path,
+            'editor_tracking_enabled': editor_tracking_enabled,
             'processed': processed
         }
         
-    def set_data(self, project_spatial_id, project_number=None, dropped=None, raw_data_path=None, absolute_file_path=None, in_raw_gdb=None, contains_pdf=None, contains_image=None, extracted_attachments_path=None, processed=None):
+    def set_data(self, project_spatial_id, project_number=None, dropped=None, raw_data_path=None, absolute_file_path=None, in_raw_gdb=None, contains_pdf=None, contains_image=None, extracted_attachments_path=None, editor_tracking_enabled=None, processed=None):
         '''
         Updates project data in the data tracker.
 
@@ -81,6 +84,7 @@ class DataTracker:
             contains_pdf (bool): Indicates whether data contains PDF files (optional).
             contains_image (bool): Indicates whether data contains image files (optional).
             extracted_attachments_path (str): The path to the extracted attachments if applicable (optional).
+            editor_tracking_enabled (bool): Indicates whether the editor tracking has been enabled for the layer in the gdb (optional).
             processed (bool): Indicates whether data has been processed yet (optional).
 
         Returns:
@@ -104,6 +108,8 @@ class DataTracker:
             project_data['contains_image'] = contains_image
         if extracted_attachments_path is not None:
             project_data['extracted_attachments_path'] = extracted_attachments_path
+        if editor_tracking_enabled is not None:
+            project_data['editor_tracking_enabled'] = editor_tracking_enabled
         if processed is not None:
             project_data['processed'] = processed
     
@@ -200,60 +206,41 @@ class DataTracker:
             None
         """
         if self.load_from == 'database':
-            # Initialize the connection variable to None
-            conn = None
-            try:
-                # Read connection parameters from the configuration file
-                params = config()
-
-                # Connect to the PostgreSQL server using the parameters
-                log(None, Colors.INFO, 'Opening connection to the PostgreSQL database...')
-                conn = psycopg2.connect(**params)
-                
-                # Create a cursor to execute SQL queries
-                cur = conn.cursor()
-                
-                # SQL query to retrieve data from the database
-                sql = "SELECT project_spatial_id, project_number, dropped, project_path, raw_data_path, in_raw_gdb, contains_pdf, contains_image FROM bt_spatial_test.raw_data_tracker;"        
-
-                try:
-                    # Execute the SQL query
-                    cur.execute(sql)
+            # Read connection parameters from the configuration file
+            params = self.database_connection.get_params()
+            
+            self.database_connection.connect(params)
+            
+            rows = self.database_connection.read(
+                table='bt_spatial_test.raw_data_tracker',
+                columns=['project_spatial_id', 'project_number', 'dropped', 'project_path', 'raw_data_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled']                
+            )
                     
-                    # Fetch all the rows from the result set
-                    rows = cur.fetchall()
-                    
-                    # Initialize an empty dictionary to store the extracted data
-                    for row in rows:
-                        # Extract the project_spatial_id from the row
-                        project_spatial_id = row[0]
+            # Initialize an empty dictionary to store the extracted data
+            for fields in rows:
+                # Extract the project_spatial_id from the row
+                project_spatial_id = fields[0]
 
-                        # Extract the rest of the row values into a dictionary
-                        values = {
-                            'project_number': row[1],
-                            'dropped': row[2],
-                            'project_path': row[3],
-                            'raw_data_path': row[4],
-                            'in_raw_gdb': row[5],
-                            'contains_pdf': row[6],
-                            'contains_image': row[7],
-                            'extracted_attachments_path': None,
-                            'Processed': True
-                        }
-                        
-                        # Store the values dictionary in the data_dict with project_spatial_id as the key
-                        self.data_dict[project_spatial_id] = values
-                        
-                finally:
-                    log(None, Colors.INFO, "Successfully retrieved data from the database.")
-
-                # close the communication with the PostgreSQL
-                cur.close()
-
-            finally:
-                if conn is not None:
-                    conn.close()
-                    log(None, Colors.INFO, 'Database connection closed.') 
+                # Extract the rest of the row values into a dictionary
+                values = {
+                    'project_number': fields[1],
+                    'dropped': fields[2],
+                    'project_path': fields[3],
+                    'raw_data_path': fields[4],
+                    'absolute_file_path': fields[5],
+                    'in_raw_gdb': fields[6],
+                    'contains_pdf': fields[7],
+                    'contains_image': fields[8],
+                    'extracted_attachments_path': fields[9],
+                    'editor_tracking_enabled': fields[10],
+                    'Processed': True
+                }
+                
+                # Store the values dictionary in the data_dict with project_spatial_id as the key
+                self.data_dict[project_spatial_id] = values
+                  
+            self.database_connection.disconnect()      
+            
         else:    
             # Check to see if the data tracker exists before loading from it
             if not os.path.exists(self.data_tracker):
@@ -273,6 +260,7 @@ class DataTracker:
                     'contains_pdf': bool,
                     'contains_image': bool,
                     'extracted_attachments_path': object,
+                    'editor_tracking_enabled': bool,
                     'processed': bool
                 }
             )
@@ -289,88 +277,77 @@ class DataTracker:
                 row['contains_pdf'],
                 row['contains_image'],
                 row['extracted_attachments_path'],
+                row['editor_tracking_enabled'],
                 row['processed']
             ), axis=1)
 
-    def _save_data(self, save_to='database'):
+    def save_data(self, update=False):
         """
         Save data tracker information to data tracker or database connection.
+        
+        Parameters:
+            update (bool): Flag to determine if there are some entries in the data object that will need updating.
 
         Returns:
             None
         """
-        if self.save_to == 'database':            
-            # Initialize the connection variable to None
-            conn = None
-            try:
-                # Read connection parameters from the configuration file
-                params = config()
-
-                # Connect to the PostgreSQL server using the parameters
-                log(None, Colors.INFO, 'Opening connection to the PostgreSQL database...')
-                conn = psycopg2.connect(**params)
-                
-                # Create a cursor to execute SQL queries
-                cur = conn.cursor()
-                
-                # Fetch all existing project_spatial_id values from the database
-                cur.execute("SELECT project_spatial_id FROM bt_spatial_test.raw_data_tracker;")
-                existing_ids = set(row[0] for row in cur.fetchall())
-
-                
-                # Define the SQL query for inserting data into the database
-                sql = "INSERT INTO bt_spatial_test.raw_data_tracker (project_spatial_id, project_number, dropped, project_path, raw_data_path, in_raw_gdb, contains_pdf, contains_image) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);"
-                
-                # Iterate through each key-value pair in the data_dict
-                for key, value in self.data_dict.items():
-                    # Check if the key contains the arbitrary project ID 'XXX'; if yes, skip the insertion for that key
-                    if 'XXX' in key:
-                        log(None, Colors.INFO, f"Skipping key {key} because it contains 'XXX'.")
-                        continue
+        if self.save_to == 'database':     
+            # Read connection parameters from the configuration file
+            params = self.database_connection.get_params()
+            
+            self.database_connection.connect(params)
+            
+            rows = self.database_connection.read(
+                table='bt_spatial_test.raw_data_tracker',
+                columns=['project_spatial_id']
+            )
+            existing_ids = set(row[0] for row in rows)
+  
+            for key, value in self.data_dict.items():
+                if key in existing_ids and update:
+                    self.database_connection.update(
+                        table='bt_spatial_test.raw_data_tracker',
+                        values_dict={
+                            'dropped': value['dropped'],
+                            'in_raw_gdb': value['in_raw_gdb'], 
+                            'contains_pdf': value['contains_pdf'], 
+                            'contains_image': value['contains_image'],
+                            'editor_tracking_enabled': value['editor_tracking_enabled']   
+                        },
+                        condition=f"project_spatial_id='{key}'"
+                    )
                     
-                    if key not in existing_ids:
-                        try:
-                            # Prepare the parameterized values for the SQL query
-                            values = (
-                                key, 
-                                value['project_number'], 
-                                value['dropped'], 
-                                value['project_path'], 
-                                value['raw_data_path'], 
-                                value['in_raw_gdb'], 
-                                value['contains_pdf'], 
-                                value['contains_image']
-                            )
-                            
-                            # Execute the SQL query to insert data into the database
-                            cur.execute(sql, values)
-                            
-                            # Commit the changes to the database
-                            conn.commit()
-                        except Exception as e:
-                            log(self.log_path, Colors.ERROR, f"Was unable to insert data for {key}: {e}")
-                        else: 
-                            log(None, Colors.INFO, f"Successfully inserted data for key {key}.")
+                elif key not in existing_ids:
+                    self.database_connection.create(
+                        table='bt_spatial_test.raw_data_tracker',
+                        columns=('project_spatial_id', 'project_number', 'dropped', 'project_path', 'raw_data_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled'),
+                        values=(
+                            key, 
+                            value['project_number'], 
+                            value['dropped'], 
+                            value['project_path'], 
+                            value['raw_data_path'],
+                            value['absolute_file_path'], 
+                            value['in_raw_gdb'], 
+                            value['contains_pdf'], 
+                            value['contains_image'],
+                            value['extracted_attachments_path'],
+                            value['editor_tracking_enabled']
+                        )
+                    ) 
+            
+            
+            self.database_connection.disconnect()         
 
-                # close the communication with the PostgreSQL
-                cur.close()
-                
-            except (Exception, psycopg2.DatabaseError) as e:
-                log(self.log_path, Colors.ERROR, e)
-            finally:
-                if conn is not None:
-                    conn.close()
-                    log(None, Colors.INFO, 'Database connection closed.')   
-                
         else: 
             # Create a DataFrame and save it to Excel if the data tracker file doesn't exist
-            df = pd.DataFrame(list(self.data_dict.values()), columns=['project_number', 'project_path', 'dropped', 'raw_data_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'processed'])
+            df = pd.DataFrame(list(self.data_dict.values()), columns=['project_number', 'project_path', 'dropped', 'raw_data_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled', 'processed'])
 
             # Add 'project_spatial_id' to the DataFrame
             df['project_spatial_id'] = list(self.data_dict.keys())
 
             # Reorder columns to have 'project_spatial_id' as the first column
-            df = df[['project_spatial_id', 'project_number', 'dropped', 'project_path', 'raw_data_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'processed']]
+            df = df[['project_spatial_id', 'project_number', 'dropped', 'project_path', 'raw_data_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled', 'processed']]
 
             # Sort the rows by the project_spatial_id column
             df = df.sort_values(by=['project_spatial_id'])
@@ -384,4 +361,3 @@ class DataTracker:
             df.to_excel(self.data_tracker, index=False)
             
             log(None, Colors.INFO, f'The data tracker "{self.data_tracker}" has been created/updated successfully.')
-                

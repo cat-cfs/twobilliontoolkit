@@ -109,6 +109,7 @@ class Processor:
                 contains_pdf=False, 
                 contains_image=False,
                 extracted_attachments_path=None,
+                editor_tracking_enabled=False,
                 processed=False
             )
             
@@ -147,7 +148,7 @@ class Processor:
         self.enable_version_control()
             
         # Save the data tracker before returning
-        self.data._save_data()
+        self.data.save_data()
         
     def _check_project_numbers(self, file_path, master_df):
         '''
@@ -271,6 +272,7 @@ class Processor:
                     contains_pdf=False,
                     contains_image=False,
                     extracted_attachments_path=None,
+                    editor_tracking_enabled=False,
                     processed=False
                 )
                 
@@ -392,6 +394,7 @@ class Processor:
                     contains_pdf=False,
                     contains_image=False,
                     extracted_attachments_path=None,
+                    editor_tracking_enabled=False,
                     processed=False
                 )
                 
@@ -465,7 +468,12 @@ class Processor:
             #     ['date_created', 'DATE', 'date_created', None, datetime.date.today(), '']]
             # )
             try:
+                #TODO: track new editor_racking_on field
                 arcpy.EnableEditorTracking_management(feature_class, "created_by", "date_created", "last_edited_by", "date_edited", "ADD_FIELDS", "UTC")
+                self.data.set_data(
+                    project_spatial_id=feature_class,
+                    editor_tracking_enabled=True
+                )
             except Exception as error:
                 log(self.params.log, Colors.ERROR, f'An error has been caught while trying to enable editor tracking for {feature_class} in resulting gdb: {error}\n')
             

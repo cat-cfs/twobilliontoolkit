@@ -362,7 +362,7 @@ class TestDataHandling(unittest.TestCase):
         )
 
         # Save and load data
-        self.datatracker._save_data()
+        self.datatracker.save_data()
 
         # Create a new DataTracker instance to load the saved data
         loaded_data_tracker = DataTracker(self.startparams.datatracker)

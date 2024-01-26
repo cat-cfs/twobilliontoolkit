@@ -217,7 +217,7 @@ def main():
         # log(None, Colors.INFO, setup_parameters)
         
         # Start the unzip tool 
-        # setup_parameters.handle_unzip()
+        setup_parameters.handle_unzip()
         
         # Create the GDB
         setup_parameters.create_gdb()
@@ -240,7 +240,7 @@ def main():
         
         # Save the data to the datatracker in case of crashing
         if spatial_data:
-            spatial_data.data._save_data()
+            spatial_data.data.save_data()
             log(None, Colors.INFO, 'A checkpoint has been made at the point of failure.')
         
         exit(1)
