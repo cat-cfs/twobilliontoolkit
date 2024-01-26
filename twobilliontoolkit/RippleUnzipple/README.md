@@ -93,5 +93,7 @@ If you have any questions, feedback, or suggestions, you can reach out here:
 - Anthony Rodway
 - Email: anthony.rodway@nrcan-rncan.gc.ca
 
+If I am not reachable, then please contact Andrea Nesdoly for any questions you may have. You may reach her at andrea.nesdoly@nrcan-rncan.gc.ca
+
 Feel free to provide your input to help improve Ripple Unzipple!
 
