@@ -17,12 +17,9 @@ class DatabaseConnection:
         self.cursor = None
     
     def connect(self, params):
-        # try:
         self.connection = psycopg2.connect(**params)
         self.cursor = self.connection.cursor()
         log(None, Colors.INFO, 'Opened a connection to the database...')
-        # except (Exception, psycopg2.DatabaseError) as error:
-            # log(log_file, Colors.ERROR, error)
             
     def disconnect(self):
         if self.connection is not None:
@@ -36,18 +33,23 @@ class DatabaseConnection:
         # Join the script directory with the relative path to database.ini
         if filename == None:
             filename = os.path.join(script_directory, 'database.ini')
+            
+            if not os.path.exists(filename):
+                raise FileExistsError(f'The database.ini file is not in the correct place/does not exist in {script_directory}')
         
         # create a parser
         parser = ConfigParser()
         
         # read config file
         parser.read(filename)
-
+        
         # get section, default to postgresql
         db = {}
         if parser.has_section(section):
             params = parser.items(section)
             for param in params:
+                if not param[1]:
+                    raise ValueError(f'The [{param[0]}] field in {filename} was not filled out.')
                 db[param[0]] = param[1]
         else:
             raise Exception(f'Section {section} not found in the {filename} file')
@@ -55,11 +57,8 @@ class DatabaseConnection:
         return db
                 
     def execute(self, query, values=None):
-        # try:
         self.cursor.execute(query, values)
         self.connection.commit()
-        # except Exception as error:
-            # log(log_file, Colors.ERROR, error)s
             
     def create(self, table, columns, values):
         query = f"INSERT INTO {table} ({', '.join(columns)}) VALUES ({', '.join(['%s' for _ in values])})"
