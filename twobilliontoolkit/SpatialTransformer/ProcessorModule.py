@@ -7,11 +7,13 @@ import re
 import tempfile
 import xml.etree.ElementTree as ET
 import win32wnet
+from PyQt5.QtWidgets import QApplication
 
 from twobilliontoolkit.SpatialTransformer.common import *
 from twobilliontoolkit.Logger.logger import log, Colors
 from twobilliontoolkit.GeoAttachmentSeeker.geo_attachment_seeker import find_attachments
 from twobilliontoolkit.SpatialTransformer.DataTrackerModule import DataTracker
+from twobilliontoolkit.RecordReviser.record_reviser import DataTableApp, update_records
 
 #========================================================
 # Helper Class
@@ -150,6 +152,11 @@ class Processor:
         # Save the data tracker before returning
         self.data.save_data()
         
+        # Open the record reviser
+        app = QApplication([])
+        window = DataTableApp(self.data, self.params.gdb)
+        app.exec_()  
+        
     def _check_project_numbers(self, file_path, master_df):
         '''
         Check project numbers against a master data sheet.
@@ -192,7 +199,7 @@ class Processor:
             None
         """
         # Find a corresponding project spatial ID in the data dictionary based on the raw data path
-        found_match = self.data._find_matching_spatial_id(raw_data_path)
+        found_match = self.data.find_matching_spatial_id(raw_data_path)
         if found_match is not None:
             log(self.params.log, Colors.WARNING, f'Raw path: {raw_data_path} already exists in the data tracker! -  Current Spatial ID: {current_spatial_id} Matching Spatial ID: {found_match}')    
 
@@ -467,11 +474,17 @@ class Processor:
             #     [['created_by', 'TEXT', 'created_by', 255, os.getlogin().upper(), ''], 
             #     ['date_created', 'DATE', 'date_created', None, datetime.date.today(), '']]
             # )
+            
+            if self.params.resume:
+                data_entry = self.data.find({'project_spatial_id': feature_class.replace('proj_', ''), 'editor_tracking_enabled': True})
+                if data_entry:
+                    continue
+            
             try:
-                #TODO: track new editor_racking_on field
                 arcpy.EnableEditorTracking_management(feature_class, "created_by", "date_created", "last_edited_by", "date_edited", "ADD_FIELDS", "UTC")
+                
                 self.data.set_data(
-                    project_spatial_id=feature_class,
+                    project_spatial_id=feature_class.replace('proj_', ''),
                     editor_tracking_enabled=True
                 )
             except Exception as error:
@@ -480,4 +493,3 @@ class Processor:
         # Log completion of this task
         log(None, Colors.INFO, 'Enabling version control for feature classes in the Geodatabase has completed.')
         
-            

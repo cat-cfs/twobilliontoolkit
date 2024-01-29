@@ -33,7 +33,7 @@ class DataTracker:
         self.log_path = log_path
         self.database_connection = DatabaseConnection()
         
-        self._load_data()
+        self.load_data()
     
     def add_data(self, project_spatial_id, project_number, dropped, project_path, raw_data_path, absolute_file_path, in_raw_gdb, contains_pdf, contains_image, extracted_attachments_path, editor_tracking_enabled, processed):
         '''
@@ -125,7 +125,7 @@ class DataTracker:
         '''
         return self.data_dict[project_spatial_id]
     
-    def _find_matching_spatial_id(self, raw_data_path):
+    def find_matching_spatial_id(self, raw_data_path):
         '''
         Search for a matching entry for the raw data path.
 
@@ -198,7 +198,7 @@ class DataTracker:
 
         return clean_project_number + '_' + str(result_occurrences).zfill(2)
     
-    def _load_data(self):
+    def load_data(self):
         """
         Load data from an existing data tracker or a database connection into class.
 
@@ -233,7 +233,7 @@ class DataTracker:
                     'contains_image': fields[8],
                     'extracted_attachments_path': fields[9],
                     'editor_tracking_enabled': fields[10],
-                    'Processed': True
+                    'processed': True
                 }
                 
                 # Store the values dictionary in the data_dict with project_spatial_id as the key

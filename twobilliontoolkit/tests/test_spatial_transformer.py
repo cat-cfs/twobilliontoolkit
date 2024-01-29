@@ -225,14 +225,14 @@ class TestDataHandling(unittest.TestCase):
         self.assertFalse(updated_data['in_raw_gdb'])
 
     def test_find_matching_spatial_id(self):
-        # Test the _find_matching_spatial_id method
+        # Test the find_matching_spatial_id method
         project_spatial_id = 3
         project_number = '0000 XXX - 333'
         project_path = '/path/to/project3'
         raw_data_path = '/path/to/raw/data3'
 
         # Test the method before adding the data
-        matching_spatial_id = self.datatracker._find_matching_spatial_id(raw_data_path)
+        matching_spatial_id = self.datatracker.find_matching_spatial_id(raw_data_path)
         self.assertIsNone(matching_spatial_id)
 
         # Add initial data
@@ -247,7 +247,7 @@ class TestDataHandling(unittest.TestCase):
         )
 
         # Test the method again
-        matching_spatial_id = self.datatracker._find_matching_spatial_id(raw_data_path)
+        matching_spatial_id = self.datatracker.find_matching_spatial_id(raw_data_path)
         self.assertIsNotNone(matching_spatial_id)
         self.assertEqual(matching_spatial_id, 3)
 
@@ -344,7 +344,7 @@ class TestDataHandling(unittest.TestCase):
         self.assertEqual(new_project_spatial_id, '0000_XXX_555_3')
 
     def test_load_and_save_data(self):
-        # Test the _load_data and _save_data methods
+        # Test the load_data and _save_data methods
         project_spatial_id = 6
         project_number = '0000 XXX - 666'
         project_path = '/path/to/project6'
