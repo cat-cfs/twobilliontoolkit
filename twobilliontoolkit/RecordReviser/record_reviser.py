@@ -37,7 +37,7 @@ import ast
 import pandas as pd
 import arcpy
 
-from PyQt5.QtWidgets import QApplication, QTableWidget, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QTableWidgetItem
+from PyQt5.QtWidgets import QApplication, QTableWidget, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QTableWidgetItem, QMessageBox
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
 
@@ -56,6 +56,26 @@ class DataTableApp(QWidget):
             data (dict): The initial data for the application.   
             gdb (str, optional): The path to the gdb that changes will be made to if applicable.  
         """
+        # messageBox = QMessageBox()
+        # messageBox.setIcon(QMessageBox.Question) 
+                
+        # # Set the window title
+        # messageBox.setWindowTitle("Confirmation MessageBox")
+
+        # # Set the message text
+        # messageBox.setText("Open the record reviser?")
+
+        # # Set the standard buttons (OK and Cancel)
+        # messageBox.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+
+        # # Execute the message box and get the user's choice
+        # result = messageBox.exec_()
+
+        # # Check the user's choice
+        # if result == QMessageBox.Cancel:
+        #     # User clicked Cancel
+        #     raise RuntimeWarning('The popup for the record reviser was declined, continuing on...')
+        
         super().__init__()
 
         # Store the original and current dataframes
@@ -255,7 +275,7 @@ class DataTableApp(QWidget):
 #========================================================
 # Functions
 #========================================================
-def create_duplicate(data, project_spatial_id, new_project_number):
+def create_duplicate(data:DataTracker, project_spatial_id, new_project_number):
     """
     Create a duplicate entry in the data for a given project with a new project number.
 
@@ -285,6 +305,7 @@ def create_duplicate(data, project_spatial_id, new_project_number):
         contains_pdf=entry_to_duplicate.get('contains_pdf'),
         contains_image=entry_to_duplicate.get('contains_image'),
         extracted_attachments_path=entry_to_duplicate.get('extracted_attachments_path'),
+        editor_tracking_enabled=entry_to_duplicate.get('editor_tracking_enabled'),
         processed=entry_to_duplicate.get('processed')
     )
 
@@ -424,9 +445,12 @@ def main():
     else:
         # If no changes are provided, open a PyQt application for data visualization
         changes_dict = None
-        app = QApplication([])
-        window = DataTableApp(data, gdb_path)
-        app.exec_()  
+        try:
+            app = QApplication([])
+            window = DataTableApp(data, gdb_path)
+            app.exec_()  
+        except RuntimeWarning as error:
+            log(None, Colors.INFO, error)
          
     # Get the end time of the script and calculate the elapsed time
     end_time = time.time()
