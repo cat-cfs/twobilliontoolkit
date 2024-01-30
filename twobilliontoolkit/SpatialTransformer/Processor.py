@@ -1,4 +1,4 @@
-# spatial_transformer/ProcessorModule.py
+# twobilliontoolkit/SpatialTransformer/Processor.py
 #========================================================
 # Imports
 #========================================================
@@ -12,43 +12,35 @@ from PyQt5.QtWidgets import QApplication
 from twobilliontoolkit.SpatialTransformer.common import *
 from twobilliontoolkit.Logger.logger import log, Colors
 from twobilliontoolkit.GeoAttachmentSeeker.geo_attachment_seeker import find_attachments
-from twobilliontoolkit.SpatialTransformer.DataTrackerModule import DataTracker
+from twobilliontoolkit.SpatialTransformer.Datatracker import Datatracker
 from twobilliontoolkit.RecordReviser.record_reviser import DataTableApp, update_records
+from twobilliontoolkit.SpatialTransformer.spatial_transformer import StartupParameters
 
 #========================================================
 # Helper Class
 #========================================================
 class Processor:
-    def __init__(self, params):
-        '''
-        Initializes the SpatialData class with input parameters.
+    def __init__(self, params: StartupParameters) -> None:
+        """
+        Initializes the Processor class with input parameters.
 
-        Parameters:
-            params: Instance of the StartupParameters class.
-        
-        Returns:
-            None
-        '''
+        Args:
+            params (StartupParameters): Instance of the StartupParameters class.
+        """
         self.params = params
         
         # Create the Data class to hold any data tracker information
-        self.data = DataTracker(params.datatracker, params.load_from, params.save_to)
+        self.data = Datatracker(params.datatracker, params.load_from, params.save_to)
         
         self.spatial_files = []
         self.temp_directory = tempfile.gettempdir() + '\spatial_trans'
               
-    def search_for_spatial_data(self):
-        '''
+    def search_for_spatial_data(self) -> None:
+        """
         Walk through the directory structure and extract any spatial or data sheet file paths.
 
-        Populates the `spatial_files` and `data_sheets` lists with file paths.
-
-        Files ending with SPATIAL_FILE_EXTENSIONS are added to `spatial_files`, and
-        files ending with DATA_SHEET_EXTENSIONS are added to `data_sheets`.
-        
-        Returns: 
-            None
-        '''
+        Populates the `spatial_files` list with file paths.
+        """
         # Step through unzip output path and keep track of paths
         for root, dirs, files in os.walk(self.params.output):
             for dir in dirs:
@@ -62,23 +54,15 @@ class Processor:
                     
         # TODO: In the topic of fault handling, want to add all the relevant stuff to the datatracker so that if need be can recover from a fataly crash             
       
-    def process_spatial_files(self):
-        '''
-        Process all of the found spatial files.
-
-        Parameters:
-            master_df: Master data sheet as a pandas DataFrame.
-        
-        Returns:
-            None
-        '''
+    def process_spatial_files(self) -> None:
+        """Process all of the found spatial files."""
         for file in self.spatial_files:
             # Check project numbers and format the result
-            formatted_result = self._check_project_numbers(file, self.params.masterdata)
+            formatted_result = self.check_project_numbers(file, self.params.masterdata)
             formatted_result = formatted_result.upper()
 
             # Create a unique identifier for the project spatial ID
-            formatted_project_spatial_id = self.data._create_project_spatial_id(formatted_result)
+            formatted_project_spatial_id = self.data.create_project_spatial_id(formatted_result)
 
             # Print file information if debugging is enabled
             if self.params.debug:
@@ -91,7 +75,7 @@ class Processor:
             absolute_file_path = win32wnet.WNetGetUniversalName(os.path.abspath(file), 1)
 
             # Call a method to process raw data matching
-            self._call_raw_data_match(formatted_project_spatial_id, raw_data_path)
+            self.call_raw_data_match(formatted_project_spatial_id, raw_data_path)
             
             # Try to find if the entry is already in the tracker, skip if so
             if self.params.resume:
@@ -131,13 +115,13 @@ class Processor:
                     self.data.set_data(project_spatial_id=formatted_project_spatial_id, contains_image=True)
                     
             elif lowercase_file.endswith('.shp'):
-                self._process_shp(file, formatted_project_spatial_id)         
+                self.process_shp(file, formatted_project_spatial_id)         
             elif lowercase_file.endswith(('.kml', '.kmz')):
-                self._process_kml_kmz(file, formatted_project_spatial_id)    
+                self.process_kml(file, formatted_project_spatial_id)    
             elif lowercase_file.endswith('.geojson'):
-                self._process_json(file, formatted_project_spatial_id)
+                self.process_json(file, formatted_project_spatial_id)
             elif lowercase_file.endswith('.gdb'):
-                self._process_gdb(file, formatted_project_spatial_id)
+                self.process_gdb(file, formatted_project_spatial_id)
             elif lowercase_file.endswith(('.gpkg', '.sqlite')):
                 log(self.params.log, Colors.WARNING, f'GeoPackage/SQLite file: {file} will be added to data tracker but not resulting gdb.')
 
@@ -157,17 +141,17 @@ class Processor:
         window = DataTableApp(self.data, self.params.gdb)
         app.exec_()  
         
-    def _check_project_numbers(self, file_path, master_df):
-        '''
+    def check_project_numbers(self, file_path: str, master_df: pd.DataFrame) -> str:
+        """
         Check project numbers against a master data sheet.
 
-        Parameters:
-            file_path: Filepath to check.
-            master_df: Master data sheet as a pandas DataFrame.
-        
+        Args:
+            file_path (str): Filepath to check.
+            master_df (pd.Dataframe): Master data sheet as a pandas DataFrame.
+
         Returns:
             str: the formatted result for the project number of the spatial file path.
-        '''
+        """
         # Define a regular expression pattern to extract project numbers and search for pattern in file path
         pattern = r'(\d{4})[\s_–-]*([a-zA-Z]{3})[\s_–-]*(\d{3})'
         search = re.search(pattern, file_path)
@@ -187,32 +171,26 @@ class Processor:
             
         return formatted_result
         
-    def _call_raw_data_match(self, current_spatial_id, raw_data_path):
+    def call_raw_data_match(self, current_spatial_id: str, raw_data_path: str) -> None:
         """
         Call the method that finds a matching raw data path and returns the project spatial id.
 
         Args:
             current_spatial_id (str): The current spatial project id being checked.
-            raw_data_path (str): The raw data path to be search in the dictionary.
-
-        Returns:
-            None
+            raw_data_path (str): The raw data path to be searched in the dictionary.
         """
         # Find a corresponding project spatial ID in the data dictionary based on the raw data path
         found_match = self.data.find_matching_spatial_id(raw_data_path)
         if found_match is not None:
             log(self.params.log, Colors.WARNING, f'Raw path: {raw_data_path} already exists in the data tracker! -  Current Spatial ID: {current_spatial_id} Matching Spatial ID: {found_match}')    
 
-    def _process_shp(self, file, formatted_project_spatial_id):
+    def process_shp(self, file: str, formatted_project_spatial_id: str) -> None:
         """
         Process shapefile.
 
         Args:
             file (str): Path to the shapefile.
             formatted_project_spatial_id (str): Formatted project spatial ID.
-
-        Returns:
-            None
         """
         # Export features from shapefile to a geodatabase
         arcpy.conversion.ExportFeatures(
@@ -226,16 +204,13 @@ class Processor:
             in_raw_gdb=True
         )
     
-    def _process_kml_kmz(self, file, formatted_project_spatial_id): 
+    def process_kml(self, file: str, formatted_project_spatial_id: str) -> None: 
         """
         Process KML/KMZ files.
 
-        Parameters:
+        Args:
             file (str): Path to the KML/KMZ file.
             formatted_project_spatial_id (str): Formatted project spatial ID.
-
-        Returns:
-            None
         """
         # Create temporary directory if it doesn't exist, otherwise, recreate it
         if not os.path.exists(self.temp_directory):
@@ -265,7 +240,7 @@ class Processor:
             if first_feature_class_processed:
                 # Get data for the current feature and create a new project spatial ID
                 current_feature_data = self.data.get_data(formatted_project_spatial_id)
-                spatial_project_id = self.data._create_project_spatial_id(current_feature_data['project_number'])
+                spatial_project_id = self.data.create_project_spatial_id(current_feature_data['project_number'])
                 
                 # Add data for the new project spatial ID
                 self.data.add_data(
@@ -297,7 +272,7 @@ class Processor:
             first_feature_class_processed = True
             
             new_raw_data_path = os.path.join(base_raw_data_path, feature_class)
-            self._call_raw_data_match(formatted_project_spatial_id, new_raw_data_path)
+            self.call_raw_data_match(formatted_project_spatial_id, new_raw_data_path)
             
             # Update the entry of the Geodatabase feature class
             self.data.set_data(
@@ -307,11 +282,11 @@ class Processor:
                 processed=True
             )
             
-    def remove_cascading_style(self, file):
+    def remove_cascading_style(self, file: str) -> str:
         """
         Remove cascading styles from KML-XML.
         
-        Parameters:
+        Args:
             file (str): Path to the KML file.
         
         Returns:
@@ -339,16 +314,13 @@ class Processor:
 
         return kml_output_no_gx_path  
     
-    def _process_json(self, file, formatted_project_spatial_id):
+    def process_json(self, file: str, formatted_project_spatial_id: str) -> None:
         """
         Process GeoJSON files.
 
-        Parameters:
+        Args:
             file (str): Path to the GeoJSON file.
             formatted_project_spatial_id (str): Formatted project spatial ID.
-
-        Returns:
-            None
         """
         # Export features from GeoJSON to a geodatabase
         arcpy.conversion.JSONToFeatures(
@@ -362,16 +334,13 @@ class Processor:
             in_raw_gdb=True
         )
         
-    def _process_gdb(self, file, formatted_project_spatial_id): 
+    def process_gdb(self, file: str, formatted_project_spatial_id: str) -> None:
         """
         Process GeoDatabase files.
 
-        Parameters:
+        Args:
             file (str): Path to the GeoDatabase file.
             formatted_project_spatial_id (str): Formatted project spatial ID.
-
-        Returns:
-            None
         """
         # Set the workspace to the specified .gdb
         arcpy.env.workspace = file
@@ -387,7 +356,7 @@ class Processor:
             if first_feature_class_processed:
                 # Get data for the current feature and create a new project spatial ID
                 current_feature_data = self.data.get_data(formatted_project_spatial_id)
-                spatial_project_id = self.data._create_project_spatial_id(current_feature_data['project_number'])
+                spatial_project_id = self.data.create_project_spatial_id(current_feature_data['project_number'])
                 
                 # Add data for the new project spatial ID
                 self.data.add_data(
@@ -427,7 +396,7 @@ class Processor:
             first_feature_class_processed = True
             
             new_raw_data_path = os.path.join(base_raw_data_path, feature)
-            self._call_raw_data_match(formatted_project_spatial_id, new_raw_data_path)
+            self.call_raw_data_match(formatted_project_spatial_id, new_raw_data_path)
             
             # Update the entry of the Geodatabase feature class
             self.data.set_data(
@@ -435,10 +404,10 @@ class Processor:
                 raw_data_path=new_raw_data_path
             )
 
-    def extract_attachments(self):
-        '''
+    def extract_attachments(self) -> None:
+        """
         Call the GeoAttachmentSeeker module function to find, extract and note down any attachments in the result GDB.
-        '''        
+        """        
         # Find and process attachments from the gdb
         attachment_dict = find_attachments(self.params.gdb, self.params.attachments)
         
@@ -457,10 +426,10 @@ class Processor:
         # Log completion of this task
         log(None, Colors.INFO, 'All attachments have been extracted from the result Geodatabase.')
             
-    def enable_version_control(self):
-        '''
+    def enable_version_control(self) -> None:
+        """
         Enable the editor tracking version control for each feature class in the Geodatabase.
-        '''
+        """
         # Set the arc environement to the resulting GDB
         arcpy.env.workspace = self.params.gdb
         

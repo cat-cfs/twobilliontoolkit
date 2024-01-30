@@ -4,9 +4,7 @@ import sys
 import shutil
 from tempfile import TemporaryDirectory
 
-# Add the path to the geo_attachment_seeker module to the Python path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from geo_attachment_seeker.geo_attachment_seeker import find_attachments, process_attachment 
+from twobilliontoolkit.GeoAttachmentSeeker.geo_attachment_seeker import find_attachments, process_attachment 
 
 class TestGeoAttachmentSeeker(unittest.TestCase):
     

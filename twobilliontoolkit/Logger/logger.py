@@ -1,10 +1,37 @@
+#!/usr/bin/env python3
+#~-~ encoding: utf-8 ~-~
+# twobilliontoolkit/Logger/logger.py
+#========================================================
+# Created By:       Anthony Rodway
+# Email:            anthony.rodway@nrcan-rncan.gc.ca
+# Creation Date:    Thur January 18 12:00:00 PST 2024
+# Organization:     Natural Resources of Canada
+# Team:             Carbon Accounting Team
+#========================================================
+# File Header
+#========================================================
+"""
+File: twobilliontoolkit/Logger/logger.py
+Created By:       Anthony Rodway
+Email:            anthony.rodway@nrcan-rncan.gc.ca
+Creation Date:    Thur January 18 12:00:00 PST 2024
+Organization:     Natural Resources of Canada
+Team:             Carbon Accounting Team
+
+Description: 
+    The module holds the function that handles the logging for the package, the user may provide a log path so that each warning and error gets written to that, otherwise everything will be written to the terminal.
+
+Usage:
+    Not callable from the command-line
+"""
+
 #========================================================
 # Imports
 #========================================================
 import os
 import sys
-from datetime import datetime
 import inspect
+from datetime import datetime
 
 #========================================================
 # Global Classes
@@ -19,17 +46,14 @@ class Colors:
 #========================================================
 # Logger Functions
 #========================================================   
-def log(file_path=None, type=Colors.ERROR, message=''):
+def log(file_path: str = None, type: str = Colors.ERROR, message: str = '') -> None:
     """
     Log messages with colored tags and timestamps.
 
     Args:
-        file_path (str): Path to the log file.
+        file_path (str, optional): Path to the log file.
         type (str): Color code for the log message type.
         message (str): The log message.
-        
-    Return:
-        None.
     """
     # Get the frame of the caller to extract the filepath and linenumber of where log() was called from. Then clean it up.
     frame = inspect.currentframe().f_back
@@ -39,27 +63,19 @@ def log(file_path=None, type=Colors.ERROR, message=''):
     finally:
         del frame
     
-    # Set the tag
+    # Set the tag and print to the console
     if type == Colors.INFO:
         tag = 'INFO'
-        
-        # Print the colored log message to the console
         print(f'{type}[{tag}] {message}{Colors.END}')
-        
     elif type == Colors.WARNING:
         tag = 'WARNING'
-        
-        # Print the colored log message to the console
         print(f'{type}[{tag}] {filename}:{line_number} - {message}{Colors.END}')
-        
     elif type == Colors.ERROR:
         tag = 'ERROR'
-        
-        # Print the colored log message to the console
         print(f'{type}[{tag}] {filename}:{line_number} - {message}{Colors.END}')
         
     
-    # If there is a file path provided
+    # If a file path is provided
     if file_path is not None:
         # Check if the directory exists, if not, create it
         directory = os.path.dirname(file_path)

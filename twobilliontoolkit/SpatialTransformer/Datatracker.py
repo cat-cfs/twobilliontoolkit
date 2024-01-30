@@ -1,45 +1,42 @@
-# spatial_transformer/DataTrackerModule.py
+# twobilliontoolkit/SpatialTransformer/Datatracker.py
 #========================================================
 # Imports
 #========================================================
 import json
 import psycopg2
 
-from twobilliontoolkit.SpatialTransformer.common import *
+# from twobilliontoolkit.SpatialTransformer.common import *
 from twobilliontoolkit.Logger.logger import log, Colors
-from twobilliontoolkit.SpatialTransformer.DatabaseConnectionModule import DatabaseConnection
+from twobilliontoolkit.SpatialTransformer.Database import Database
 
 #========================================================
 # Helper Class
 #========================================================
-class DataTracker:
-    def __init__(self, data_traker_path, load_from='database', save_to='database', log_path=None):
-        '''
+class Datatracker:
+    def __init__(self, data_traker_path: str, load_from: str = 'database', save_to: str = 'database', log_path: str = None) -> None:
+        """
         Initializes the Data class with input parameters. Used to store the data tracker information.
 
-        Parameters:
+        Args:
             data_traker_path (str): Path to data tracker to load data if exists.
             load_from (str): Flag to determine if loading dataframe should be done from the {database, datatracker}. Default: 'database'.
             save_to (str): Flag to determine if saving the dataframe should be done to the {database, datatracker}. Default: 'database'.
             log_path (str, optional): The path to the log file if you wish to keep any errors that occur.
-
-        Returns:
-            None
-        '''
+        """
         self.data_dict = {}
         self.data_tracker = data_traker_path
         self.load_from = load_from
         self.save_to = save_to
         self.log_path = log_path
-        self.database_connection = DatabaseConnection()
+        self.database_connection = Database()
         
         self.load_data()
     
-    def add_data(self, project_spatial_id, project_number, dropped, project_path, raw_data_path, absolute_file_path, in_raw_gdb, contains_pdf, contains_image, extracted_attachments_path, editor_tracking_enabled, processed):
-        '''
+    def add_data(self, project_spatial_id: int, project_number: int, dropped: bool, project_path: str, raw_data_path: str, absolute_file_path: str, in_raw_gdb: bool, contains_pdf: bool, contains_image: bool, extracted_attachments_path: str, editor_tracking_enabled: bool, processed: bool) -> None:
+        """
         Adds project data to the data tracker.
 
-        Parameters:
+        Args:
             project_spatial_id (int): Project spatial ID. Acts as key in dictionary.
             project_number (int): Project number.
             dropped (bool): Indicates whether the entry is dropped, non-valid etc.
@@ -52,10 +49,7 @@ class DataTracker:
             extracted_attachments_path (str): The path to the extracted attachments if applicable.
             editor_tracking_enabled (bool): Indicates whether the editor tracking has been enabled for the layer in the gdb.
             processed (bool): Indicates whether data has been processed yet.
-
-        Returns:
-            None
-        '''
+        """
         self.data_dict[project_spatial_id] = {
             'project_number': project_number,
             'project_path': project_path,
@@ -70,11 +64,11 @@ class DataTracker:
             'processed': processed
         }
         
-    def set_data(self, project_spatial_id, project_number=None, dropped=None, raw_data_path=None, absolute_file_path=None, in_raw_gdb=None, contains_pdf=None, contains_image=None, extracted_attachments_path=None, editor_tracking_enabled=None, processed=None):
-        '''
+    def set_data(self, project_spatial_id: str, project_number: str = None, dropped: bool = None, raw_data_path: str = None, absolute_file_path: str = None, in_raw_gdb: bool = None, contains_pdf: bool = None, contains_image: bool = None, extracted_attachments_path: str = None, editor_tracking_enabled: bool = None, processed: bool = None) -> None:
+        """
         Updates project data in the data tracker.
 
-        Parameters:
+        Args:
             project_spatial_id (str): Project spatial ID. Acts as key in dictionary.
             project_number (str): Project number (optional).
             dropped (bool): Indicates whether the entry is dropped, non-valid etc.
@@ -86,10 +80,7 @@ class DataTracker:
             extracted_attachments_path (str): The path to the extracted attachments if applicable (optional).
             editor_tracking_enabled (bool): Indicates whether the editor tracking has been enabled for the layer in the gdb (optional).
             processed (bool): Indicates whether data has been processed yet (optional).
-
-        Returns:
-            None
-        '''
+        """
         # Update specified parameters as sets
         project_data = self.data_dict.get(project_spatial_id, {})
         if project_number is not None:
@@ -113,29 +104,28 @@ class DataTracker:
         if processed is not None:
             project_data['processed'] = processed
     
-    def get_data(self, project_spatial_id):
-        '''
+    def get_data(self, project_spatial_id: int) -> dict:
+        """
         Gets an object of values given a project spatial id.
 
-        Parameters:
+        Args:
             project_spatial_id (int): Project spatial ID. Acts as key in dictionary.
 
         Returns:
             dict: the values that correspond to the given key
-        '''
+        """
         return self.data_dict[project_spatial_id]
     
-    def find_matching_spatial_id(self, raw_data_path):
-        '''
+    def find_matching_spatial_id(self, raw_data_path: str) -> str:
+        """
         Search for a matching entry for the raw data path.
 
-        Parameters:
+        Args:
             raw_data_path (str): The path of the raw data.
 
         Returns:
             str: A matching project_spatial_id if it the raw data path already exists in the dataframe, otherwise return None.
-        '''       
-        #
+        """        
         return next(
             (
                 project_spatial_id
@@ -145,17 +135,16 @@ class DataTracker:
             None
         )
         
-    def find(self, criteria):
-        '''
+    def find(self, criteria: dict) -> dict:
+        """
         Find any criteria from the global data class.
 
-        Parameters:
+        Args:
             criteria (dict): A dictionary of criteria of what to search the data class for.
 
         Returns:
             data_entry: A matching row of the dictionary if the criteria is all returned true, otherwise return None.
-        '''        
-        #
+        """         
         return next(
             (
                 data_entry
@@ -165,45 +154,42 @@ class DataTracker:
             None
         )
     
-    def _count_occurances(self, field, value):
-        '''
+    def count_occurances(self, field: str, value) -> int:
+        """
         Count the occurrences of a specified field in the data object.
 
-        Parameters:
+        Args:
             field (str): Name of the parameter to count occurrences.
             value: Value of the parameter to count occurrences.
 
         Returns:
             int: Number of occurrences of the specified parameter.
-        '''
+        """
         return sum(
             1 for project_data in self.data_dict.values() if project_data.get(field) == value
         )
     
-    def _create_project_spatial_id(self, project_number):
-        '''
+    def create_project_spatial_id(self, project_number: str) -> str:
+        """
         Create the next project spatial id for the file
 
-        Parameters:
+        Args:
             project_number (str): The formatted project number.
 
         Returns:
             str: The project spatial id next in line.
-        '''
+        """
         # Get the number of entries with the specified project number, add one because this is for the next entry
-        result_occurrences = self._count_occurances('project_number', project_number) + 1
+        result_occurrences = self.count_occurances('project_number', project_number) + 1
         
         # Clean the project number and format to the correct project_spatial_id format
         clean_project_number = project_number.replace('- ', '').replace(' ', '_')
 
         return clean_project_number + '_' + str(result_occurrences).zfill(2)
     
-    def load_data(self):
+    def load_data(self) -> None:
         """
         Load data from an existing data tracker or a database connection into class.
-
-        Returns:
-            None
         """
         if self.load_from == 'database':
             # Read connection parameters from the configuration file
@@ -281,15 +267,12 @@ class DataTracker:
                 row['processed']
             ), axis=1)
 
-    def save_data(self, update=False):
+    def save_data(self, update: bool = False) -> None:
         """
         Save data tracker information to data tracker or database connection.
         
-        Parameters:
+        Args:
             update (bool): Flag to determine if there are some entries in the data object that will need updating.
-
-        Returns:
-            None
         """
         if self.save_to == 'database':     
             # Read connection parameters from the configuration file
@@ -335,7 +318,6 @@ class DataTracker:
                             value['editor_tracking_enabled']
                         )
                     ) 
-            
             
             self.database_connection.disconnect()         
 

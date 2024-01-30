@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #~-~ encoding: utf-8 ~-~
-# ripple_unzipple/ripple_unzipple.py
+# twobilliontoolkit/RippleUnzipple/ripple_unzipple.py
 #========================================================
 # Created By:       Anthony Rodway
 # Email:            anthony.rodway@nrcan-rncan.gc.ca
@@ -11,7 +11,7 @@
 # File Header
 #========================================================
 """
-File: ripple_unzipple/ripple_unzipple.py
+File: twobilliontoolkit/RippleUnzipple/ripple_unzipple.py
 Created By:       Anthony Rodway
 Email:            anthony.rodway@nrcan-rncan.gc.ca
 Creation Date:    Fri November 10 14:00:00 PST 2023
@@ -31,6 +31,7 @@ Usage:
 import os
 import sys
 import time
+import argparse
 from datetime import datetime
 from zipfile import ZipFile, BadZipFile
 from py7zr import SevenZipFile, Bad7zFile
@@ -41,7 +42,7 @@ from twobilliontoolkit.Logger.logger import log, Colors
 #========================================================
 # Unzipping Functions
 #========================================================
-def ripple_unzip(input_path, output_path, log_path = ''):
+def ripple_unzip(input_path: str, output_path: str, log_path: str = '') -> None:
     """
     Unzip .zip and .7z files either for a directory or a compressed file.
 
@@ -49,9 +50,6 @@ def ripple_unzip(input_path, output_path, log_path = ''):
         input_path (str): Path to the input directory or compressed file.
         output_path (str): Path to the output directory.
         log_path (str, optional): Path to the log file. Defaults to ''.
-        
-    Return:
-        None.
     """
     try:
         # Check if the provided path exists
@@ -81,18 +79,15 @@ def ripple_unzip(input_path, output_path, log_path = ''):
         log(log_path, Colors.ERROR, error)
         raise Exception(error)  
     
-def recursive_unzip(input_path, output_path, original_input_path, log_path = ''):   
+def recursive_unzip(input_path: str, output_path: str, original_input_path: str, log_path: str = '') -> None:   
     """
     Recursively unzip .zip and .7z files in the input_path to the output_path.
 
     Args:
         input_path (str): Path to the input directory or compressed file.
         output_path (str): Path to the output directory.
-        original_input_path (str): Path of the oringinal input compress/directory.
+        original_input_path (str): Path of the original input compress/directory.
         log_path (str, optional): Path to the log file. Defaults to ''.
-        
-    Return:
-        None.
     """
     # Create output_path if it doesn't exist
     os.makedirs(output_path, exist_ok=True)
@@ -143,22 +138,17 @@ def main():
     start_time = time.time()
     log(None, Colors.INFO, 'Tool is starting...')
     
-    log_path = ''
+    parser = argparse.ArgumentParser(description='Recursively unzip all compressed folders in a given directory.')
+    parser.add_argument('--input', required=True, help='Path to the input directory or compressed file.')
+    parser.add_argument('--output', required=True, help='Path to the output directory.')
+    parser.add_argument('--log', default='', help='Path to the log file.')
+
+    args = parser.parse_args()
+
     try:
-        # Get the path from the command-line argument
-        if len(sys.argv) not in [3, 4]:
-            raise ValueError("Usage: python path/to/ripple_unzipple.py input_path output_path [log_path]")
-
-        # Call the recursive_unzip function with the provided path
-        log_path = ''
-        if len(sys.argv) == 4:
-            log_path = sys.argv[3]
-
-        # Call the main logic function for starting the recursive unzipping
-        ripple_unzip(sys.argv[1], sys.argv[2], log_path)
-
+        ripple_unzip(args.input, args.output, args.log)
     except Exception as error:
-        log(log_path, Colors.ERROR, error)
+        log(args.log, Colors.ERROR, error)
         exit(1)
         
     # Get the end time of the script and calculate the elapsed time

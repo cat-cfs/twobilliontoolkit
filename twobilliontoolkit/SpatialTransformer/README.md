@@ -57,8 +57,8 @@ You also have the option of calling this function from a module import with the 
 ```
 from spatial_transformer.common import *
 from spatial_transformer.spatial_transformer import StartupParameters
-from spatial_transformer.ProcessorModule import Processor
-from spatial_transformer.DataTrackerModule import DataTracker
+from spatial_transformer.Processor import Processor
+from spatial_transformer.Datatracker import Datatracker
 
 def main():
     input_path = './Testing/Data/TestFolder.zip'
@@ -74,7 +74,7 @@ def main():
     
     setup_parameters = StartupParameters(input_path, output_path, gdb_path, master_data_path, data_tracker_path, attachments_path, load_from, save_to,  log_path, debug)
     processor = Processor(self.startparams)
-    datatracker = DataTracker(self.startparams.datatracker)
+    datatracker = Datatracker(self.startparams.datatracker)
 ```
 **Note**: if you dont wish to save to a log, you can omit that and it will just print its messages to the standard out stream.
 

@@ -4,9 +4,8 @@ import sys
 import shutil
 from tempfile import TemporaryDirectory
 
-# Add the path to the ripple_unzipple module to the Python path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from ripple_unzipple.ripple_unzipple import ripple_unzip  # absolute import
+
+from twobilliontoolkit.RippleUnzipple.ripple_unzipple import ripple_unzip 
 
 class TestRecursiveUnzip(unittest.TestCase):
     

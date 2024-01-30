@@ -6,13 +6,10 @@ import unittest
 import sys
 import os
 
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'spatial_transformer'))
-sys.path.append(project_root)
-
-from spatial_transformer.common import *
-from spatial_transformer.spatial_transformer import StartupParameters
-from spatial_transformer.ProcessorModule import Processor
-from spatial_transformer.DataTrackerModule import DataTracker
+from twobilliontoolkit.SpatialTransformer.common import *
+from twobilliontoolkit.SpatialTransformer.spatial_transformer import StartupParameters
+from twobilliontoolkit.SpatialTransformer.Processor import Processor
+from twobilliontoolkit.SpatialTransformer.Datatracker import Datatracker
 
 #========================================================
 # Testing Class
@@ -32,7 +29,7 @@ class TestDataHandling(unittest.TestCase):
         
         self.startparams = StartupParameters(input_path, output_path, gdb_path, datatracker_path, log_path, debug)
         self.processor = Processor(self.startparams)
-        self.datatracker = DataTracker(self.startparams.datatracker, load_from='datatracker', save_to='datatracker')
+        self.datatracker = Datatracker(self.startparams.datatracker, load_from='datatracker', save_to='datatracker')
             
     def test_startup_parameters(self):
         # Test case for StartupParameters class initialization
@@ -112,7 +109,7 @@ class TestDataHandling(unittest.TestCase):
 
     #     # arcpy.env.workspace = self.startparams.gdb
 
-    #     self.processor._process_shp(file, formatted_project_spatial_id, self.datatracker)
+    #     self.processor.process_shp(file, formatted_project_spatial_id, self.datatracker)
                 
     #     self.assertTrue(arcpy.Exists('proj_0001_XXX_000_1')) 
     
@@ -135,7 +132,7 @@ class TestDataHandling(unittest.TestCase):
     #     if not arcpy.Exists(self.startparams.gdb):
     #         arcpy.management.CreateFileGDB(os.path.dirname(self.startparams.gdb), os.path.basename(self.startparams.gdb))
             
-    #     self.processor._process_kml_kmz(file, formatted_project_spatial_id, self.datatracker)
+    #     self.processor.process_kml(file, formatted_project_spatial_id, self.datatracker)
                 
     #     self.assertTrue(arcpy.Exists('proj_0002_XXX_000_1')) 
     
@@ -147,7 +144,7 @@ class TestDataHandling(unittest.TestCase):
     #     if not arcpy.Exists(self.startparams.gdb):
     #         arcpy.management.CreateFileGDB(os.path.dirname(self.startparams.gdb), os.path.basename(self.startparams.gdb))
         
-    #     self.processor._process_json(file, formatted_project_spatial_id, self.datatracker)
+    #     self.processor.process_json(file, formatted_project_spatial_id, self.datatracker)
                 
     #     self.assertTrue(arcpy.Exists('proj_0003_XXX_000_1')) 
             
@@ -159,7 +156,7 @@ class TestDataHandling(unittest.TestCase):
     #     if not arcpy.Exists(self.startparams.gdb):
     #         arcpy.management.CreateFileGDB(os.path.dirname(self.startparams.gdb), os.path.basename(self.startparams.gdb))
             
-    #     self.processor._process_gdb(file, formatted_project_spatial_id, self.datatracker)
+    #     self.processor.process_gdb(file, formatted_project_spatial_id, self.datatracker)
                 
     #     self.assertTrue(arcpy.Exists('proj_0004_XXX_000_1')) 
             
@@ -252,7 +249,7 @@ class TestDataHandling(unittest.TestCase):
         self.assertEqual(matching_spatial_id, 3)
 
     def test_count_occurances(self):
-        # Test the _count_occurances method        
+        # Test the count_occurances method        
         project_spatial_id = 4
         project_number = '0000 XXX - 444'
         project_path = '/path/to/project4'
@@ -270,7 +267,7 @@ class TestDataHandling(unittest.TestCase):
         )
 
         # Test the method
-        occurrences = self.datatracker._count_occurances('project_number', project_number)
+        occurrences = self.datatracker.count_occurances('project_number', project_number)
         self.assertEqual(occurrences, 1)
         
         # Add more entries with same project_number
@@ -303,18 +300,18 @@ class TestDataHandling(unittest.TestCase):
         )
         
         # Test the method again
-        occurrences = self.datatracker._count_occurances('project_number', project_number)
+        occurrences = self.datatracker.count_occurances('project_number', project_number)
         self.assertEqual(occurrences, 4)
 
     def test_create_project_spatial_id(self):
-        # Test the _create_project_spatial_id method
+        # Test the create_project_spatial_id method
         project_spatial_id = 5
         project_number = '0000 XXX - 555'
         project_path = '/path/to/project5'
         raw_data_path = '/path/to/raw/data5'
         
         # Test the method before addng the data, so it should be ..._1
-        new_project_spatial_id = self.datatracker._create_project_spatial_id(project_number)
+        new_project_spatial_id = self.datatracker.create_project_spatial_id(project_number)
         self.assertEqual(new_project_spatial_id, '0000_XXX_555_1')
 
         # Add initial data
@@ -340,7 +337,7 @@ class TestDataHandling(unittest.TestCase):
         )
         
         # Test the method again after adding two data entries, result should output ..._3 because it would be used for a third data entry
-        new_project_spatial_id = self.datatracker._create_project_spatial_id(project_number)
+        new_project_spatial_id = self.datatracker.create_project_spatial_id(project_number)
         self.assertEqual(new_project_spatial_id, '0000_XXX_555_3')
 
     def test_load_and_save_data(self):
@@ -364,8 +361,8 @@ class TestDataHandling(unittest.TestCase):
         # Save and load data
         self.datatracker.save_data()
 
-        # Create a new DataTracker instance to load the saved data
-        loaded_data_tracker = DataTracker(self.startparams.datatracker)
+        # Create a new Datatracker instance to load the saved data
+        loaded_data_tracker = Datatracker(self.startparams.datatracker)
 
         # Check if the data was loaded correctly
         loaded_data = loaded_data_tracker.get_data(project_spatial_id)

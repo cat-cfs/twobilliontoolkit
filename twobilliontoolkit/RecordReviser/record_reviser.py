@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #~-~ encoding: utf-8 ~-~
-# record_reviser/record_reviser.py
+# twobilliontoolkit/RecordReviser/record_reviser.py
 #========================================================
 # Created By:       Anthony Rodway
 # Email:            anthony.rodway@nrcan-rncan.gc.ca
@@ -11,7 +11,7 @@
 # File Header
 #========================================================
 """
-File: geo_attachment_seeker/geo_attachment_seeker.py
+File: twobilliontoolkit/RecordReviser/record_reviser.py
 Created By:       Anthony Rodway
 Email:            anthony.rodway@nrcan-rncan.gc.ca
 Creation Date:    Wed January 17 10:30:00 PST 2024
@@ -23,7 +23,6 @@ Description:
 
 Usage:
     python path/to/record_reviser.py --gdb /path/to/geodatabase --load [datatracker/database] --save [datatracker/database] --data_tracker /path/to/data_tracker.xlsx --log /path/to/logfile.txt --changes "{project_spatial_id: {field: newvalue, field2: newvalue2...}, project_spatial_id: {field: newfield}...}"
-
 """
 
 #========================================================
@@ -31,30 +30,30 @@ Usage:
 #========================================================
 import os
 import sys
-import time
-import argparse
 import ast
-import pandas as pd
+import time
 import arcpy
+import argparse
+import pandas as pd
 
 from PyQt5.QtWidgets import QApplication, QTableWidget, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QTableWidgetItem, QMessageBox
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
 
 from twobilliontoolkit.Logger.logger import log, Colors
-from twobilliontoolkit.SpatialTransformer.DataTrackerModule import DataTracker
+from twobilliontoolkit.SpatialTransformer.Datatracker import Datatracker
 
 #========================================================
 # Classes
 #========================================================
 class DataTableApp(QWidget):
-    def __init__(self, data, gdb=None):
+    def __init__(self, data: Datatracker, gdb: str = None) -> None:
         """
         Initialize the DataTableApp with the provided data.
 
-        Parameters:
-            data (dict): The initial data for the application.   
-            gdb (str, optional): The path to the gdb that changes will be made to if applicable.  
+        Args:
+            data (Datatracker): An instance of the Datatracker class.
+            gdb (str, optional): The path to the gdb that changes will be made to if applicable.
         """
         # messageBox = QMessageBox()
         # messageBox.setIcon(QMessageBox.Question) 
@@ -90,7 +89,7 @@ class DataTableApp(QWidget):
         # Initialize the user interface
         self.init_ui()
         
-    def init_ui(self):
+    def init_ui(self) -> None:
         """
         Initialize the user interface components.
         """
@@ -125,34 +124,34 @@ class DataTableApp(QWidget):
         self.setWindowTitle('Data Table App')
         self.show()
 
-    def refresh_data(self, data):
+    def refresh_data(self, data: Datatracker) -> None:
         """
         Refresh the data in the application.
 
-        Parameters:
-            data: The new data to be displayed.
+        Args:
+            data (Datatracker): The new data to be displayed.
         """
         # Update the data, original and current dataframe
         self.data = data
         self.original_dataframe = self.format_data(data)
         self.dataframe = self.original_dataframe.copy()
 
-    def format_data(self, data):
+    def format_data(self, data: Datatracker) -> pd.DataFrame:
         """
         Format the raw data into a pandas DataFrame.
 
-        Parameters:
-            data (dict): Raw data to be formatted.
+        Args:
+            data (Datatracker): Raw data to be formatted.
 
         Returns:
-            A formatted pandas DataFrame.
+            pd.DataFrame: A formatted pandas DataFrame.
         """
         # Convert raw data to a DataFrame and rename index column
         dataframe = pd.DataFrame.from_dict(data.data_dict, orient='index').reset_index()
         dataframe.rename(columns={'index': 'project_spatial_id'}, inplace=True)
         return dataframe 
 
-    def populate_table(self):
+    def populate_table(self) -> None:
         """
         Populate the table with data from the dataframe.
         """
@@ -181,12 +180,12 @@ class DataTableApp(QWidget):
         # Connect the itemChanged signal to a custom slot (function)
         self.table.itemChanged.connect(self.item_changed)
 
-    def item_changed(self, item):
+    def item_changed(self, item: QTableWidgetItem) -> None:
         """
         Handle changes in the table items.
 
-        Parameters:
-            item: The changed item in the table.
+        Args:
+            item (QTableWidgetItem): The changed item in the table.
         """
         # Check if the changed value is different from the original value
         row = item.row()
@@ -200,7 +199,7 @@ class DataTableApp(QWidget):
         else:
             item.setForeground(QColor('black'))
 
-    def save_data(self):
+    def save_data(self) -> None:
         """
         Save the changes made in the GUI.
         """
@@ -250,7 +249,7 @@ class DataTableApp(QWidget):
         self.refresh_data(self.data)
         self.reset_data()
         
-    def reset_data(self):
+    def reset_data(self) -> None:
         """
         Reset the data in the table to its original state.
         """
@@ -275,23 +274,23 @@ class DataTableApp(QWidget):
 #========================================================
 # Functions
 #========================================================
-def create_duplicate(data:DataTracker, project_spatial_id, new_project_number):
+def create_duplicate(data: Datatracker, project_spatial_id: str, new_project_number: str) -> str:
     """
     Create a duplicate entry in the data for a given project with a new project number.
 
-    Parameters:
-        data (Datatracker object): An instance of DataTracker.
+    Args:
+        data (Datatracker): An instance of Datatracker.
         project_spatial_id (str): The unique identifier of the project to duplicate.
         new_project_number (str): The new project number for the duplicated entry.
 
     Returns:
-        new_project_spatial_id: The spatial identifier of the newly created duplicate entry.
+        str: The spatial identifier of the newly created duplicate entry.
     """
     # Retrieve data for the project to duplicate
     entry_to_duplicate = data.get_data(project_spatial_id)
 
     # Create a new spatial identifier for the duplicated project
-    new_project_spatial_id = data._create_project_spatial_id(new_project_number)
+    new_project_spatial_id = data.create_project_spatial_id(new_project_number)
 
     # Add the duplicated entry with the new project number to the data
     data.add_data(
@@ -314,18 +313,15 @@ def create_duplicate(data:DataTracker, project_spatial_id, new_project_number):
 
     return new_project_spatial_id
 
-def update_records(data: DataTracker, changes_dict, gdb=None): 
+def update_records(data: Datatracker, changes_dict: dict, gdb: str = None) -> None:
     """
     Update records in the data based on the changes provided in the dictionary.
 
-    Parameters:
-        data (Datatracker object): An instance of DataTracker.
+    Args:
+        data (Datatracker): An instance of Datatracker.
         changes_dict (dict): A dictionary containing changes for each project.
         gdb (str, optional): The geodatabase path. If provided, updates are applied to the geodatabase.
-
-    Returns:
-        None
-    """  
+    """
     for project_spatial_id, value in changes_dict.items():
         # Check if the current change updated the project number
         new_project_number = value.get('project_number')
@@ -432,8 +428,8 @@ def main():
     gdb_path = args.gdb
     log_path = args.log
     
-    # Create an instance of the DataTracker class
-    data = DataTracker(data_tracker_path, load_from, save_to, log_path)
+    # Create an instance of the Datatracker class
+    data = Datatracker(data_tracker_path, load_from, save_to, log_path)
     
     if args.changes:
         try:

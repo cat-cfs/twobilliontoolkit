@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #~-~ encoding: utf-8 ~-~
-# geo_attachment_seeker/geo_attachment_seeker.py
+# twobilliontoolkit/GeoAttachmentSeeker/geo_attachment_seeker.py
 #========================================================
 # Created By:       Anthony Rodway
 # Email:            anthony.rodway@nrcan-rncan.gc.ca
@@ -11,7 +11,7 @@
 # File Header
 #========================================================
 """
-File: geo_attachment_seeker/geo_attachment_seeker.py
+File: twobilliontoolkit/GeoAttachmentSeeker/geo_attachment_seeker.py
 Created By:       Anthony Rodway
 Email:            anthony.rodway@nrcan-rncan.gc.ca
 Creation Date:    Fri January 05 08:30:00 PST 2024
@@ -31,25 +31,25 @@ Usage:
 import os
 import sys
 import time
+import arcpy
 import argparse
-import arcpy 
-
+ 
 from twobilliontoolkit.Logger.logger import log, Colors
 
 #========================================================
 # Functions
 #========================================================
-def find_attachments(gdb_path, output_path):
-    '''
-    Searches through the gdb and finds all relevant attachments.
+def find_attachments(gdb_path: str, output_path: str) -> dict:
+    """
+    Searches through the GDB and finds all relevant attachments.
 
-    Parameters:
-    - gdb_path (str): Path to input GDB.
-    - output_path (str): Path to export the attachments to.
-    
-    Return:
-    - attachment_dict (dict): A dictionary of key value pairs to tie each project id that had attachments to the path they were extracted to.
-    ''' 
+    Args:
+        gdb_path (str): Path to input GDB.
+        output_path (str): Path to export the attachments to.
+
+    Returns:
+        dict: A dictionary of key-value pairs tying each project ID that had attachments to the path they were extracted to.
+    """ 
     # validate the gdb_path
     if not isinstance(gdb_path, str) or not gdb_path.strip():
         raise ValueError(f'The provided gdb_path must be a non-empty string.')
@@ -70,9 +70,6 @@ def find_attachments(gdb_path, output_path):
         if '__ATTACH' not in table:
             continue
         
-        # Uncomment following line to print out the names of the _ATTACH Tables in the gdb
-        # log(None, Colors.INFO, table)
-        
         # Build the output project paths
         project_id = table.replace('__ATTACH', '')
         output_project_path = os.path.abspath(os.path.join(output_path, project_id))
@@ -83,24 +80,18 @@ def find_attachments(gdb_path, output_path):
         
         # Add to the dictionary
         attachment_dict[project_id] = output_project_path
-           
-    # Uncomment following line to print out the resulting dictionary
-    # log(None, Colors.INFO, attachment_dict)
-    
+            
     # Return the attachement dictionary
     return attachment_dict
 
-def process_attachment(output_project_path, table_path):
-    '''
-    Proccesses any attachments handed to it.
+def process_attachment(output_project_path: str, table_path : str) -> None:
+    """
+    Processes any attachments handed to it.
 
-    Parameters:
-    - output_project_path (str): The path of where the attachments will be exported.
-    - table_path (str): The path to a __ATTACH table in a GDB.
-    
-    Return:
-    - None
-    '''                 
+    Args:
+        output_project_path (str): The path where the attachments will be exported.
+        table_path (str): The path to a __ATTACH table in a GDB.
+    """                
     # Check if the directory exists, if not, create it
     if not os.path.exists(output_project_path):
         os.makedirs(output_project_path)

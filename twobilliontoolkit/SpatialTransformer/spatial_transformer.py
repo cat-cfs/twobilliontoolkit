@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #~-~ encoding: utf-8 ~-~
-# spatial_transformer/spatial_transformer.py
+# twobilliontoolkit/SpatialTransformer/spatial_transformer.py
 #========================================================
 # Created By:       Anthony Rodway
 # Email:            anthony.rodway@nrcan-rncan.gc.ca
@@ -11,7 +11,7 @@
 # File Header
 #========================================================
 """
-File:             spatial_transformer/spatial_transformer.py
+File: twobilliontoolkit/SpatialTransformer/spatial_transformer.py
 Created By:       Anthony Rodway
 Email:            anthony.rodway@nrcan-rncan.gc.ca
 Creation Date:    Wed November 15 10:30:00 PST 2023
@@ -23,33 +23,29 @@ Description:
 
 Usage:
     python path/to/spatial_transformer.py [-h] --input input_path --output output_path --gdb gdb_path --master master_data_path --load {datatracker,database} --save {datatracker,database} [--data_tracker data_tracker_path] [--attachments attachments_path] [--log LOG_PATH] [--debug] [--resume]
-
-
 """
 #========================================================
 # Imports
 #========================================================
-import argparse
-import arcpy
 import sys
 import time
+import arcpy
+import argparse
 
 from twobilliontoolkit.SpatialTransformer.common import *
 from twobilliontoolkit.Logger.logger import log, Colors
 from twobilliontoolkit.RippleUnzipple.ripple_unzipple import ripple_unzip
-from twobilliontoolkit.SpatialTransformer.ProcessorModule import Processor
-
+from twobilliontoolkit.SpatialTransformer.Processor import Processor
 
 #========================================================
 # Classes
 #========================================================
 class StartupParameters:
-    def __init__(self, input_path, output_path, gdb_path, master_data_path, data_tracker_path, attachments_path, load_from='database', save_to='database', log_path=None, debug=False, resume=False):
-       
-        '''
+    def __init__(self, input_path: str, output_path: str, gdb_path: str, master_data_path: str, data_tracker_path: str, attachments_path: str, load_from: str = 'database', save_to: str = 'database', log_path: str = None, debug: bool = False, resume: bool = False) -> None:
+        """
         Initializes the StartupParameters class with input parameters.
 
-        Parameters:
+        Args:
         - input_path (str): Path to input data.
         - output_path (str): Path to output data.
         - gdb_path (str): Path to geodatabase file.
@@ -59,9 +55,9 @@ class StartupParameters:
         - data_tracker_path (str): Path to data tracker file.
         - attachments_path (str): Path where the extracted attachments will be.
         - log_path (str, optional): Path to log file. Defaults to an empty string.
-        - debug (bool, optional): Determines if program is in debug mode
-        - resume (bool, optional): Determines if program should resume from where a crash happened
-        ''' 
+        - debug (bool, optional): Determines if the program is in debug mode.
+        - resume (bool, optional): Determines if the program should resume from where a crash happened.
+        """
         # Ensure that if a datatracker is specified for loading or saving, then a path must be passed
         if (load_from == 'datatracker' or save_to == 'datatracker') and data_tracker_path == '':
             raise argparse.ArgumentTypeError("If --load or --save is 'datatracker', --data_tracker_path must be specified.")
@@ -98,11 +94,11 @@ class StartupParameters:
             raise ValueError(f"The column 'Project Number' does not exist in the master data.")
 
         
-    def validate_path(self, argument, param, must_exists=False, must_ends_with=None):
-        '''
+    def validate_path(self, argument: str, param: str, must_exists: bool = False, must_ends_with: bool = None) -> None:
+        """
         Validates the given path.
 
-        Parameters:
+        Args:
         - argument (str): The key value of the param passed.
         - param (str): Path to be validated.
         - must_exists (bool, optional): If True, the path must exist. Defaults to False.
@@ -110,10 +106,7 @@ class StartupParameters:
 
         Raises:
         - ValueError: If the path is not valid according to the specified conditions.
-        
-        Returns:
-            None
-        '''
+        """
         if not isinstance(param, str) or not param.strip():
             raise ValueError(f'{argument}: {param} must be a non-empty string.')
 
@@ -123,30 +116,24 @@ class StartupParameters:
         if must_exists and not os.path.exists(param):
             raise ValueError(f'{argument}: {param} path does not exist.')
     
-    def handle_unzip(self):
-        '''
+    def handle_unzip(self) -> None:
+        """
         Handles the unzipping process using ripple_unzip.
 
         Calls the ripple_unzip function with input, output, and log paths.
-        
-        Returns:
-            None
-        '''
+        """
         # If the resume after crash flag was specified, skip
         if self.resume:
             return
         
         ripple_unzip(self.input, self.output, self.log)
         
-    def create_gdb(self):
-        '''
+    def create_gdb(self) -> None:
+        """
         Creates a geodatabase file if it does not already exist.
 
         If the specified geodatabase file does not exist, it attempts to create one.
-        
-        Returns:
-            None
-        '''
+        """
         # If the resume after crash flag was specified, skip
         if self.resume:
             return
@@ -212,10 +199,7 @@ def main():
     try:        
         # Initialize StartupParameters class
         setup_parameters = StartupParameters(input_path, output_path, gdb_path, master_data_path, data_tracker_path, attachments_path, load_from, save_to, log_path, debug, resume)
-        
-        # Uncomment to print out everything contained in class
-        # log(None, Colors.INFO, setup_parameters)
-        
+                
         # Start the unzip tool 
         setup_parameters.handle_unzip()
         
@@ -227,10 +211,7 @@ def main():
         
         # Search for any spatial data and data sheets in the output directory
         spatial_data.search_for_spatial_data()
-        
-        # Uncomment to print out everything contained in class
-        # log(None, Colors.INFO, spatial_data)
-        
+                
         # Start the processing
         spatial_data.process_spatial_files()
             
