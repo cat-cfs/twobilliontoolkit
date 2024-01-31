@@ -7,7 +7,7 @@ import sys
 import os
 
 from twobilliontoolkit.SpatialTransformer.common import *
-from twobilliontoolkit.SpatialTransformer.spatial_transformer import StartupParameters
+from twobilliontoolkit.SpatialTransformer.Parameters import Parameters
 from twobilliontoolkit.SpatialTransformer.Processor import Processor
 from twobilliontoolkit.SpatialTransformer.Datatracker import Datatracker
 
@@ -27,12 +27,12 @@ class TestDataHandling(unittest.TestCase):
         log_path = os.path.join(self.test_directory,'TestResultLog.txt')
         debug = False
         
-        self.startparams = StartupParameters(input_path, output_path, gdb_path, datatracker_path, log_path, debug)
+        self.startparams = Parameters(input_path, output_path, gdb_path, datatracker_path, log_path, debug)
         self.processor = Processor(self.startparams)
         self.datatracker = Datatracker(self.startparams.datatracker, load_from='datatracker', save_to='datatracker')
             
     def test_startup_parameters(self):
-        # Test case for StartupParameters class initialization
+        # Test case for Parameters class initialization
         self.assertEqual(self.startparams.input, '..\spatial_data_processing_workflow\TestData\DataTracker_SpatialData')
         self.assertEqual(self.startparams.output, os.path.join(self.test_directory,'TestResultData'))
         self.assertEqual(self.startparams.gdb, os.path.join(self.test_directory,'TestResultGDB.gdb'))
@@ -68,7 +68,7 @@ class TestDataHandling(unittest.TestCase):
         dummy_files = ['file1.shp', 'file2.kml', 'file3.pdf']
         self.create_dummy_dir(dummy_files)
 
-        temp_params = StartupParameters(self.startparams.input, os.path.join(self.test_directory, 'dummies'), self.startparams.gdb, self.startparams.datatracker, self.startparams.log, False)
+        temp_params = Parameters(self.startparams.input, os.path.join(self.test_directory, 'dummies'), self.startparams.gdb, self.startparams.datatracker, self.startparams.log, False)
         temp_processor = Processor(temp_params)
         
         # Run the search_for_spatial_data method
@@ -80,8 +80,8 @@ class TestDataHandling(unittest.TestCase):
         
     def test_processing_files(self):
         # Test case for tesing processing the spatial files
-        # Update the input path in the StartupParameters for testing
-        temp_params = StartupParameters(self.startparams.input, os.path.join(self.test_directory,'..', 'input'), self.startparams.gdb, os.path.join(self.test_directory, 'datatracker2.xlsx'), self.startparams.log, False)
+        # Update the input path in the Parameters for testing
+        temp_params = Parameters(self.startparams.input, os.path.join(self.test_directory,'..', 'input'), self.startparams.gdb, os.path.join(self.test_directory, 'datatracker2.xlsx'), self.startparams.log, False)
         temp_processor = Processor(temp_params)
 
         arcpy.env.workspace = self.startparams.gdb

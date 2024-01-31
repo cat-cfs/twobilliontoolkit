@@ -14,18 +14,18 @@ from twobilliontoolkit.Logger.logger import log, Colors
 from twobilliontoolkit.GeoAttachmentSeeker.geo_attachment_seeker import find_attachments
 from twobilliontoolkit.SpatialTransformer.Datatracker import Datatracker
 from twobilliontoolkit.RecordReviser.record_reviser import DataTableApp, update_records
-from twobilliontoolkit.SpatialTransformer.spatial_transformer import StartupParameters
+from twobilliontoolkit.SpatialTransformer.Parameters import Parameters
 
 #========================================================
 # Helper Class
 #========================================================
 class Processor:
-    def __init__(self, params: StartupParameters) -> None:
+    def __init__(self, params: Parameters) -> None:
         """
         Initializes the Processor class with input parameters.
 
         Args:
-            params (StartupParameters): Instance of the StartupParameters class.
+            params (Parameters): Instance of the Parameters class.
         """
         self.params = params
         
@@ -85,7 +85,7 @@ class Processor:
             
             # Add data to the data class 
             self.data.add_data(
-                project_spatial_id=formatted_project_spatial_id, 
+                project_spatial_id=formatted_project_spatial_id,
                 project_number=formatted_result, 
                 dropped=False,
                 project_path=project_path, 
@@ -126,6 +126,8 @@ class Processor:
                 log(self.params.log, Colors.WARNING, f'GeoPackage/SQLite file: {file} will be added to data tracker but not resulting gdb.')
 
             self.data.set_data(project_spatial_id=formatted_project_spatial_id, processed=True)
+            
+        log(None, Colors.INFO, 'Processing of the files into the Geodatabase has completed.')
 
         # Extract attachments from the Geodatabase
         self.extract_attachments()

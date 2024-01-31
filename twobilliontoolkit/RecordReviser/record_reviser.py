@@ -402,7 +402,7 @@ def main():
     parser.add_argument('--gdb', required=True, default='', help='The new location or where an exsiting Geodatabase is located')
     parser.add_argument('--load', choices=['datatracker', 'database'], required=True, default='database', help='Specify what to load from (datatracker or database)')
     parser.add_argument('--save', choices=['datatracker', 'database'], required=True, default='database', help='Specify what to save to (datatracker or database)')
-    parser.add_argument('--data_tracker', default=None, help='The new location or where an exsiting data tracker is located')
+    parser.add_argument('--data_tracker', required=False, default=None, help='The new location or where an exsiting data tracker is located')
     parser.add_argument('--log', default=None, help='The new location or where an existing log file is located (optional)')
     parser.add_argument('--changes', required=False, default=None, help='The changes that you want to update, in form "{project_spaital_id: {field: newvalue, field2:newvalue2...}, project_spatial_id: {field: newfield}..."')
     
