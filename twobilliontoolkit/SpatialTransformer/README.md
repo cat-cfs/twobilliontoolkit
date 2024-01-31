@@ -2,7 +2,9 @@
 
 ## Project Description
 
-This project aims to develop tools for the spatial data processing workflow for 2BT. The workflow involves gathering and preparing raw spatial data from various sources, including CSV tables and spatial files, and converting them into feature classes within a Geodatabase (GDB). The primary goal is to create efficient, reusable Python scripts and tools that can handle different data formats and integrate seamlessly with the existing 2BT data infrastructure.
+The SpatailTransformer tool is the main processing of the 2BT Data pipeline. 
+
+TBC...
 
 ## Table of Contents
 
@@ -15,15 +17,7 @@ This project aims to develop tools for the spatial data processing workflow for 
 
 ## Installation
 
-To install and set up Spatial Transformer, follow these steps:
-
-1. Clone the repository to your local machine.
-2. Ensure that you have Python >=3.10 installed. Download from [here](https://www.python.org/downloads/release/python-3100/) if not.
-3. Install the required dependencies using the following command:
-
-```
-pip install -r /path/to/requirements.txt
-```
+The spatial transformer module of the twobilliontoolkit package is included in the installation of the package itself. Currently there is no easy way of downloading just one tool from the package because the tools depend on other tools within the package, but if you wish to use this tool, follow the installation process documented [in the package README](../../README.md)
 
 You should then be set up to use the tool!
 
@@ -34,7 +28,7 @@ You should then be set up to use the tool!
 To use the Spatial Transformer, run the script from the command line with the following syntax:
 
 ```
-arcpy_environment_python_path /path/to/spatial_transformer.py [-h] --input input_path --output output_path --gdb gdb_path --master master_data_path --load {datatracker,database} --save {datatracker,database} [--data_tracker_path data_tracker_path] [--attachments attachments_path] [--log_path LOG_PATH] [--debug]
+arcpy_environment_python_path /path/to/spatial_transformer.py [-h] --input input_path --output output_path --gdb gdb_path --master master_data_path --load {datatracker,database} --save {datatracker,database} [--data_tracker_path data_tracker_path] [--attachments attachments_path] [--log_path LOG_PATH] [--debug] [--resume]
 ```
 - [-h, --help] (optional): List all of the available commands and a description for help.
 - --input input_path : Path to the input directory or compressed file.
@@ -47,6 +41,7 @@ arcpy_environment_python_path /path/to/spatial_transformer.py [-h] --input input
 - [--attachments attachments_path] (optional): The location that the attachments from the geodatabase will be located, if left empty it will be located in the same output folder as ripple zipple outputs to in the end.
 - [--log_path log_path] (optional): Path to the log file. If provided, detailed logs will be saved to this file. 
 - [--debug] (optional): include to enable debugging mode, giving some more information.
+- [--resume] (optional): include to continue where the code left off from if there was a fatal crash, this may be a bit buggy and need some manual intervention afterwards.
 
 Example from root of project:
 ```
@@ -55,10 +50,10 @@ python ./spatial_transformer/spatial_transformer.py --input ./Testing/Data/TestF
 
 You also have the option of calling this function from a module import with the following syntax (you may need to use relative or absolute paths depending on your environment and where you are calling from):
 ```
-from spatial_transformer.common import *
-from spatial_transformer.spatial_transformer import StartupParameters
-from spatial_transformer.Processor import Processor
-from spatial_transformer.Datatracker import Datatracker
+from twobilliontoolkit.SpatialTransformer.common import *
+from twobilliontoolkit.Logger.logger import log, Colors
+from twobilliontoolkit.SpatialTransformer.Parameters import Parameters
+from twobilliontoolkit.SpatialTransformer.Processor import Processor
 
 def main():
     input_path = './Testing/Data/TestFolder.zip'
@@ -72,9 +67,9 @@ def main():
     log_path = './Testing/OutputLog.txt'
     debug = True
     
-    setup_parameters = StartupParameters(input_path, output_path, gdb_path, master_data_path, data_tracker_path, attachments_path, load_from, save_to,  log_path, debug)
-    processor = Processor(self.startparams)
-    datatracker = Datatracker(self.startparams.datatracker)
+    setup_parameters = Parameters(input_path, output_path, gdb_path, master_data_path, data_tracker_path, attachments_path, load_from, save_to,  log_path, debug)
+    processor = Processor(setup_parameters)
+    datatracker = Datatracker(setup_parameters.data_tracker)
 ```
 **Note**: if you dont wish to save to a log, you can omit that and it will just print its messages to the standard out stream.
 
@@ -101,7 +96,6 @@ An issue that was found when using a tool that this project is dependant on: You
 Now, longer paths should be enabled on your machine, and no issues should arise. For more information, please follow this [link](https://www.autodesk.com/support/technical/article/caas/sfdcarticles/sfdcarticles/The-Windows-10-default-path-length-limitation-MAX-PATH-is-256-characters.html#:~:text=By%20default%2C%20Windows%20uses%20a,Files%2C%20Paths%2C%20and%20Namespaces.).
 
 **Note**: There is a annoying use case where the tool will crash unexpectedly when one of the project folders within the root folder is named the same as the root folder (ie. root_folder/root_folder). It would be very easy to remidy this by just changing the compressed folder or the outputted unzipped folders name.
-
 
 ## Contributing
 

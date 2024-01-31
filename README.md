@@ -37,7 +37,7 @@ To install and set up the twobilliontoolkit package, follow these steps:
     git clone https://github.com/cat-cfs/twobilliontoolkit.git
     ```
 
-    ii. Then you can run the setup file and install the package with:
+    ii. Then you can run the setup file and install the package onto your environment with:
 
     ```
     pip install /path/to/root/folder

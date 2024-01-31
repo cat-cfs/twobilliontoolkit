@@ -15,15 +15,9 @@ The Ripple Unzipple project is a Python script designed to recursively unzip all
 
 ## Installation
 
-To install and set up Ripple Unzipple, follow these steps:
+The RippleUnzipple module of the twobilliontoolkit package is included in the installation of the package itself. Currently there is no easy way of downloading just one tool from the package because the tools depend on other tools within the package, but if you wish to use this tool, follow the installation process documented [in the package README](../../README.md)
 
-1. Clone the repository to your local machine.
-2. Ensure that you have Python >=3.10 installed.
-3. Install the required dependencies using the following command:
-
-```
-pip install -r /path/to/requirements.txt
-```
+You should then be set up to use the tool!
 
 ## Usage
 

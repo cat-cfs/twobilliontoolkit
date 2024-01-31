@@ -2,9 +2,10 @@
 
 ## Project Description
 
-This repo stands as a singular place for all the tools that will be developed for the processing of 2 Billion Trees data and information
+This tool focuses on updating the records produced by the spatial transformer tool in either the data tracker or the database, the raw data gdb and the exported attachment folders as necessary. It can be used as a standalone script to change the records at any time. If working with the 2BT data, the user has the option to update the project number, which will do some background processes, creating a new duplicated record so the original record remains unchanged, but will updated any fields in the duplicated record. If you updated any of the boolean fields, it will directly change the original record and not make a duplicate. 
 
-[Provide a brief and concise description of your project, highlighting its purpose and main features. You can mention the programming languages or frameworks used.]
+If no changes are given in the command-line, a GUI popup will open and allow the user to change any records as they see fit. Any changes in the table will be changed to red to indicate they were changed, and the user can click the reset button to changed these values back to when the application started or when it was last saved. The save button will submit the changes to the system and start the background processes.
+
 
 ## Table of Contents
 
@@ -17,11 +18,49 @@ This repo stands as a singular place for all the tools that will be developed fo
 
 ## Installation
 
-[Describe the steps required to install and set up your project. Include any dependencies that need to be installed, and provide clear instructions for the user.]
+The RecordReviser module of the twobilliontoolkit package is included in the installation of the package itself. Currently there is no easy way of downloading just one tool from the package because the tools depend on other tools within the package, but if you wish to use this tool, follow the installation process documented [in the package README](../../README.md)
+
+You should then be set up to use the tool!
 
 ## Usage
 
-[Explain how users can use your project, providing examples or code snippets if necessary. Include any relevant details or instructions on how to run the project.]
+**Note**: This will need to be run in an ArcGIS Pro environment because it uses its library called Arcpy. If you do not know how to do this, please contact someone who for help before continuing because the tool would not work. Or if you are able to use the arcpy library on your machine without any restrictions and issues that may also work but has not been tested.
+
+To use RecordReviser, run the script from the command line with the following syntax:
+```
+arcpy_environment_python_path /path/to/record_reviser.py [-h] --gdb /path/to/geodatabase --load [datatracker/database] --save [datatracker/database] --data_tracker /path/to/data_tracker.xlsx --log /path/to/logfile.txt --changes "{project_spatial_id: {field: newvalue, field2: newvalue2...}, project_spatial_id: {field: newfield}...}"
+```
+- [-h, --help] (optional): List all of the available commands and a description for help.
+- --gdb gdbpath: The path to the GeoDatabase which holds the project layers for what will be updated 
+- --load {datatracker,database}: Specify wheather the tool loads the data from an exisiting datatracker or a database connection. 
+- --save {datatracker,database}: Specify wheather the tool saves the data to a specified datatracker or a database connection. 
+- [--data_tracker_path data_tracker_path] (conditional): Path to where the Datatracker sheet is located. This is only needed if one of the 'load' or 'save' arguments is spacified as *datatracker*
+- [--log_path log_path] (optional): Path to the log file. If provided, detailed logs will be saved to this file. 
+- [--changes "{project_spaital_id: {field: newvalue, field2:newvalue2...}, project_spatial_id: {field: newfield}...}"] (optional): The dictionary of changes that you want to update the data with.
+
+Example from root of project:
+```
+python ./RecordReviser/record_reviser.py --load database --save database --gdb .\twobilliontoolkit\SpatialTransformer\OutputGDB.gdb --data_tracker .\twobilliontoolkit\SpatialTransformer\OutputDataTracker.xlsx
+```
+
+You also have the option of calling this function from a module import with the following syntax:
+```
+from PyQt5.QtWidgets import QApplication
+from twobilliontoolkit.RecordReviser.record_reviser import DataTableApp, update_records
+from twobilliontoolkit.SpatialTransformer.Datatracker import Datatracker
+
+def some_func():
+    gdb = 'path/to/gdb'
+    data = Datatracker(...)
+
+    # Open the record reviser
+    app = QApplication([])
+    window = DataTableApp(data, gdb)
+    app.exec_()  
+```
+**Note**: Using the DataTableApp and PyQT5, a GUI will be opened (as seen below) with the data contained in the Datatracker class.
+
+![Alt text](image.png)
 
 ## Configuration
 
