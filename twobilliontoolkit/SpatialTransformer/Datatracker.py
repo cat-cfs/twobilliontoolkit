@@ -32,13 +32,13 @@ class Datatracker:
         
         self.load_data()
     
-    def add_data(self, project_spatial_id: int, project_number: int, dropped: bool, project_path: str, raw_data_path: str, absolute_file_path: str, in_raw_gdb: bool, contains_pdf: bool, contains_image: bool, extracted_attachments_path: str, editor_tracking_enabled: bool, processed: bool) -> None:
+    def add_data(self, project_spatial_id: str, project_number: str, dropped: bool, project_path: str, raw_data_path: str, absolute_file_path: str, in_raw_gdb: bool, contains_pdf: bool, contains_image: bool, extracted_attachments_path: str, editor_tracking_enabled: bool, processed: bool) -> None:
         """
         Adds project data to the data tracker.
 
         Args:
-            project_spatial_id (int): Project spatial ID. Acts as key in dictionary.
-            project_number (int): Project number.
+            project_spatial_id (str): Project spatial ID. Acts as key in dictionary.
+            project_number (str): Project number.
             dropped (bool): Indicates whether the entry is dropped, non-valid etc.
             project_path (str): Project path.
             raw_data_path (str): Raw data path.
@@ -104,12 +104,12 @@ class Datatracker:
         if processed is not None:
             project_data['processed'] = processed
     
-    def get_data(self, project_spatial_id: int) -> dict:
+    def get_data(self, project_spatial_id: str) -> dict:
         """
         Gets an object of values given a project spatial id.
 
         Args:
-            project_spatial_id (int): Project spatial ID. Acts as key in dictionary.
+            project_spatial_id (str): Project spatial ID. Acts as key in dictionary.
 
         Returns:
             dict: the values that correspond to the given key

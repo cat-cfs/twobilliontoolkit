@@ -38,7 +38,7 @@ import pandas as pd
 
 from PyQt5.QtWidgets import QApplication, QTableWidget, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QTableWidgetItem, QMessageBox
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QColor, QIcon
 
 from twobilliontoolkit.Logger.logger import log, Colors
 from twobilliontoolkit.SpatialTransformer.Datatracker import Datatracker
@@ -54,27 +54,7 @@ class DataTableApp(QWidget):
         Args:
             data (Datatracker): An instance of the Datatracker class.
             gdb (str, optional): The path to the gdb that changes will be made to if applicable.
-        """
-        # messageBox = QMessageBox()
-        # messageBox.setIcon(QMessageBox.Question) 
-                
-        # # Set the window title
-        # messageBox.setWindowTitle("Confirmation MessageBox")
-
-        # # Set the message text
-        # messageBox.setText("Open the record reviser?")
-
-        # # Set the standard buttons (OK and Cancel)
-        # messageBox.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
-
-        # # Execute the message box and get the user's choice
-        # result = messageBox.exec_()
-
-        # # Check the user's choice
-        # if result == QMessageBox.Cancel:
-        #     # User clicked Cancel
-        #     raise RuntimeWarning('The popup for the record reviser was declined, continuing on...')
-        
+        """        
         super().__init__()
 
         # Store the original and current dataframes
@@ -105,10 +85,10 @@ class DataTableApp(QWidget):
 
         # Create Save and Reset buttons
         self.edit_button = QPushButton('Save')
-        self.edit_button.clicked.connect(self.save_data)
+        self.edit_button.clicked.connect(self.save_changes)
 
         self.reset_button = QPushButton('Reset')
-        self.reset_button.clicked.connect(self.reset_data)
+        self.reset_button.clicked.connect(self.reset_changes)
 
         # Add buttons to the button layout
         button_layout.addWidget(self.edit_button)
@@ -121,7 +101,11 @@ class DataTableApp(QWidget):
         # Set the main layout for the widget
         self.setLayout(self.layout)
         self.setGeometry(100, 100, 800, 600)
-        self.setWindowTitle('Data Table App')
+        self.setWindowTitle('Recrord Reviser')
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        icon_path = os.path.join(script_dir, 'revision.png')
+        self.setWindowIcon(QIcon(icon_path)) # Credit: https://www.flaticon.com/free-icons/revision
+        self.setWindowFlags(Qt.WindowStaysOnTopHint)
         self.show()
 
     def refresh_data(self, data: Datatracker) -> None:
@@ -199,7 +183,7 @@ class DataTableApp(QWidget):
         else:
             item.setForeground(QColor('black'))
 
-    def save_data(self) -> None:
+    def save_changes(self) -> None:
         """
         Save the changes made in the GUI.
         """
@@ -247,9 +231,9 @@ class DataTableApp(QWidget):
         
         # Refresh the data being put into the table and reset the table to the current state
         self.refresh_data(self.data)
-        self.reset_data()
+        self.reset_changes()
         
-    def reset_data(self) -> None:
+    def reset_changes(self) -> None:
         """
         Reset the data in the table to its original state.
         """
@@ -384,7 +368,7 @@ def update_records(data: Datatracker, changes_dict: dict, gdb: str = None) -> No
         )
 
     # Save the updated data
-    data.save_data(update=True)
+    data.save_changes(update=True)
 
 #========================================================
 # Main
