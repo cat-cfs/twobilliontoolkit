@@ -199,7 +199,7 @@ class Datatracker:
             
             rows = self.database_connection.read(
                 table='bt_spatial_test.raw_data_tracker',
-                columns=['project_spatial_id', 'project_number', 'dropped', 'project_path', 'raw_data_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled']                
+                columns=['project_spatial_id', 'project_number', 'dropped', 'project_path', 'raw_data_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled', 'processed']                
             )
                     
             # Initialize an empty dictionary to store the extracted data
@@ -219,7 +219,7 @@ class Datatracker:
                     'contains_image': fields[8],
                     'extracted_attachments_path': fields[9],
                     'editor_tracking_enabled': fields[10],
-                    'processed': True
+                    'processed': fields[11]
                 }
                 
                 # Store the values dictionary in the data_dict with project_spatial_id as the key
@@ -295,7 +295,8 @@ class Datatracker:
                             'in_raw_gdb': value['in_raw_gdb'], 
                             'contains_pdf': value['contains_pdf'], 
                             'contains_image': value['contains_image'],
-                            'editor_tracking_enabled': value['editor_tracking_enabled']   
+                            'editor_tracking_enabled': value['editor_tracking_enabled'], 
+                            'processed': value['processed']
                         },
                         condition=f"project_spatial_id='{key}'"
                     )
@@ -303,7 +304,7 @@ class Datatracker:
                 elif key not in existing_ids:
                     self.database_connection.create(
                         table='bt_spatial_test.raw_data_tracker',
-                        columns=('project_spatial_id', 'project_number', 'dropped', 'project_path', 'raw_data_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled'),
+                        columns=('project_spatial_id', 'project_number', 'dropped', 'project_path', 'raw_data_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled', 'processed'),
                         values=(
                             key, 
                             value['project_number'], 
@@ -315,7 +316,8 @@ class Datatracker:
                             value['contains_pdf'], 
                             value['contains_image'],
                             value['extracted_attachments_path'],
-                            value['editor_tracking_enabled']
+                            value['editor_tracking_enabled'],
+                            value['processed']
                         )
                     ) 
             

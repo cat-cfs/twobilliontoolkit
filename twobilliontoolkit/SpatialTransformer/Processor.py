@@ -99,33 +99,41 @@ class Processor:
                 processed=False
             )
             
-            # Check the file type and call the appropriate processing method
-            lowercase_file = file.lower()
-            if lowercase_file.endswith(LAYOUT_FILE_EXTENSIONS):
-                log(self.params.log, Colors.WARNING, f'Layout file: {file} will be added to data tracker but not resulting gdb.')
-            elif lowercase_file.endswith(DATA_SHEET_EXTENSIONS):
-                log(self.params.log, Colors.WARNING, f'Datasheet: {file} will be added to data tracker but not resulting gdb.')
-            elif lowercase_file.endswith(IMAGE_FILE_EXTENSIONS):
-                log(self.params.log, Colors.WARNING, f'Image/PDF file: {file} will be added to data tracker but not resulting gdb.')
-                
-                # Update data tracker based on specific file types
-                if lowercase_file.endswith('.pdf'):
-                    self.data.set_data(project_spatial_id=formatted_project_spatial_id, contains_pdf=True)
-                else:
-                    self.data.set_data(project_spatial_id=formatted_project_spatial_id, contains_image=True)
+            # 
+            try:
+                # Check the file type and call the appropriate processing method
+                lowercase_file = file.lower()
+                if lowercase_file.endswith(LAYOUT_FILE_EXTENSIONS):
+                    log(self.params.log, Colors.WARNING, f'Layout file: {file} will be added to data tracker but not resulting gdb.')
+                elif lowercase_file.endswith(DATA_SHEET_EXTENSIONS):
+                    log(self.params.log, Colors.WARNING, f'Datasheet: {file} will be added to data tracker but not resulting gdb.')
+                elif lowercase_file.endswith(IMAGE_FILE_EXTENSIONS):
+                    log(self.params.log, Colors.WARNING, f'Image/PDF file: {file} will be added to data tracker but not resulting gdb.')
                     
-            elif lowercase_file.endswith('.shp'):
-                self.process_shp(file, formatted_project_spatial_id)         
-            elif lowercase_file.endswith(('.kml', '.kmz')):
-                self.process_kml(file, formatted_project_spatial_id)    
-            elif lowercase_file.endswith('.geojson'):
-                self.process_json(file, formatted_project_spatial_id)
-            elif lowercase_file.endswith('.gdb'):
-                self.process_gdb(file, formatted_project_spatial_id)
-            elif lowercase_file.endswith(('.gpkg', '.sqlite')):
-                log(self.params.log, Colors.WARNING, f'GeoPackage/SQLite file: {file} will be added to data tracker but not resulting gdb.')
+                    # Update data tracker based on specific file types
+                    if lowercase_file.endswith('.pdf'):
+                        self.data.set_data(project_spatial_id=formatted_project_spatial_id, contains_pdf=True)
+                    else:
+                        self.data.set_data(project_spatial_id=formatted_project_spatial_id, contains_image=True)
+                        
+                elif lowercase_file.endswith('.shp'):
+                    self.process_shp(file, formatted_project_spatial_id)         
+                elif lowercase_file.endswith(('.kml', '.kmz')):
+                    self.process_kml(file, formatted_project_spatial_id)    
+                elif lowercase_file.endswith('.geojson'):
+                    self.process_json(file, formatted_project_spatial_id)
+                elif lowercase_file.endswith('.gdb'):
+                    self.process_gdb(file, formatted_project_spatial_id)
+                elif lowercase_file.endswith(('.gpkg', '.sqlite')):
+                    log(self.params.log, Colors.WARNING, f'GeoPackage/SQLite file: {file} will be added to data tracker but not resulting gdb.')
 
-            self.data.set_data(project_spatial_id=formatted_project_spatial_id, processed=True)
+                self.data.set_data(project_spatial_id=formatted_project_spatial_id, processed=True)
+            
+            except arcpy.ExecuteError as error:
+                self.data.data_dict.popitem()
+                log(None, Colors.INFO, 'Removing the layer from the data')
+                raise arcpy.ExecuteError(error)
+                
             
         log(None, Colors.INFO, 'Processing of the files into the Geodatabase has completed.')
 
