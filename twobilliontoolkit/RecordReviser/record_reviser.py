@@ -57,15 +57,16 @@ class DataTableApp(QWidget):
         """        
         super().__init__()
 
+        # Columns that are not editable and the key
+        self.columns_noedit = ['project_spatial_id', 'dropped', 'project_path', 'raw_data_path']
+        self.key = 'project_spatial_id'
+
         # Store the original and current dataframes
         self.data = data
         self.original_dataframe = self.format_data(data)
         self.dataframe = self.original_dataframe.copy()
         self.gdb = gdb
         
-        # Columns that are not editable
-        self.columns_noedit = ['project_spatial_id', 'dropped', 'project_path', 'raw_data_path']
-
         # Initialize the user interface
         self.init_ui()
         
@@ -132,7 +133,7 @@ class DataTableApp(QWidget):
         """
         # Convert raw data to a DataFrame and rename index column
         dataframe = pd.DataFrame.from_dict(data.data_dict, orient='index').reset_index()
-        dataframe.rename(columns={'index': 'project_spatial_id'}, inplace=True)
+        dataframe.rename(columns={'index': self.key}, inplace=True)
         return dataframe 
 
     def populate_table(self) -> None:
@@ -206,7 +207,7 @@ class DataTableApp(QWidget):
 
             if row_changes:
                 # Store changes with project_spatial_id as key
-                project_spatial_id_value = self.dataframe.at[i, 'project_spatial_id']
+                project_spatial_id_value = self.dataframe.at[i, self.key]
                 changes_dict[project_spatial_id_value] = row_changes
 
         # Log the changes
@@ -214,11 +215,15 @@ class DataTableApp(QWidget):
 
         # Update the original data with the changes
         for project_spatial_id, changes in changes_dict.items():
-            row_index = self.dataframe[self.dataframe['project_spatial_id'] == project_spatial_id].index[0]
+            row_index = self.dataframe[self.dataframe[self.key] == project_spatial_id].index[0]
             for column, value in changes.items():
                 # Explicitly convert 'value' to the appropriate data type
                 if self.original_dataframe[column].dtype == bool:
-                    value = bool(value)
+                    if value in ['True', 'False']:
+                        value = bool(value)
+                    else:
+                        log(self.data.log_path, Colors.ERROR, f'The value {value} must be a bool in {column}')
+                        return
                 elif self.original_dataframe[column].dtype == int:
                     value = int(value)
                 elif self.original_dataframe[column].dtype == float:
@@ -368,7 +373,7 @@ def update_records(data: Datatracker, changes_dict: dict, gdb: str = None) -> No
         )
 
     # Save the updated data
-    data.save_changes(update=True)
+    data.save_data(update=True)
 
 #========================================================
 # Main
