@@ -163,9 +163,5 @@ cython_debug/
 database.ini
 
 # Personal testing files
-Output
-OutputAttachments
-OutputDataTracker.xlsx
-OutputGDB.gdb
-OutputLog.txt
+Output*
 test.ipynb

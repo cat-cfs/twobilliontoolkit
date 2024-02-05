@@ -131,10 +131,9 @@ class Processor:
             
             except arcpy.ExecuteError as error:
                 self.data.data_dict.popitem()
-                log(None, Colors.INFO, 'Removing the layer from the data')
+                log(self.data.log_path, Colors.Error, f'An error occured when processing the layer for {file}, removing it from the datatracker/database, run the command again with --resume')
                 raise arcpy.ExecuteError(error)
-                
-            
+                 
         log(None, Colors.INFO, 'Processing of the files into the Geodatabase has completed.')
 
         # Extract attachments from the Geodatabase
