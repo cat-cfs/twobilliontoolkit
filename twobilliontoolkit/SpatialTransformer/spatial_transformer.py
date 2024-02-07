@@ -30,6 +30,7 @@ Usage:
 import sys
 import time
 import argparse
+import traceback
 
 from twobilliontoolkit.SpatialTransformer.common import *
 from twobilliontoolkit.Logger.logger import log, Colors
@@ -98,8 +99,19 @@ def main():
         spatial_data.process_spatial_files()
             
     except (ValueError, Exception) as error:
+        # Print the traceback
+        traceback.print_exc()
+
+        # Get the traceback information
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+
+        # Extract the filename and line number where the exception was raised
+        trace = traceback.extract_tb(exc_traceback)[-1]
+        filename = trace[0]
+        line_number = trace[1]
+        
         # Log the error
-        log(log_path, Colors.ERROR, error)
+        log(log_path, Colors.ERROR, error, filename, line_number)
         
         # Save the data to the datatracker in case of crashing
         if spatial_data:

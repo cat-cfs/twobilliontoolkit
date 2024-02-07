@@ -30,7 +30,6 @@ Usage:
 #========================================================
 import os
 import sys
-import inspect
 from datetime import datetime
 
 #========================================================
@@ -46,7 +45,7 @@ class Colors:
 #========================================================
 # Logger Functions
 #========================================================   
-def log(file_path: str = None, type: str = Colors.ERROR, message: str = '') -> None:
+def log(file_path: str = None, type: str = Colors.ERROR, message: str = '', filename: str = None, line_num: int = None) -> None:
     """
     Log messages with colored tags and timestamps.
 
@@ -54,25 +53,23 @@ def log(file_path: str = None, type: str = Colors.ERROR, message: str = '') -> N
         file_path (str, optional): Path to the log file.
         type (str): Color code for the log message type.
         message (str): The log message.
+        filename (str, optional): The filename where the error occured if known.
+        line_num (int, optional): The line number in the file that the error occured if known.
     """
-    # Get the frame of the caller to extract the filepath and linenumber of where log() was called from. Then clean it up.
-    frame = inspect.currentframe().f_back
-    try:
-        filename = frame.f_code.co_filename
-        line_number = frame.f_lineno
-    finally:
-        del frame
-    
+    traceback = ''
+    if filename and line_num:
+        traceback = filename + ' : line:' + str(line_num) + ' - '
+        
     # Set the tag and print to the console
     if type == Colors.INFO:
         tag = 'INFO'
         print(f'{type}[{tag}] {message}{Colors.END}')
     elif type == Colors.WARNING:
         tag = 'WARNING'
-        print(f'{type}[{tag}] {filename}:{line_number} - {message}{Colors.END}')
+        print(f'{type}[{tag}] {message}{Colors.END}')
     elif type == Colors.ERROR:
         tag = 'ERROR'
-        print(f'{type}[{tag}] {filename}:{line_number} - {message}{Colors.END}')
+        print(f'{type}[{tag}] {traceback}{message}{Colors.END}')
         
     
     # If a file path is provided
@@ -84,5 +81,5 @@ def log(file_path: str = None, type: str = Colors.ERROR, message: str = '') -> N
         
         # Open the file in append mode and append a log message
         with open(file_path, 'a') as log_file:
-            log_file.write(f'{datetime.now().strftime("%d/%m/%Y %H:%M:%S")} [{tag}] {filename}:{line_number} - {message}\n')
+            log_file.write(f'{datetime.now().strftime("%d/%m/%Y %H:%M:%S")} [{tag}] {traceback}{message}\n')
     
