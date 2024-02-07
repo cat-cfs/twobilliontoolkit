@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import QApplication
 from twobilliontoolkit.SpatialTransformer.common import *
 from twobilliontoolkit.Logger.logger import log, Colors
 from twobilliontoolkit.GeoAttachmentSeeker.geo_attachment_seeker import find_attachments
-from twobilliontoolkit.SpatialTransformer.Datatracker import Datatracker
+from twobilliontoolkit.SpatialTransformer.Datatracker import Datatracker2BT
 from twobilliontoolkit.RecordReviser.record_reviser import DataTableApp, update_records
 from twobilliontoolkit.SpatialTransformer.Parameters import Parameters
 
@@ -30,7 +30,7 @@ class Processor:
         self.params = params
         
         # Create the Data class to hold any data tracker information
-        self.data = Datatracker(params.datatracker, params.load_from, params.save_to)
+        self.data = Datatracker2BT(params.datatracker, params.load_from, params.save_to)
         
         self.spatial_files = []
         self.temp_directory = tempfile.gettempdir() + '\spatial_trans'
@@ -79,7 +79,7 @@ class Processor:
             
             # Try to find if the entry is already in the tracker, skip if so
             if self.params.resume:
-                data_entry = self.data.find({'absolute_file_path': absolute_file_path, 'processed': True})
+                (_, data_entry) = self.data.find_matching_data(absolute_file_path=absolute_file_path, processed=True)
                 if data_entry:
                     continue
             
@@ -131,7 +131,7 @@ class Processor:
             
             except arcpy.ExecuteError as error:
                 self.data.data_dict.popitem()
-                log(self.data.log_path, Colors.Error, f'An error occured when processing the layer for {file}, removing it from the datatracker/database, run the command again with --resume')
+                log(self.data.log_path, Colors.ERROR, f'An error occured when processing the layer for {file}, removing it from the datatracker/database, run the command again with --resume')
                 raise arcpy.ExecuteError(error)
                  
         log(None, Colors.INFO, 'Processing of the files into the Geodatabase has completed.')
@@ -189,7 +189,7 @@ class Processor:
             raw_data_path (str): The raw data path to be searched in the dictionary.
         """
         # Find a corresponding project spatial ID in the data dictionary based on the raw data path
-        found_match = self.data.find_matching_spatial_id(raw_data_path)
+        (found_match, _) = self.data.find_matching_data(raw_data_path=raw_data_path)
         if found_match is not None:
             log(self.params.log, Colors.WARNING, f'Raw path: {raw_data_path} already exists in the data tracker! -  Current Spatial ID: {current_spatial_id} Matching Spatial ID: {found_match}')    
 
@@ -454,7 +454,7 @@ class Processor:
             # )
             
             if self.params.resume:
-                data_entry = self.data.find({'project_spatial_id': feature_class.replace('proj_', ''), 'editor_tracking_enabled': True})
+                (_, data_entry) = self.data.find_matching_data(project_spatial_id=feature_class.replace('proj_', ''), editor_tracking_enabled=True)
                 if data_entry:
                     continue
             

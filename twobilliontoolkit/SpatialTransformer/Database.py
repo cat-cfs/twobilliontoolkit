@@ -92,24 +92,56 @@ class Database:
         """
         self.cursor.execute(query, values)
         self.connection.commit()
+          
+    def get_columns(self, schema: str, table: str) -> list[str]:
+        """
+        Get the columns from the table.
+
+        Args:
+            schema (str): Name of the database schema.
+            table (str): Name of the table.
             
-    def create(self, table: str, columns: list[str], values: list[str]) -> None:
+        Returns:
+            list: List of strings that correspond to the table columns.
+        """
+        query = f"SELECT column_name FROM information_schema.columns where CONCAT(table_schema, '.', table_name) = '{schema + '.' + table}'"
+        self.execute(query) 
+        return [row[0] for row in self.cursor.fetchall()]
+            
+    def get_pkey(self, schema: str, table: str) -> str:
+        """
+        Get the primary key from the table.
+
+        Args:
+            schema (str): Name of the database schema.
+            table (str): Name of the table.
+            
+        Returns:
+            str: The name of the primary key in the schema/table provided.
+        """  
+        query = f"SELECT * FROM information_schema.key_column_usage where table_schema = '{schema}' and constraint_name = CONCAT('{table}', '_pkey')"
+        self.execute(query) 
+        return self.cursor.fetchone()
+          
+    def create(self, schema: str, table: str, columns: list[str], values: list[str]) -> None:
         """
         Insert data into a table.
 
         Args:
+            schema (str): Name of the database schema.
             table (str): Name of the table.
             columns (list): List of column names.
             values (list): List of values to be inserted.
         """
-        query = f"INSERT INTO {table} ({', '.join(columns)}) VALUES ({', '.join(['%s' for _ in values])})"
+        query = f"INSERT INTO {schema + '.' + table} ({', '.join(columns)}) VALUES ({', '.join(['%s' for _ in values])})"
         self.execute(query, values)
     
-    def read(self, table: str, columns: list[str] = None, condition: str = None) -> list[tuple]:
+    def read(self, schema: str, table: str, columns: list[str] = None, condition: str = None) -> list[tuple]:
         """
         Retrieve data from a table.
 
         Args:
+            schema (str): Name of the database schema.
             table (str): Name of the table.
             columns (list, optional): List of column names to retrieve. Defaults to None (all columns).
             condition (str, optional): SQL condition to filter rows. Defaults to None.
@@ -119,8 +151,8 @@ class Database:
         """
         if columns is None:
             columns = ['*']
-            
-        query = f"SELECT {', '.join(columns)} FROM {table}"
+        
+        query = f"SELECT {', '.join(columns)} FROM {schema + '.' + table}"
         
         if condition is not None:
             query += f" WHERE {condition}"
@@ -129,29 +161,31 @@ class Database:
         
         return self.cursor.fetchall()
     
-    def update(self, table: str, values_dict: dict[str, str], condition: str) -> None:
+    def update(self, schema: str, table: str, values_dict: dict[str, str], condition: str) -> None:
         """
         Update data in a table.
 
         Args:
+            schema (str): Name of the database schema.
             table (str): Name of the table.
             values_dict (dict): Dictionary of column-value pairs to be updated.
             condition (str): SQL condition to filter rows to be updated.
         """        
-        query = f"UPDATE {table} SET {', '.join([f'{col}=%s' for col in values_dict.keys()])} WHERE {condition}"
+        query = f"UPDATE {schema + '.' + table} SET {', '.join([f'{col}=%s' for col in values_dict.keys()])} WHERE {condition}"
         
         values = list(values_dict.values())
         
         self.execute(query, values)
         
-    def delete(self, table: str, condition: str) -> None:
+    def delete(self, schema: str, table: str, condition: str) -> None:
         """
         Delete data from a table.
 
         Args:
+            schema (str): Name of the database schema.
             table (str): Name of the table.
             condition (str): SQL condition to filter rows to be deleted.
         """
-        query = f"DELETE FROM {table} WHERE {condition}"
+        query = f"DELETE FROM {schema + '.' + table} WHERE {condition}"
         self.execute(query)
         

@@ -41,18 +41,18 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QIcon
 
 from twobilliontoolkit.Logger.logger import log, Colors
-from twobilliontoolkit.SpatialTransformer.Datatracker import Datatracker
+from twobilliontoolkit.SpatialTransformer.Datatracker import Datatracker2BT
 
 #========================================================
 # Classes
 #========================================================
 class DataTableApp(QWidget):
-    def __init__(self, data: Datatracker, gdb: str = None) -> None:
+    def __init__(self, data: Datatracker2BT, gdb: str = None) -> None:
         """
         Initialize the DataTableApp with the provided data.
 
         Args:
-            data (Datatracker): An instance of the Datatracker class.
+            data (Datatracker2BT): An instance of the Datatracker2BT class.
             gdb (str, optional): The path to the gdb that changes will be made to if applicable.
         """        
         super().__init__()
@@ -109,24 +109,24 @@ class DataTableApp(QWidget):
         self.setWindowFlags(Qt.WindowStaysOnTopHint)
         self.show()
 
-    def refresh_data(self, data: Datatracker) -> None:
+    def refresh_data(self, data: Datatracker2BT) -> None:
         """
         Refresh the data in the application.
 
         Args:
-            data (Datatracker): The new data to be displayed.
+            data (Datatracker2BT): The new data to be displayed.
         """
         # Update the data, original and current dataframe
         self.data = data
         self.original_dataframe = self.format_data(data)
         self.dataframe = self.original_dataframe.copy()
 
-    def format_data(self, data: Datatracker) -> pd.DataFrame:
+    def format_data(self, data: Datatracker2BT) -> pd.DataFrame:
         """
         Format the raw data into a pandas DataFrame.
 
         Args:
-            data (Datatracker): Raw data to be formatted.
+            data (Datatracker2BT): Raw data to be formatted.
 
         Returns:
             pd.DataFrame: A formatted pandas DataFrame.
@@ -263,12 +263,12 @@ class DataTableApp(QWidget):
 #========================================================
 # Functions
 #========================================================
-def create_duplicate(data: Datatracker, project_spatial_id: str, new_project_number: str) -> str:
+def create_duplicate(data: Datatracker2BT, project_spatial_id: str, new_project_number: str) -> str:
     """
     Create a duplicate entry in the data for a given project with a new project number.
 
     Args:
-        data (Datatracker): An instance of Datatracker.
+        data (Datatracker2BT): An instance of Datatracker2BT.
         project_spatial_id (str): The unique identifier of the project to duplicate.
         new_project_number (str): The new project number for the duplicated entry.
 
@@ -302,12 +302,12 @@ def create_duplicate(data: Datatracker, project_spatial_id: str, new_project_num
 
     return new_project_spatial_id
 
-def update_records(data: Datatracker, changes_dict: dict, gdb: str = None) -> None:
+def update_records(data: Datatracker2BT, changes_dict: dict, gdb: str = None) -> None:
     """
     Update records in the data based on the changes provided in the dictionary.
 
     Args:
-        data (Datatracker): An instance of Datatracker.
+        data (Datatracker2BT): An instance of Datatracker2BT.
         changes_dict (dict): A dictionary containing changes for each project.
         gdb (str, optional): The geodatabase path. If provided, updates are applied to the geodatabase.
     """
@@ -316,9 +316,10 @@ def update_records(data: Datatracker, changes_dict: dict, gdb: str = None) -> No
         new_project_number = value.get('project_number')
         if new_project_number:
             # Check if the project number entered was valid
-            data.database_connection.connect(data.database_connection.get_params())
+            data.database_connection.connect(data.database_parameters)
             found = data.database_connection.read(
-                table='bt_spatial_test.project_number',
+                schema='bt_spatial_test',
+                table='project_number',
                 condition=f"project_number='{new_project_number}'"
             )               
             data.database_connection.disconnect()
@@ -417,8 +418,8 @@ def main():
     gdb_path = args.gdb
     log_path = args.log
     
-    # Create an instance of the Datatracker class
-    data = Datatracker(data_tracker_path, load_from, save_to, log_path)
+    # Create an instance of the Datatracker2BT class
+    data = Datatracker2BT(data_tracker_path, load_from, save_to, log_path)
     
     if args.changes:
         try:

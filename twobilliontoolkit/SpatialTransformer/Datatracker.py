@@ -5,12 +5,12 @@
 import json
 import psycopg2
 
-# from twobilliontoolkit.SpatialTransformer.common import *
+from twobilliontoolkit.SpatialTransformer.common import *
 from twobilliontoolkit.Logger.logger import log, Colors
 from twobilliontoolkit.SpatialTransformer.Database import Database
 
 #========================================================
-# Helper Class
+# Base Class
 #========================================================
 class Datatracker:
     def __init__(self, data_traker_path: str, load_from: str = 'database', save_to: str = 'database', log_path: str = None) -> None:
@@ -28,9 +28,204 @@ class Datatracker:
         self.load_from = load_from
         self.save_to = save_to
         self.log_path = log_path
-        self.database_connection = Database()
+        
+        if load_from == 'database,' or save_to == 'database':
+            # Create database object
+            self.database_connection = Database()
+            # Read connection parameters from the configuration file
+            self.database_parameters = self.database_connection.get_params()
+            self.database_schema = 'bt_spatial_test'
+            self.database_table = 'raw_data_tracker'
+            self.database_connection.connect(self.database_parameters)
+            self.database_pkey = self.database_connection.get_pkey(self.database_schema, self.database_table)
+            self.database_connection.disconnect()
         
         self.load_data()
+    
+    def add_data(self, key: str, **kwargs) -> None:
+        """
+        Adds project data to the data tracker.
+
+        Args:
+            key (str): Acts as key in dictionary.
+            **kwargs: Additional keyword arguments for project data.
+        """
+        self.data_dict[key] = kwargs
+        
+    def set_data(self, key: str, **kwargs) -> None:
+        """
+        Updates project data in the data tracker.
+
+        Args:
+            key (str): Acts as key in dictionary.
+            **kwargs: Keyword arguments for updating project data.
+        """
+        # Update specified parameters as sets
+        project_data = self.data_dict.get(key, {})
+        
+        for pkey, pvalue in kwargs.items():
+            if pvalue is not None:
+                project_data[pkey] = pvalue
+        
+        self.data_dict[key] = project_data
+    
+    def get_data(self, key: str) -> dict:
+        """
+        Gets an object of values given a project spatial id.
+
+        Args:
+            key (str): Acts as key in dictionary.
+
+        Returns:
+            dict: the values that correspond to the given key
+        """
+        return self.data_dict[key]
+    
+    def find_matching_data(self, **kwargs) -> (str, dict):
+        """
+        Search for a matching entry in the data based on given parameters.
+
+        Args:
+            **kwargs: Keyword arguments for finding a matching key.
+
+        Returns:
+            str: A tuple of matching (key, data) if  the parameters passed already exists in the dataframe, otherwise return None.
+        """        
+        return next(
+            (
+                (key, data)
+                for key, data in self.data_dict.items()
+                if all(data.get(field) == value for field, value in kwargs.items())
+            ),
+            (None, None)
+        )
+            
+    def count_occurances(self, field: str, value) -> int:
+        """
+        Count the occurrences of a specified field in the data object.
+
+        Args:
+            field (str): Name of the parameter to count occurrences.
+            value: Value of the parameter to count occurrences.
+
+        Returns:
+            int: Number of occurrences of the specified parameter.
+        """
+        return sum(
+            1 for data in self.data_dict.values() if data.get(field) == value
+        )
+
+    def load_data(self) -> None:
+        """
+        Load data from an existing data tracker or a database connection into class.
+        """
+        if self.load_from == 'database':
+            self.load_from_database()
+        else:
+            self.load_from_file()
+
+    def load_from_database(self) -> None:
+        """
+        Load data from a database connection into class.
+        """
+        self.database_connection.connect(self.database_parameters)
+
+        columns = self.database_connection.get_columns(schema=self.database_schema, table=self.database_table)
+        
+        rows = self.database_connection.read(schema=self.database_schema, table=self.database_table, columns=columns)
+        
+        for fields in rows:
+            values = dict(zip(columns[1:], fields[1:]))
+            self.data_dict[self.database_pkey] = values
+
+        self.database_connection.disconnect()
+
+    def load_from_file(self) -> None:
+        """
+        Load data from a file into class.
+        """
+        if not os.path.exists(self.data_tracker):
+            return
+
+        data_df = pd.read_excel(self.data_tracker)
+
+        for index, row in data_df.iterrows():
+            pkey = row.index[0]
+            data = row.drop(pkey).to_dict()
+            self.add_data(key=row[pkey], **data)
+            
+    def save_data(self, update: bool = False) -> None:
+        """
+        Save data tracker information to data tracker or database connection.
+
+        Args:
+            update (bool): Flag to determine if there are some entries in the data object that will need updating.
+        """
+        if self.save_to == 'database':
+            self.save_to_database(update)
+        else:
+            self.save_to_file()
+
+    def save_to_database(self, update: bool = False) -> None:
+        """
+        Save data tracker information to a database connection.
+
+        Args:
+            update (bool): Flag to determine if there are some entries in the data object that will need updating.
+        """
+        self.database_connection.connect(self.database_parameters)
+
+        existing_keys = set(row[0] for row in self.database_connection.read(
+            schema=self.database_schema, 
+            table=self.database_table, 
+            columns=[self.database_pkey]
+        ))
+
+        for key, value in self.data_dict.items():
+            if key in existing_keys and update:
+                self.database_connection.update(
+                    schema=self.database_schema, 
+                    table=self.database_table,
+                    values_dict={field: value[field] for field in value},
+                    condition=f"{self.database_pkey}='{key}'"
+                )
+            elif key not in existing_keys:
+                self.database_connection.create(
+                    schema=self.database_schema, 
+                    table=self.database_table,
+                    columns=[self.database_pkey] + list(value.keys()),
+                    values=[key] + list(value.values())
+                )
+
+        self.database_connection.disconnect()
+
+    def save_to_file(self) -> None:
+        """
+        Save data tracker information to a file.
+        """
+        df = pd.DataFrame(list(self.data_dict.values()))
+        df.insert(0, 'key', self.data_dict.keys())
+
+        if not df.empty:
+            df.to_excel(self.data_tracker, index=False)
+            log(None, Colors.INFO, f'The data tracker "{self.data_tracker}" has been created/updated successfully.')
+    
+         
+#========================================================
+# Inheritance Class
+#========================================================
+class Datatracker2BT(Datatracker):
+    def __init__(self, data_traker_path: str, load_from: str = 'database', save_to: str = 'database', log_path: str = None) -> None:
+        """
+        Initializes the Data class with input parameters. Used to store the data tracker information.
+
+        Args:
+            data_traker_path (str): Path to data tracker to load data if exists.
+            load_from (str): Flag to determine if loading dataframe should be done from the {database, datatracker}. Default: 'database'.
+            save_to (str): Flag to determine if saving the dataframe should be done to the {database, datatracker}. Default: 'database'.
+            log_path (str, optional): The path to the log file if you wish to keep any errors that occur.
+        """
+        super().__init__(data_traker_path, load_from, save_to, log_path)
     
     def add_data(self, project_spatial_id: str, project_number: str, dropped: bool, project_path: str, raw_data_path: str, absolute_file_path: str, in_raw_gdb: bool, contains_pdf: bool, contains_image: bool, extracted_attachments_path: str, editor_tracking_enabled: bool, processed: bool) -> None:
         """
@@ -103,7 +298,7 @@ class Datatracker:
             project_data['editor_tracking_enabled'] = editor_tracking_enabled
         if processed is not None:
             project_data['processed'] = processed
-    
+            
     def get_data(self, project_spatial_id: str) -> dict:
         """
         Gets an object of values given a project spatial id.
@@ -135,40 +330,6 @@ class Datatracker:
             None
         )
         
-    def find(self, criteria: dict) -> dict:
-        """
-        Find any criteria from the global data class.
-
-        Args:
-            criteria (dict): A dictionary of criteria of what to search the data class for.
-
-        Returns:
-            data_entry: A matching row of the dictionary if the criteria is all returned true, otherwise return None.
-        """         
-        return next(
-            (
-                data_entry
-                for data_entry in self.data_dict.values()
-                if all(data_entry.get(field) == value for field, value in criteria.items())
-            ),
-            None
-        )
-    
-    def count_occurances(self, field: str, value) -> int:
-        """
-        Count the occurrences of a specified field in the data object.
-
-        Args:
-            field (str): Name of the parameter to count occurrences.
-            value: Value of the parameter to count occurrences.
-
-        Returns:
-            int: Number of occurrences of the specified parameter.
-        """
-        return sum(
-            1 for project_data in self.data_dict.values() if project_data.get(field) == value
-        )
-    
     def create_project_spatial_id(self, project_number: str) -> str:
         """
         Create the next project spatial id for the file
@@ -187,161 +348,139 @@ class Datatracker:
 
         return clean_project_number + '_' + str(result_occurrences).zfill(2)
     
-    def load_data(self) -> None:
+    def load_from_database(self) -> None:
         """
-        Load data from an existing data tracker or a database connection into class.
+        Load data from a database connection into class.
         """
-        if self.load_from == 'database':
-            # Read connection parameters from the configuration file
-            params = self.database_connection.get_params()
-            
-            self.database_connection.connect(params)
-            
-            rows = self.database_connection.read(
-                table='bt_spatial_test.raw_data_tracker',
-                columns=['project_spatial_id', 'project_number', 'dropped', 'project_path', 'raw_data_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled', 'processed']                
-            )
-                    
-            # Initialize an empty dictionary to store the extracted data
-            for fields in rows:
-                # Extract the project_spatial_id from the row
-                project_spatial_id = fields[0]
+        self.database_connection.connect(self.database_parameters)
 
-                # Extract the rest of the row values into a dictionary
-                values = {
-                    'project_number': fields[1],
-                    'dropped': fields[2],
-                    'project_path': fields[3],
-                    'raw_data_path': fields[4],
-                    'absolute_file_path': fields[5],
-                    'in_raw_gdb': fields[6],
-                    'contains_pdf': fields[7],
-                    'contains_image': fields[8],
-                    'extracted_attachments_path': fields[9],
-                    'editor_tracking_enabled': fields[10],
-                    'processed': fields[11]
-                }
-                
-                # Store the values dictionary in the data_dict with project_spatial_id as the key
-                self.data_dict[project_spatial_id] = values
-                  
-            self.database_connection.disconnect()      
-            
-        else:    
-            # Check to see if the data tracker exists before loading from it
-            if not os.path.exists(self.data_tracker):
-                return
-            
-            # Read the data tracker
-            data_df = pd.read_excel(
-                self.data_tracker,
-                dtype= { # Force types
-                    'project_spatial_id': object,
-                    'project_number': object,
-                    'dropped': bool,
-                    'project_path': object,
-                    'raw_data_path': object,
-                    'absolute_file_path': object,
-                    'in_raw_gdb': bool,
-                    'contains_pdf': bool,
-                    'contains_image': bool,
-                    'extracted_attachments_path': object,
-                    'editor_tracking_enabled': bool,
-                    'processed': bool
-                }
-            )
+        columns = ['project_spatial_id', 'project_number', 'dropped', 'project_path', 'raw_data_path','absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image','extracted_attachments_path', 'editor_tracking_enabled', 'processed']
 
-            # Use apply with a lambda function to add data to the data_dict
-            data_df.apply(lambda row: self.add_data(
-                row['project_spatial_id'],
-                row['project_number'],
-                row['dropped'],
-                row['project_path'],
-                row['raw_data_path'],
-                row['absolute_file_path'],
-                row['in_raw_gdb'],
-                row['contains_pdf'],
-                row['contains_image'],
-                row['extracted_attachments_path'],
-                row['editor_tracking_enabled'],
-                row['processed']
-            ), axis=1)
+        rows = self.database_connection.read(schema=self.database_schema, table=self.database_table, columns=columns)
 
-    def save_data(self, update: bool = False) -> None:
+        for fields in rows:
+            project_spatial_id = fields[0]
+            values = dict(zip(columns[1:], fields[1:]))
+            self.data_dict[project_spatial_id] = values
+
+        self.database_connection.disconnect()
+
+    def load_from_file(self) -> None:
         """
-        Save data tracker information to data tracker or database connection.
+        Load data from a file into class.
+        """
+        if not os.path.exists(self.data_tracker):
+            return
         
+        data_df = pd.read_excel(self.data_tracker, dtype={
+            'project_spatial_id': object, 
+            'project_number': object,
+            'dropped': bool, 
+            'project_path': object,
+            'raw_data_path': object, 
+            'absolute_file_path': object,
+            'in_raw_gdb': bool, 
+            'contains_pdf': bool,
+            'contains_image': bool, 
+            'extracted_attachments_path': object,
+            'editor_tracking_enabled': bool, 
+            'processed': bool
+        }, index_col=None)
+        
+        for index, row in data_df.iterrows():
+            self.add_data(
+                project_spatial_id=row['project_spatial_id'],
+                project_number=row['project_number'], 
+                dropped=row['dropped'],
+                project_path=row['project_path'], 
+                raw_data_path=row['raw_data_path'], 
+                absolute_file_path=row['absolute_file_path'],
+                in_raw_gdb=row['in_raw_gdb'], 
+                contains_pdf=row['contains_pdf'], 
+                contains_image=row['contains_image'],
+                extracted_attachments_path=row['extracted_attachments_path'],
+                editor_tracking_enabled=row['editor_tracking_enabled'],
+                processed=row['processed']  
+            )
+            
+        
+    def save_to_database(self, update: bool = False) -> None:
+        """
+        Save data tracker information to a database connection.
+
         Args:
             update (bool): Flag to determine if there are some entries in the data object that will need updating.
         """
-        if self.save_to == 'database':     
-            # Read connection parameters from the configuration file
-            params = self.database_connection.get_params()
-            
-            self.database_connection.connect(params)
-            
-            rows = self.database_connection.read(
-                table='bt_spatial_test.raw_data_tracker',
-                columns=['project_spatial_id']
-            )
-            existing_ids = set(row[0] for row in rows)
-  
-            for key, value in self.data_dict.items():
-                if key in existing_ids and update:
-                    self.database_connection.update(
-                        table='bt_spatial_test.raw_data_tracker',
-                        values_dict={
-                            'dropped': value['dropped'],
-                            'in_raw_gdb': value['in_raw_gdb'], 
-                            'contains_pdf': value['contains_pdf'], 
-                            'contains_image': value['contains_image'],
-                            'editor_tracking_enabled': value['editor_tracking_enabled'], 
-                            'processed': value['processed']
-                        },
-                        condition=f"project_spatial_id='{key}'"
+        self.database_connection.connect(self.database_parameters)
+        
+        rows = self.database_connection.read(
+            schema=self.database_schema, 
+            table=self.database_table,
+            columns=['project_spatial_id']
+        )
+        existing_ids = set(row[0] for row in rows)
+
+        for key, value in self.data_dict.items():
+            if key in existing_ids and update:
+                self.database_connection.update(
+                    schema=self.database_schema, 
+                    table=self.database_table,
+                    values_dict={
+                        'dropped': value['dropped'],
+                        'in_raw_gdb': value['in_raw_gdb'], 
+                        'contains_pdf': value['contains_pdf'], 
+                        'contains_image': value['contains_image'],
+                        'editor_tracking_enabled': value['editor_tracking_enabled'], 
+                        'processed': value['processed']
+                    },
+                    condition=f"project_spatial_id='{key}'"
+                )
+                
+            elif key not in existing_ids:
+                self.database_connection.create(
+                    schema=self.database_schema, 
+                    table=self.database_table,
+                    columns=('project_spatial_id', 'project_number', 'dropped', 'project_path', 'raw_data_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled', 'processed'),
+                    values=(
+                        key, 
+                        value['project_number'], 
+                        value['dropped'], 
+                        value['project_path'], 
+                        value['raw_data_path'],
+                        value['absolute_file_path'], 
+                        value['in_raw_gdb'], 
+                        value['contains_pdf'], 
+                        value['contains_image'],
+                        value['extracted_attachments_path'],
+                        value['editor_tracking_enabled'],
+                        value['processed']
                     )
-                    
-                elif key not in existing_ids:
-                    self.database_connection.create(
-                        table='bt_spatial_test.raw_data_tracker',
-                        columns=('project_spatial_id', 'project_number', 'dropped', 'project_path', 'raw_data_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled', 'processed'),
-                        values=(
-                            key, 
-                            value['project_number'], 
-                            value['dropped'], 
-                            value['project_path'], 
-                            value['raw_data_path'],
-                            value['absolute_file_path'], 
-                            value['in_raw_gdb'], 
-                            value['contains_pdf'], 
-                            value['contains_image'],
-                            value['extracted_attachments_path'],
-                            value['editor_tracking_enabled'],
-                            value['processed']
-                        )
-                    ) 
-            
-            self.database_connection.disconnect()         
+                ) 
+        
+        self.database_connection.disconnect()
 
-        else: 
-            # Create a DataFrame and save it to Excel if the data tracker file doesn't exist
-            df = pd.DataFrame(list(self.data_dict.values()), columns=['project_number', 'project_path', 'dropped', 'raw_data_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled', 'processed'])
+    def save_to_file(self) -> None:
+        """
+        Save data tracker information to a file.
+        """
+        # Create a DataFrame and save it to Excel if the data tracker file doesn't exist
+        df = pd.DataFrame(list(self.data_dict.values()), columns=['project_number', 'project_path', 'dropped', 'raw_data_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled', 'processed'])
 
-            # Add 'project_spatial_id' to the DataFrame
-            df['project_spatial_id'] = list(self.data_dict.keys())
+        # Add 'project_spatial_id' to the DataFrame
+        df['project_spatial_id'] = list(self.data_dict.keys())
 
-            # Reorder columns to have 'project_spatial_id' as the first column
-            df = df[['project_spatial_id', 'project_number', 'dropped', 'project_path', 'raw_data_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled', 'processed']]
+        # Reorder columns to have 'project_spatial_id' as the first column
+        df = df[['project_spatial_id', 'project_number', 'dropped', 'project_path', 'raw_data_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled', 'processed']]
 
-            # Sort the rows by the project_spatial_id column
-            df = df.sort_values(by=['project_spatial_id'])
-            
-            # Check if the directory exists, if not, create it
-            directory = os.path.dirname(self.data_tracker)
-            if not os.path.exists(directory):
-                os.makedirs(directory)
-            
-            # Convert dataframe to excel
-            df.to_excel(self.data_tracker, index=False)
-            
-            log(None, Colors.INFO, f'The data tracker "{self.data_tracker}" has been created/updated successfully.')
+        # Sort the rows by the project_spatial_id column
+        df = df.sort_values(by=['project_spatial_id'])
+        
+        # Check if the directory exists, if not, create it
+        directory = os.path.dirname(self.data_tracker)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        
+        # Convert dataframe to excel
+        df.to_excel(self.data_tracker, index=False)
+        
+        log(None, Colors.INFO, f'The data tracker "{self.data_tracker}" has been created/updated successfully.')
