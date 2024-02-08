@@ -11,7 +11,8 @@ setup(
         'psycopg2==2.9.9',
         'py7zr==0.20.8',
         'pywin32==306',
-        'setuptools==68.2.2'
+        'setuptools==68.2.2',
+        'PyQt5==5.15.10'
     ],
     extras_require={},
     package_data={
