@@ -54,22 +54,26 @@ from twobilliontoolkit.SpatialTransformer.common import *
 from twobilliontoolkit.Logger.logger import log, Colors
 from twobilliontoolkit.SpatialTransformer.Parameters import Parameters
 from twobilliontoolkit.SpatialTransformer.Processor import Processor
+from twobilliontoolkit.SpatialTransformer.spatial_transformer import spatial_transformer
 
-def main():
-    input_path = './Testing/Data/TestFolder.zip'
-    output_path = './Testing/OutputFolder'
-    gdb_path = './Testing/OutputGDB.gdb'
-    master_data_path = './MasterDatasheet'
-    load_from = 'database'
-    save_to = 'database'
-    datatracker_path = './Testing/OutputDataSheet.xlsx'
-    attachments_path = './Testing/Attachments'
-    log_path = './Testing/OutputLog.txt'
-    debug = True
-    
-    setup_parameters = Parameters(input_path, output_path, gdb_path, master_data_path, data_tracker_path, attachments_path, load_from, save_to,  log_path, debug)
-    processor = Processor(setup_parameters)
-    datatracker = Datatracker(setup_parameters.data_tracker)
+# Example input parameters
+input_path = "/path/to/input/data"
+output_path = "/path/to/output/data"
+gdb_path = "/path/to/geodatabase.gdb"
+master_data_path = "/path/to/master_data.csv"
+load_from = "database"
+save_to = "datatracker"
+data_tracker_path = "/path/to/data_tracker.csv"
+attachments_path = "/path/to/attachments"
+log_path = "/path/to/logfile.log"
+debug = True
+resume = False
+
+# Call the spatial_transformer function
+spatial_transformer(
+    input_path, output_path, gdb_path, master_data_path, load_from, save_to,
+    data_tracker_path, attachments_path, log_path, debug, resume
+)
 ```
 **Note**: if you dont wish to save to a log, you can omit that and it will just print its messages to the standard out stream.
 
