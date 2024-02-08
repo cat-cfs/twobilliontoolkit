@@ -71,6 +71,8 @@ One of te first things that you must do when trying to use this package to inser
 host = 
 port = 
 database = 
+schema = 
+table =
 user = 
 password = 
 ```

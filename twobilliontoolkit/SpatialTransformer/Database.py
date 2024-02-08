@@ -18,6 +18,8 @@ class Database:
         """Initialize the Database instance."""
         self.connection = None
         self.cursor = None
+        self.schema = None
+        self.table = None
     
     def connect(self, params: dict[str, str]) -> None:
         """
@@ -76,6 +78,14 @@ class Database:
             for param in params:
                 if not param[1]:
                     raise ValueError(f'The [{param[0]}] field in {filename} was not filled out.')
+                
+                if param[0] == 'schema':
+                    self.schema = param[1]
+                    continue
+                elif param[0] == 'table':
+                    self.table = param[1]
+                    continue
+                
                 db[param[0]] = param[1]
         else:
             raise Exception(f'Section {section} not found in the {filename} file')

@@ -318,7 +318,7 @@ def update_records(data: Datatracker2BT, changes_dict: dict, gdb: str = None) ->
             # Check if the project number entered was valid
             data.database_connection.connect(data.database_parameters)
             found = data.database_connection.read(
-                schema='bt_spatial_test',
+                schema=data.database_connection.schema,
                 table='project_number',
                 condition=f"project_number='{new_project_number}'"
             )               

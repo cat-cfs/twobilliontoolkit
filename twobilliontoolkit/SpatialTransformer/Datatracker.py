@@ -34,10 +34,8 @@ class Datatracker:
             self.database_connection = Database()
             # Read connection parameters from the configuration file
             self.database_parameters = self.database_connection.get_params()
-            self.database_schema = 'bt_spatial_test'
-            self.database_table = 'raw_data_tracker'
             self.database_connection.connect(self.database_parameters)
-            self.database_pkey = self.database_connection.get_pkey(self.database_schema, self.database_table)
+            self.database_pkey = self.database_connection.get_pkey(self.database_connection.schema, self.database_connection.table)
             self.database_connection.disconnect()
         
         self.load_data()
@@ -130,9 +128,9 @@ class Datatracker:
         """
         self.database_connection.connect(self.database_parameters)
 
-        columns = self.database_connection.get_columns(schema=self.database_schema, table=self.database_table)
+        columns = self.database_connection.get_columns(schema=self.database_connection.schema, table=self.database_connection.table)
         
-        rows = self.database_connection.read(schema=self.database_schema, table=self.database_table, columns=columns)
+        rows = self.database_connection.read(schema=self.database_connection.schema, table=self.database_connection.table, columns=columns)
         
         for fields in rows:
             values = dict(zip(columns[1:], fields[1:]))
@@ -176,23 +174,23 @@ class Datatracker:
         self.database_connection.connect(self.database_parameters)
 
         existing_keys = set(row[0] for row in self.database_connection.read(
-            schema=self.database_schema, 
-            table=self.database_table, 
+            schema=self.database_connection.schema, 
+            table=self.database_connection.table, 
             columns=[self.database_pkey]
         ))
 
         for key, value in self.data_dict.items():
             if key in existing_keys and update:
                 self.database_connection.update(
-                    schema=self.database_schema, 
-                    table=self.database_table,
+                    schema=self.database_connection.schema, 
+                    table=self.database_connection.table,
                     values_dict={field: value[field] for field in value},
                     condition=f"{self.database_pkey}='{key}'"
                 )
             elif key not in existing_keys:
                 self.database_connection.create(
-                    schema=self.database_schema, 
-                    table=self.database_table,
+                    schema=self.database_connection.schema, 
+                    table=self.database_connection.table,
                     columns=[self.database_pkey] + list(value.keys()),
                     values=[key] + list(value.values())
                 )
@@ -356,7 +354,7 @@ class Datatracker2BT(Datatracker):
 
         columns = ['project_spatial_id', 'project_number', 'dropped', 'project_path', 'raw_data_path','absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image','extracted_attachments_path', 'editor_tracking_enabled', 'processed']
 
-        rows = self.database_connection.read(schema=self.database_schema, table=self.database_table, columns=columns)
+        rows = self.database_connection.read(schema=self.database_connection.schema, table=self.database_connection.table, columns=columns)
 
         for fields in rows:
             project_spatial_id = fields[0]
@@ -414,8 +412,8 @@ class Datatracker2BT(Datatracker):
         self.database_connection.connect(self.database_parameters)
         
         rows = self.database_connection.read(
-            schema=self.database_schema, 
-            table=self.database_table,
+            schema=self.database_connection.schema, 
+            table=self.database_connection.table,
             columns=['project_spatial_id']
         )
         existing_ids = set(row[0] for row in rows)
@@ -423,8 +421,8 @@ class Datatracker2BT(Datatracker):
         for key, value in self.data_dict.items():
             if key in existing_ids and update:
                 self.database_connection.update(
-                    schema=self.database_schema, 
-                    table=self.database_table,
+                    schema=self.database_connection.schema, 
+                    table=self.database_connection.table,
                     values_dict={
                         'dropped': value['dropped'],
                         'in_raw_gdb': value['in_raw_gdb'], 
@@ -438,8 +436,8 @@ class Datatracker2BT(Datatracker):
                 
             elif key not in existing_ids:
                 self.database_connection.create(
-                    schema=self.database_schema, 
-                    table=self.database_table,
+                    schema=self.database_connection.schema, 
+                    table=self.database_connection.table,
                     columns=('project_spatial_id', 'project_number', 'dropped', 'project_path', 'raw_data_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled', 'processed'),
                     values=(
                         key, 
