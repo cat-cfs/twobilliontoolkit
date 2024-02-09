@@ -427,7 +427,7 @@ def main():
         try:
             # Parse the changes argument and update records
             changes_dict = ast.literal_eval(args.changes)
-            update_records(data, changes_dict)
+            update_records(data, changes_dict, gdb_path)
         except (ValueError, SyntaxError) as e:
             log(None, Colors.INFO, f'Error parsing changes argument: {e}')
     else:
