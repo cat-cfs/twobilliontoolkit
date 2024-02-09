@@ -28,7 +28,7 @@ You should then be set up to use the tool!
 To use the Spatial Transformer, run the script from the command line with the following syntax:
 
 ```
-arcpy_environment_python_path /path/to/spatial_transformer.py [-h] --input input_path --output output_path --gdb gdb_path --master master_data_path --load {datatracker,database} --save {datatracker,database} [--data_tracker_path data_tracker_path] [--attachments attachments_path] [--log_path LOG_PATH] [--debug] [--resume]
+arcpy_environment_python_path /path/to/spatial_transformer.py [-h] --input input_path --output output_path --gdb gdb_path --master master_data_path --load {datatracker,database} --save {datatracker,database} [--data_tracker_path data_tracker_path] [--attachments attachments_path] [--debug] [--resume]
 ```
 - [-h, --help] (optional): List all of the available commands and a description for help.
 - --input input_path : Path to the input directory or compressed file.
@@ -39,7 +39,6 @@ arcpy_environment_python_path /path/to/spatial_transformer.py [-h] --input input
 - --save {datatracker,database}: Specify wheather the tool saves the data to a specified datatracker or a database connection. 
 - [--data_tracker_path data_tracker_path] (conditional): Path to where the resulting Data Tracker Excell sheet will be stored, it can be an existing datasheet, else it will create it when it is complete.
 - [--attachments attachments_path] (optional): The location that the attachments from the geodatabase will be located, if left empty it will be located in the same output folder as ripple zipple outputs to in the end.
-- [--log_path log_path] (optional): Path to the log file. If provided, detailed logs will be saved to this file. 
 - [--debug] (optional): include to enable debugging mode, giving some more information.
 - [--resume] (optional): include to continue where the code left off from if there was a fatal crash, this may be a bit buggy and need some manual intervention afterwards.
 

@@ -24,7 +24,7 @@ class TestDataHandling(unittest.TestCase):
         output_path = os.path.join(self.test_directory,'TestResultData')
         gdb_path = os.path.join(self.test_directory,'TestResultGDB.gdb')
         datatracker_path = os.path.join(self.test_directory,'TestDataTracker.xlsx')
-        log_path = os.path.join(self.test_directory,'TestResultLog.txt')
+        log_path = gdb_path.replace('.gdb', f"{datetime.datetime.now().strftime('%Y-%m-%d')}.txt")
         debug = False
         
         self.startparams = Parameters(input_path, output_path, gdb_path, datatracker_path, log_path, debug)

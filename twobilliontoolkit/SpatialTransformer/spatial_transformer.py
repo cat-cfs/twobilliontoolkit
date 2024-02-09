@@ -22,7 +22,7 @@ Description:
     The spatial_transformer.py script is a Python tool for processing spatial data. It handles tasks like geodatabase creation, file validation, and checking project numbers against a master data sheet. 
 
 Usage:
-    python path/to/spatial_transformer.py [-h] --input input_path --output output_path --gdb gdb_path --master master_data_path --load {datatracker,database} --save {datatracker,database} [--data_tracker data_tracker_path] [--attachments attachments_path] [--log LOG_PATH] [--debug] [--resume]
+    python path/to/spatial_transformer.py [-h] --input input_path --output output_path --gdb gdb_path --master master_data_path --load {datatracker,database} --save {datatracker,database} [--data_tracker data_tracker_path] [--attachments attachments_path] [--debug] [--resume]
 """
 #========================================================
 # Imports
@@ -40,7 +40,7 @@ from twobilliontoolkit.SpatialTransformer.Processor import Processor
 #========================================================
 # Entry Function
 #========================================================  
-def spatial_transformer(input_path: str, output_path: str, gdb_path: str, master_data_path: str, load_from: str, save_to: str, data_tracker_path: str, attachments_path: str, log_path: str = None, debug: bool = False, resume: bool = False) -> None:
+def spatial_transformer(input_path: str, output_path: str, gdb_path: str, master_data_path: str, load_from: str, save_to: str, data_tracker_path: str, attachments_path: str, debug: bool = False, resume: bool = False) -> None:
     """
     The spatial_transformer function serves as the main entry point for the spatial transformation script. Its primary purpose is to handle various tasks related to spatial data processing, such as starting the ripple_unzipple tool and geodatabase creation.
 
@@ -53,13 +53,16 @@ def spatial_transformer(input_path: str, output_path: str, gdb_path: str, master
         save_to (str): Either 'database' or 'datatracker' to determine what to save the data to.
         data_tracker_path (str): Path to data tracker file.
         attachments_path (str): Path where the extracted attachments will be.
-        log_path (str, optional): Path to log file. Defaults to None.
         debug (bool, optional): Determines if the program is in debug mode. Defaults False.
         resume (bool, optional): Determines if the program should resume from where a crash happened. Defaults False.
     """
+    # Create the logfile path
+    log_path = gdb_path.replace('.gdb', f"{datetime.datetime.now().strftime('%Y-%m-%d')}.txt")
+    
     # Initialize a variable for the processor in case an error occurs beforehand
     spatial_data = None
-    try:        
+    
+    try:       
         # Initialize Parameters class
         setup_parameters = Parameters(input_path, output_path, gdb_path, master_data_path, data_tracker_path, attachments_path, load_from, save_to, log_path, debug, resume)
                 
@@ -122,7 +125,6 @@ def main():
     parser.add_argument('--save', choices=['datatracker', 'database'], required=True, default='database', help='Specify what to save to (datatracker or database)')
     parser.add_argument('--data_tracker', default='', help='The new location or where an exsiting data tracker is located')
     parser.add_argument('--attachments', default='', help='The location where the attachments will be extracted to if applicable (optional, defaults to same root output as Ripple Unzipple)')
-    parser.add_argument('--log', default=None, help='The new location or where an existing log file is located (optional)')
     parser.add_argument('--debug', action='store_true', default=False, help='Enable debug mode')
     parser.add_argument('--resume', action='store_true', default=False, help='Resume from where a crash happened')
     
@@ -130,7 +132,7 @@ def main():
     args = parser.parse_args()
         
     # Call the entry function
-    spatial_transformer(args.input, args.output, args.gdb, args.master, args.load, args.save, args.data_tracker, args.attachments, args.log, args.debug, args.resume)
+    spatial_transformer(args.input, args.output, args.gdb, args.master, args.load, args.save, args.data_tracker, args.attachments,args.debug, args.resume)
                         
     # Get the end time of the script and calculate the elapsed time
     end_time = time.time()

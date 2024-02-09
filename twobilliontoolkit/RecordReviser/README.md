@@ -35,7 +35,6 @@ arcpy_environment_python_path /path/to/record_reviser.py [-h] --gdb /path/to/geo
 - --load {datatracker,database}: Specify wheather the tool loads the data from an exisiting datatracker or a database connection. 
 - --save {datatracker,database}: Specify wheather the tool saves the data to a specified datatracker or a database connection. 
 - [--data_tracker_path data_tracker_path] (conditional): Path to where the Datatracker sheet is located. This is only needed if one of the 'load' or 'save' arguments is spacified as *datatracker*
-- [--log_path log_path] (optional): Path to the log file. If provided, detailed logs will be saved to this file. 
 - [--changes "{project_spaital_id: {field: newvalue, field2:newvalue2...}, project_spatial_id: {field: newfield}...}"] (optional): The dictionary of changes that you want to update the data with.
 
 Example from root of project:

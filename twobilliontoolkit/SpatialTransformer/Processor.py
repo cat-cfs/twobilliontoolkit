@@ -131,11 +131,11 @@ class Processor:
             
             except arcpy.ExecuteError as error:
                 self.data.data_dict.popitem()
-                log(self.data.log_path, Colors.ERROR, f'An error occured when processing the layer for {file}, removing it from the datatracker/database, run the command again with --resume')
+                log(self.params.log, Colors.ERROR, f'An error occured when processing the layer for {file}, removing it from the datatracker/database, run the command again with --resume')
                 raise arcpy.ExecuteError(error)
             except Exception as error:
                 self.data.data_dict.popitem()
-                log(self.data.log_path, Colors.ERROR, f'An error occured when processing the layer for {file}, removing it from the datatracker/database, run the command again with --resume')
+                log(self.params.log, Colors.ERROR, f'An error occured when processing the layer for {file}, removing it from the datatracker/database, run the command again with --resume')
                 raise Exception(error)
                  
         log(None, Colors.INFO, 'Processing of the files into the Geodatabase has completed.')

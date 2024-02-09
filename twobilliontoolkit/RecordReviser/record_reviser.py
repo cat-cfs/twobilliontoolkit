@@ -22,7 +22,7 @@ Description:
     The script will be used to revise any records that have been created in the 2BT Spatial Tools. It provides a graphical user interface (GUI) for viewing and updating records in the Data Tracker. The GUI allows users to make changes to various fields, including 'project_spatial_id', 'project_number', 'in_raw_gdb', 'contains_pdf', 'contains_image', and 'contains_attachment'. Additionally, the script supports the creation of duplicate records when updating 'project_number', ensuring data integrity. Changes made through the GUI can be committed to either the Data Tracker Excel file or a Postgres DB table. The script also offers functionality to update associated Raw Data GDB layers and attachment folders.
 
 Usage:
-    python path/to/record_reviser.py --gdb /path/to/geodatabase --load [datatracker/database] --save [datatracker/database] --data_tracker /path/to/data_tracker.xlsx --log /path/to/logfile.txt --changes "{project_spatial_id: {field: newvalue, field2: newvalue2...}, project_spatial_id: {field: newfield}...}"
+    python path/to/record_reviser.py --gdb /path/to/geodatabase --load [datatracker/database] --save [datatracker/database] --data_tracker /path/to/data_tracker.xlsx --changes "{project_spatial_id: {field: newvalue, field2: newvalue2...}, project_spatial_id: {field: newfield}...}"
 """
 
 #========================================================
@@ -34,6 +34,7 @@ import ast
 import time
 import arcpy
 import argparse
+import datetime
 import pandas as pd
 
 from PyQt5.QtWidgets import QApplication, QTableWidget, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QTableWidgetItem, QMessageBox
@@ -102,7 +103,7 @@ class DataTableApp(QWidget):
         # Set the main layout for the widget
         self.setLayout(self.layout)
         self.setGeometry(100, 100, 800, 600)
-        self.setWindowTitle('Recrord Reviser')
+        self.setWindowTitle('Record Reviser')
         script_dir = os.path.dirname(os.path.abspath(__file__))
         icon_path = os.path.join(script_dir, 'revision.png')
         self.setWindowIcon(QIcon(icon_path)) # Credit: https://www.flaticon.com/free-icons/revision
@@ -393,7 +394,6 @@ def main():
     parser.add_argument('--load', choices=['datatracker', 'database'], required=True, default='database', help='Specify what to load from (datatracker or database)')
     parser.add_argument('--save', choices=['datatracker', 'database'], required=True, default='database', help='Specify what to save to (datatracker or database)')
     parser.add_argument('--data_tracker', required=False, default=None, help='The new location or where an exsiting data tracker is located')
-    parser.add_argument('--log', default=None, help='The new location or where an existing log file is located (optional)')
     parser.add_argument('--changes', required=False, default=None, help='The changes that you want to update, in form "{project_spaital_id: {field: newvalue, field2:newvalue2...}, project_spatial_id: {field: newfield}..."')
     
     # Parse the command-line arguments
@@ -416,7 +416,9 @@ def main():
             raise ValueError(f'data_tracker_path: {data_tracker_path} path does not exist.')
     
     gdb_path = args.gdb
-    log_path = args.log
+    
+    # Create the logfile path
+    log_path = gdb_path.replace('.gdb', f"{datetime.datetime.now().strftime('%Y-%m-%d')}.txt")
     
     # Create an instance of the Datatracker2BT class
     data = Datatracker2BT(data_tracker_path, load_from, save_to, log_path)
