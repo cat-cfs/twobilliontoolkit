@@ -463,7 +463,7 @@ class Processor:
                     continue
             
             try:
-                arcpy.EnableEditorTracking_management(feature_class, "created_by", "date_created", "last_edited_by", "date_edited", "ADD_FIELDS", "UTC")
+                arcpy.EnableEditorTracking_management(feature_class, "bt_created_by", "bt_date_created", "bt_last_edited_by", "bt_date_edited", "ADD_FIELDS", "UTC")
                 
                 self.data.set_data(
                     project_spatial_id=feature_class.replace('proj_', ''),
