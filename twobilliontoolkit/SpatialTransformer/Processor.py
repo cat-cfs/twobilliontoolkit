@@ -130,11 +130,9 @@ class Processor:
                 self.data.set_data(project_spatial_id=formatted_project_spatial_id, processed=True)
             
             except arcpy.ExecuteError as error:
-                self.data.data_dict.popitem()
                 log(self.params.log, Colors.ERROR, f'An error occured when processing the layer for {file}, removing it from the datatracker/database, run the command again with --resume')
                 raise arcpy.ExecuteError(error)
             except Exception as error:
-                self.data.data_dict.popitem()
                 log(self.params.log, Colors.ERROR, f'An error occured when processing the layer for {file}, removing it from the datatracker/database, run the command again with --resume')
                 raise Exception(error)
                  
@@ -249,6 +247,13 @@ class Processor:
         
         # Iterate through the feature classes and rename them
         feature_classes = arcpy.ListFeatureClasses()
+        if feature_classes is None:
+            log(self.params.log, Colors.ERROR, f'The kml file {file} does not have any features')
+            self.data.set_data(
+                project_spatial_id=formatted_project_spatial_id,
+                processed=True
+            )
+            return
         for index, feature_class in enumerate(feature_classes):           
             if first_feature_class_processed:
                 # Get data for the current feature and create a new project spatial ID
@@ -313,6 +318,9 @@ class Processor:
         # Read KML content from file
         with open(file, 'r', encoding='utf-8') as file:
             kml_content = file.read()
+        
+        # Use regular expression to remove content between <Document and >
+        kml_content = re.sub(r'<Document[^>]*>', '<Document>', kml_content)
         
         root = ET.fromstring(kml_content)
         cascading_styles = root.findall(".//{http://www.google.com/kml/ext/2.2}CascadingStyle")
