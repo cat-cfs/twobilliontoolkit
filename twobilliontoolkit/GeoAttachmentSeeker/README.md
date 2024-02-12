@@ -21,11 +21,11 @@ You should then be set up to use the tool!
 
 ## Usage
 
-**Note**: This will need to be run in an ArcGIS Pro environment because it uses its library called Arcpy. If you do not know how to do this, please contact someone who for help before continuing because the tool would not work. Or if you are able to use the arcpy library on your machine without any restrictions and issues that may also work but has not been tested.
+**Note**: This will need to be run in an ArcGIS Pro environment because it uses its library called Arcpy. If you do not know how to do this, please contact someone for help before continuing because the tool will not work. Or if you are able to use the arcpy library on your machine outside of the arcgis enironment that may also work but has not been tested.
 
 To use GeoAttachmentSeeker, run the script from the command line with the following syntax:
 ```
-arcpy_environment_python_path /path/to/geo_attachment_seeker.py [-h] gdb_path output_path
+arcpy_environment_python_path /path/to/geo_attachment_seeker.py [-h] /path/to/geodatabase.gdb /path/to/output_path
 ```
 - [-h, --help] (optional): List all of the available commands and a description for help.
 - gdb_path: Path to the input Geodatabase that will be searched through.
@@ -33,17 +33,16 @@ arcpy_environment_python_path /path/to/geo_attachment_seeker.py [-h] gdb_path ou
 
 Example from root of project:
 ```
-python ./geo_attachment_seeker/geo_attachment_seeker.py /Testing/Data/TestGDB1.gdb ./OutputFolder
+python ./twobilliontoolkit/GeoAttachmentSeeker/geo_attachment_seeker.py ./Testing/Data/TestGDB1.gdb ./OutputFolder
 ```
 
 You also have the option of calling this function from a module import with the following syntax:
 ```
-from /path/to/geo_attachment_seeker import find_attachments, process_attachment
+from twobilliontoolkit.GeoAttachmentSeeker.geo_attachment_seeker import find_attachments, process_attachment
 
 def main():
     find_attachments(gdb_path, output_path)
 ```
-**Note**: The find_attachments function will also process each attachment that it finds for better continuity in most situations. However, if something goes wrong or you want to do something more specific you may also use the raw process_attachment function, just be aware that it is more manual.
 
 ## Configuration
 

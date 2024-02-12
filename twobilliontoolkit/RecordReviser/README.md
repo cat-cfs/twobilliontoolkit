@@ -24,40 +24,46 @@ You should then be set up to use the tool!
 
 ## Usage
 
-**Note**: This will need to be run in an ArcGIS Pro environment because it uses its library called Arcpy. If you do not know how to do this, please contact someone who for help before continuing because the tool would not work. Or if you are able to use the arcpy library on your machine without any restrictions and issues that may also work but has not been tested.
+**Note**: This will need to be run in an ArcGIS Pro environment because it uses its library called Arcpy. If you do not know how to do this, please contact someone for help before continuing because the tool will not work. Or if you are able to use the arcpy library on your machine outside of the arcgis enironment that may also work but has not been tested.
 
 To use RecordReviser, run the script from the command line with the following syntax:
 ```
-arcpy_environment_python_path /path/to/record_reviser.py [-h] --gdb /path/to/geodatabase --load [datatracker/database] --save [datatracker/database] --data_tracker /path/to/data_tracker.xlsx --log /path/to/logfile.txt --changes "{project_spatial_id: {field: newvalue, field2: newvalue2...}, project_spatial_id: {field: newfield}...}"
+arcpy_environment_python_path /path/to/record_reviser.py [-h] --gdb /path/to/geodatabase.gdb --load [datatracker/database] --save [datatracker/database] --datatracker /path/to/datatracker.xlsx --changes "{key1: {field: newvalue, field2: newvalue2...}, key2: {field: newfield}...}"
 ```
 - [-h, --help] (optional): List all of the available commands and a description for help.
-- --gdb gdbpath: The path to the GeoDatabase which holds the project layers for what will be updated 
+- --gdb gdb_path: The path to the GeoDatabase which holds the project layers for what will be updated 
 - --load {datatracker,database}: Specify wheather the tool loads the data from an exisiting datatracker or a database connection. 
 - --save {datatracker,database}: Specify wheather the tool saves the data to a specified datatracker or a database connection. 
-- [--data_tracker_path data_tracker_path] (conditional): Path to where the Datatracker sheet is located. This is only needed if one of the 'load' or 'save' arguments is spacified as *datatracker*
-- [--changes "{project_spaital_id: {field: newvalue, field2:newvalue2...}, project_spatial_id: {field: newfield}...}"] (optional): The dictionary of changes that you want to update the data with.
+- [--datatracker datatracker] (conditional): Path to where the Datatracker sheet is located. This is only needed if one of the 'load' or 'save' arguments is spacified as *datatracker*
+- [--changes "{key1: {field: newvalue, field2:newvalue2...}, key2: {field: newfield}...}"] (optional): The dictionary of changes that you want to update the data with.
 
 Example from root of project:
 ```
-python ./RecordReviser/record_reviser.py --load database --save database --gdb .\twobilliontoolkit\SpatialTransformer\OutputGDB.gdb --data_tracker .\twobilliontoolkit\SpatialTransformer\OutputDataTracker.xlsx
+python ./twobilliontoolkit/RecordReviser/record_reviser.py --load database --save database --gdb ./twobilliontoolkit/TestGDB.gdb --datatracker ./twobilliontoolkit/TestDatatracker.xlsx 
+--changes "{'testkey': {'parameter': 'value'}}"
 ```
 
-You also have the option of calling this function from a module import with the following syntax:
-```
-from PyQt5.QtWidgets import QApplication
-from twobilliontoolkit.RecordReviser.record_reviser import DataTableApp, update_records
-from twobilliontoolkit.SpatialTransformer.Datatracker import Datatracker
+By using the --changes tag, it will do the changes and everything in the background, but if you leave off the --changes tag, it will open a GUI with a table of the data for whe data source you have provided.
 
-def some_func():
-    gdb = 'path/to/gdb'
-    data = Datatracker(...)
-
-    # Open the record reviser
-    app = QApplication([])
-    window = DataTableApp(data, gdb)
-    app.exec_()  
+You also have the option of calling this tool from a module import with the following syntax:
 ```
-**Note**: Using the DataTableApp and PyQT5, a GUI will be opened (as seen below) with the data contained in the Datatracker class.
+from twobilliontoolkit.Logger.logger import log, Colors
+from twobilliontoolkit.SpatialTransformer.Datatracker import Datatracker2BT # !!May need to import Datatracker instead of Datatracker2BT if your data columns are different from the default 2BT columns
+from twobilliontoolkit.RecordReviser.record_reviser import call_record_reviser
+
+def main():
+    load_from = 'database'
+    save_to = 'database'
+    datatracker_path = 'path/to/datatracker.xlsx'
+    gdb_path = 'path/to/geodatabase.gdb'
+    log_path = 'path/to/log.txt'
+    changes = '{'testkey': {'parameter': 'value'}}'
+    data = Datatracker2BT(datatracker_path, load_from, save_to, log_path)
+    
+    # Call the handler function
+    call_record_reviser(data=data, gdb=gdb_path, changes=changes or None)
+```
+**Note**: providing call_record_reviser a value for changes will not open the GUI and just process everything in the background, if changes are not provided a popup GUI will appear and the user will need to make their changes, save and close the GUI before continuing on. An image of what that GUI looks like is below.
 
 ![Alt text](image.png)
 
@@ -70,10 +76,12 @@ If you are going to be working with a database, one of the first things that you
 host = 
 port = 
 database = 
+schema = 
+table = 
 user = 
 password = 
 ```
-This will allow you to connect to a database that you have set up, however you may need to make changes to the code or to the database to make sure everything works properly.
+This will allow you to connect to a PostGreSQL database that you have set up, however you may need to make changes to the code or to the database to make sure everything works properly.
 
 ## Contributing
 

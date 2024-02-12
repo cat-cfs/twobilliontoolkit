@@ -23,7 +23,7 @@ You should then be set up to use the tool!
 
 To use Ripple Unzipple, run the script from the command line with the following syntax:
 ```
-python /path/to/ripple_unzipple.py input_path output_path [log_path]
+python /path/to/ripple_unzipple.py /path/to/input /path/to/output [log_path]
 ```
 - input_path: Path to the input directory or compressed file.
 - output_path: Path to the output directory where the uncompressed data will be stored.
@@ -31,19 +31,17 @@ python /path/to/ripple_unzipple.py input_path output_path [log_path]
 
 Example from root of project:
 ```
-python ./ripple_unzipple/ripple_unzipple.py /Testing/Data/TestFolder.zip /Testing/OutputFolder /Testing/OutputLog.txt
+python ./twobilliontoolkit/RippleUnzipple/ripple_unzipple.py /Testing/Data/TestFolder.zip /Testing/OutputFolder /Testing/OutputLog.txt
 ```
 
 You also have the option of calling this function from a module import with the following syntax:
 ```
-from /path/to/ripple_unzipple import ripple_unzip
+from twobilliontoolkit.RippleUnzipple.ripple_unzipple import ripple_unzip
 
 def main():
     ripple_unzip(input_path, output_path, log_path)
 ```
-**Note**: logging functionality has been pulled out into its own module to be more easily used by other packages and whatnot. To use this module you can either relative import it or it might be packaged up in the future.
-
-**Note**: Another thing that you should keep in mind is that the output path folder name will overwrite the initial input path folder or file name in the final result. So if you wish to preserve that root object's name you can name your output path folder the same, or put the original input object in another folder and call the folder instead.
+**Note**: One thing that you should keep in mind is that the output path folder name will overwrite the initial input path folder or file name in the final result. So if you wish to preserve that root object's name you can name your output path folder the same, or put the original input object in another folder and call the folder instead.
 
 ## Configuration
 
