@@ -362,10 +362,10 @@ class TestDataHandling(unittest.TestCase):
         self.datatracker.save_data()
 
         # Create a new Datatracker instance to load the saved data
-        loaded_data_tracker = Datatracker(self.startparams.datatracker)
+        loaded_datatracker = Datatracker(self.startparams.datatracker)
 
         # Check if the data was loaded correctly
-        loaded_data = loaded_data_tracker.get_data(project_spatial_id)
+        loaded_data = loaded_datatracker.get_data(project_spatial_id)
         self.assertEqual(loaded_data['project_number'], project_number)
         self.assertEqual(loaded_data['raw_data_path'], raw_data_path)
         self.assertFalse(loaded_data['in_raw_gdb'])

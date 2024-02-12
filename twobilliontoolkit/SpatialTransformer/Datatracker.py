@@ -24,7 +24,7 @@ class Datatracker:
             log_path (str, optional): The path to the log file if you wish to keep any errors that occur.
         """
         self.data_dict = {}
-        self.data_tracker = data_traker_path
+        self.datatracker = data_traker_path
         self.load_from = load_from
         self.save_to = save_to
         self.log_path = log_path
@@ -142,10 +142,10 @@ class Datatracker:
         """
         Load data from a file into class.
         """
-        if not os.path.exists(self.data_tracker):
+        if not os.path.exists(self.datatracker):
             return
 
-        data_df = pd.read_excel(self.data_tracker)
+        data_df = pd.read_excel(self.datatracker)
 
         for index, row in data_df.iterrows():
             pkey = row.index[0]
@@ -205,8 +205,8 @@ class Datatracker:
         df.insert(0, 'key', self.data_dict.keys())
 
         if not df.empty:
-            df.to_excel(self.data_tracker, index=False)
-            log(None, Colors.INFO, f'The data tracker "{self.data_tracker}" has been created/updated successfully.')
+            df.to_excel(self.datatracker, index=False)
+            log(None, Colors.INFO, f'The data tracker "{self.datatracker}" has been created/updated successfully.')
     
          
 #========================================================
@@ -367,10 +367,10 @@ class Datatracker2BT(Datatracker):
         """
         Load data from a file into class.
         """
-        if not os.path.exists(self.data_tracker):
+        if not os.path.exists(self.datatracker):
             return
         
-        data_df = pd.read_excel(self.data_tracker, dtype={
+        data_df = pd.read_excel(self.datatracker, dtype={
             'project_spatial_id': object, 
             'project_number': object,
             'dropped': bool, 
@@ -474,11 +474,11 @@ class Datatracker2BT(Datatracker):
         df = df.sort_values(by=['project_spatial_id'])
         
         # Check if the directory exists, if not, create it
-        directory = os.path.dirname(self.data_tracker)
+        directory = os.path.dirname(self.datatracker)
         if not os.path.exists(directory):
             os.makedirs(directory)
         
         # Convert dataframe to excel
-        df.to_excel(self.data_tracker, index=False)
+        df.to_excel(self.datatracker, index=False)
         
-        log(None, Colors.INFO, f'The data tracker "{self.data_tracker}" has been created/updated successfully.')
+        log(None, Colors.INFO, f'The data tracker "{self.datatracker}" has been created/updated successfully.')

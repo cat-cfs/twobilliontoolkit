@@ -7,13 +7,12 @@ import re
 import tempfile
 import xml.etree.ElementTree as ET
 import win32wnet
-from PyQt5.QtWidgets import QApplication
 
 from twobilliontoolkit.SpatialTransformer.common import *
 from twobilliontoolkit.Logger.logger import log, Colors
 from twobilliontoolkit.GeoAttachmentSeeker.geo_attachment_seeker import find_attachments
 from twobilliontoolkit.SpatialTransformer.Datatracker import Datatracker2BT
-from twobilliontoolkit.RecordReviser.record_reviser import DataTableApp, update_records
+from twobilliontoolkit.RecordReviser.record_reviser import call_record_reviser
 from twobilliontoolkit.SpatialTransformer.Parameters import Parameters
 
 #========================================================
@@ -148,9 +147,7 @@ class Processor:
         self.data.save_data()
         
         # Open the record reviser
-        app = QApplication([])
-        window = DataTableApp(self.data, self.params.gdb)
-        app.exec_()  
+        call_record_reviser(self.data, self.params.gdb)
         
     def check_project_numbers(self, file_path: str, master_df: pd.DataFrame) -> str:
         """

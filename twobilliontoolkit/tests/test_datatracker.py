@@ -6,7 +6,7 @@ from twobilliontoolkit.SpatialTransformer.Datatracker import Datatracker, Datatr
 class TestDatatracker(unittest.TestCase):
 
     def setUp(self):
-        self.temp_file = 'A:/2BT/02_Tools/twobilliontoolkit/twobilliontoolkit/tests/test_data_tracker.xlsx'
+        self.temp_file = 'A:/2BT/02_Tools/twobilliontoolkit/twobilliontoolkit/tests/test_datatracker.xlsx'
         self.datatracker_f = Datatracker(self.temp_file, load_from='datatracker', save_to='datatracker')
         self.datatracker_d = Datatracker(self.temp_file, load_from='database', save_to='database')
 
@@ -67,7 +67,7 @@ class TestDatatracker(unittest.TestCase):
 class TestDatatracker2BT(unittest.TestCase):
 
     def setUp(self):
-        self.temp_file = 'A:/2BT/02_Tools/twobilliontoolkit/twobilliontoolkit/tests/test_data_tracker2.xlsx'
+        self.temp_file = 'A:/2BT/02_Tools/twobilliontoolkit/twobilliontoolkit/tests/test_datatracker2.xlsx'
         self.datatracker2bt_f = Datatracker2BT(self.temp_file, load_from='datatracker', save_to='datatracker')
         self.datatracker2bt_d = Datatracker2BT(self.temp_file, load_from='database', save_to='database')
 
