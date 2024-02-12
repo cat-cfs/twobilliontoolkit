@@ -22,7 +22,7 @@ Description:
     The script will be used to revise any records that have been created in the 2BT Spatial Tools. It provides a graphical user interface (GUI) for viewing and updating records in the Data Tracker. The GUI allows users to make changes to various fields, including 'project_spatial_id', 'project_number', 'in_raw_gdb', 'contains_pdf', 'contains_image', and 'contains_attachment'. Additionally, the script supports the creation of duplicate records when updating 'project_number', ensuring data integrity. Changes made through the GUI can be committed to either the Data Tracker Excel file or a Postgres DB table. The script also offers functionality to update associated Raw Data GDB layers and attachment folders.
 
 Usage:
-    python path/to/record_reviser.py --gdb /path/to/geodatabase --load [datatracker/database] --save [datatracker/database] --data_tracker /path/to/data_tracker.xlsx --changes "{project_spatial_id: {field: newvalue, field2: newvalue2...}, project_spatial_id: {field: newfield}...}"
+    python path/to/record_reviser.py --gdb /path/to/geodatabase --load [datatracker/database] --save [datatracker/database] --datatracker /path/to/datatracker.xlsx --changes "{key: {field: newvalue, field2: newvalue2...}, key2: {field: newfield}...}"
 """
 
 #========================================================
@@ -376,7 +376,31 @@ def update_records(data: Datatracker2BT, changes_dict: dict, gdb: str = None) ->
 
     # Save the updated data
     data.save_data(update=True)
+    
+def call_record_reviser(data: Datatracker2BT, gdb: str = None, changes: str = None) -> None:
+    """
+    Handles calling the record reviser parts so the tool can be used outside of command-line as well.
 
+    Args:
+        data (Datatracker2BT): An instance of Datatracker2BT.
+        gdb (str, optional): The geodatabase path. If provided, updates are applied to the geodatabase.
+        changes (dict, optional): A dictionary containing changes for each project. If provided, no GUI will appear and only process the changes in the dictionary, else a GUI will appear and the user can alter the data as they see fit.
+    """
+    if changes:
+        try:
+            # Parse the changes argument and update records
+            changes_dict = ast.literal_eval(changes)
+            update_records(data, changes_dict, gdb)
+        except (ValueError, SyntaxError) as e:
+            log(None, Colors.INFO, f'Error parsing changes argument: {e}')
+    else:
+        # If no changes dict is provided, open a PyQt application for data visualization
+        try:
+            app = QApplication([])
+            window = DataTableApp(data, gdb)
+            app.exec_()  
+        except RuntimeWarning as error:
+            log(None, Colors.INFO, error)
 #========================================================
 # Main
 #========================================================
@@ -393,7 +417,7 @@ def main():
     parser.add_argument('--gdb', required=True, default='', help='The new location or where an exsiting Geodatabase is located')
     parser.add_argument('--load', choices=['datatracker', 'database'], required=True, default='database', help='Specify what to load from (datatracker or database)')
     parser.add_argument('--save', choices=['datatracker', 'database'], required=True, default='database', help='Specify what to save to (datatracker or database)')
-    parser.add_argument('--data_tracker', required=False, default=None, help='The new location or where an exsiting data tracker is located')
+    parser.add_argument('--datatracker', required=False, default=None, help='The new location or where an exsiting data tracker is located')
     parser.add_argument('--changes', required=False, default=None, help='The changes that you want to update, in form "{project_spaital_id: {field: newvalue, field2:newvalue2...}, project_spatial_id: {field: newfield}..."')
     
     # Parse the command-line arguments
@@ -402,43 +426,29 @@ def main():
     # Access the values using the attribute notation
     load_from = args.load
     save_to = args.save
-    data_tracker_path = args.data_tracker
+    datatracker_path = args.datatracker
+    gdb_path = args.gdb
+    changes = args.changes
     
     # Ensure that if a datatracker is specified for loading or saving, then a path must be passed
-    if (load_from == 'datatracker' or save_to == 'datatracker') and data_tracker_path == None:
-        raise argparse.ArgumentTypeError("If --load or --save is 'datatracker', --data_tracker_path must be specified.")
-    elif (load_from == 'datatracker' or save_to == 'datatracker') and data_tracker_path != None:
-        if not isinstance(data_tracker_path, str) or not data_tracker_path.strip():
-            raise ValueError(f'data_tracker_path: {data_tracker_path} must be a non-empty string.')
-        if not data_tracker_path.endswith('.xlsx'):
-            raise ValueError(f'data_tracker_path: {data_tracker_path} must be of type .xlsx.')
-        if not os.path.exists(data_tracker_path):
-            raise ValueError(f'data_tracker_path: {data_tracker_path} path does not exist.')
-    
-    gdb_path = args.gdb
+    if (load_from == 'datatracker' or save_to == 'datatracker') and datatracker_path == None:
+        raise argparse.ArgumentTypeError("If --load or --save is 'datatracker', --datatracker_path must be specified.")
+    elif (load_from == 'datatracker' or save_to == 'datatracker') and datatracker_path != None:
+        if not isinstance(datatracker_path, str) or not datatracker_path.strip():
+            raise ValueError(f'datatracker_path: {datatracker_path} must be a non-empty string.')
+        if not datatracker_path.endswith('.xlsx'):
+            raise ValueError(f'datatracker_path: {datatracker_path} must be of type .xlsx.')
+        if not os.path.exists(datatracker_path):
+            raise ValueError(f'datatracker_path: {datatracker_path} path does not exist.')
     
     # Create the logfile path
     log_path = gdb_path.replace('.gdb', f"{datetime.datetime.now().strftime('%Y-%m-%d')}.txt")
     
     # Create an instance of the Datatracker2BT class
-    data = Datatracker2BT(data_tracker_path, load_from, save_to, log_path)
-    
-    if args.changes:
-        try:
-            # Parse the changes argument and update records
-            changes_dict = ast.literal_eval(args.changes)
-            update_records(data, changes_dict, gdb_path)
-        except (ValueError, SyntaxError) as e:
-            log(None, Colors.INFO, f'Error parsing changes argument: {e}')
-    else:
-        # If no changes are provided, open a PyQt application for data visualization
-        changes_dict = None
-        try:
-            app = QApplication([])
-            window = DataTableApp(data, gdb_path)
-            app.exec_()  
-        except RuntimeWarning as error:
-            log(None, Colors.INFO, error)
+    data = Datatracker2BT(datatracker_path, load_from, save_to, log_path)
+        
+    # Call the handler function
+    call_record_reviser(data=data, gdb=gdb_path, changes=changes or None)
          
     # Get the end time of the script and calculate the elapsed time
     end_time = time.time()
