@@ -16,21 +16,33 @@
 	</AddInInfo>
 
 	<modules>
-		<insertModule id="twobillionarcgisaddin_Module" className="Module1" autoLoad="false" caption="Module1">
+		<insertModule id="TwoBillionTrees_Module" className="Module1" autoLoad="false" caption="Module1">
 			<!-- uncomment to have the control hosted on a separate tab-->
 			<tabs>
 			</tabs>
 
 			<groups>
-				<group id="twobillionarcgisaddin_Group1" caption="Group 1" appearsOnAddInTab="true">
-					
+				<group id="TwoBillionTrees_Group1" caption="Group 1" appearsOnAddInTab="true" keytip="TwoBillionTrees">
+					<button refID="TwoBillionTrees_ShowButton" size="large" />
 				</group>
 			</groups>
 
 			<controls>
-				
+				<button id="TwoBillionTrees_ShowButton" caption="Open Site Mapper" className="TwoBillionTrees_Dockpane_ShowButton" loadOnClick="true" smallImage="Images\map.png" largeImage="Images\map.png"  keytip="TwoBillionTrees">
+					<tooltip heading="Open the two billion trees tools">
+						This button will open the logistics tab to navigate between all of the two billion trees tools<disabledText />
+					</tooltip>
+				</button>
 			</controls>
 
+			<dockPanes>
+				<dockPane id="TwoBillionTrees_Dockpane1" caption="Two Billion Trees Tools Logistics Tab" className="TwoBillionTreesDockpaneViewModel1" dock="group" dockWith="esri_core_projectDockPane">
+					<content className="TwoBillionTreesToolLogisticsView" />
+				</dockPane>
+				<dockPane id="TwoBillionTrees_Dockpane2" caption="Site Mapper Data Grid" className="TwoBillionTreesDockpaneViewModel2" dock="float">
+					<content className="SiteMapperDataGridView" />
+				</dockPane>
+			</dockPanes>
 		</insertModule>
 	</modules>
 </ArcGIS>

@@ -1,0 +1,94 @@
+﻿<UserControl x:Class="twobillionarcgisaddin.TwoBillionTreesToolLogisticsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"   
+             xmlns:ui="clr-namespace:twobillionarcgisaddin"
+             xmlns:extensions="clr-namespace:ArcGIS.Desktop.Extensions;assembly=ArcGIS.Desktop.Extensions"
+             mc:Ignorable="d" 
+             d:DesignHeight="500" d:DesignWidth="300"
+             d:DataContext="{Binding Path=twobillionarcgisaddin.TwoBillionTreesDockpaneViewModels}">
+
+    <TextElement.FontSize>13</TextElement.FontSize>
+    <TextElement.FontWeight>Bold</TextElement.FontWeight>
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Styles.xaml"/>
+                <extensions:DesignOnlyResourceDictionary Source="pack://application:,,,/ArcGIS.Desktop.Framework;component\Themes\Default.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Label x:Name="ConnectedMessage" Grid.Row="0" Content="You are connected to the database!" HorizontalAlignment="Center" Foreground="LightGreen" Margin="0,12,0,0" Visibility="Collapsed" DockPanel.Dock="Top"/>
+
+        <!-- DockPanel for database connection -->
+        <DockPanel x:Name="UserForm" Grid.Row="1" LastChildFill="true" KeyboardNavigation.TabNavigation="Local" Margin="20,12,20,12" Visibility="Visible">
+            <Label Content="Enter the path to a python toolbox" Style="{StaticResource LabelStyle}"/>
+            <Grid HorizontalAlignment="Stretch" DockPanel.Dock="Top">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBox x:Name="ArcPythonToolboxPath" Style="{StaticResource TextBoxStyle}"/>
+                <Button Grid.Column="1" Click="BrowseButtonToolboxClick" ToolTip="Browse..." Padding="5,0,5,0" BorderThickness="0" Background="GhostWhite">
+                    <Image Source="pack://application:,,,/twobillionarcgisaddin;component/Images/folder.png" Height="20"/>
+                </Button>
+            </Grid>
+
+            <Label Content="Enter the path to the connection file" Style="{StaticResource LabelStyle}"/>
+            <Grid HorizontalAlignment="Stretch" DockPanel.Dock="Top">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBox x:Name="ArcConnectionFilePath" Style="{StaticResource TextBoxStyle}"/>
+                <Button Grid.Column="1" Click="BrowseButtonConnFileClick" ToolTip="Browse..." Padding="5,0,5,0" BorderThickness="0" Background="GhostWhite">
+                    <Image Source="pack://application:,,,/twobillionarcgisaddin;component/Images/folder.png" Height="20"/>
+                </Button>
+            </Grid>
+
+            <Label Content="Enter the schema for the database" Style="{StaticResource LabelStyle}"/>
+            <TextBox x:Name="DatabaseSchema" Style="{StaticResource TextBoxStyle}"/>
+
+            <Button x:Name="EstablishConnection" Content="Establish Connection" Height="55" Margin="0,12,0,0" Click="ToggleEstablishButton" DockPanel.Dock="Top" Template="{StaticResource ButtonTemplate}" Style="{StaticResource ButtonStyle}"/>
+         </DockPanel>
+
+        <!-- DockPanel for Button Tool List -->
+        <DockPanel x:Name="ButtonToolist" Grid.Row="1" LastChildFill="true" KeyboardNavigation.TabNavigation="Local" Margin="20,12,20,12" Visibility="Collapsed">
+            <Button x:Name="SiteMapperButton" Content="Site Mapper Tool" Height="55" Click="ToggleSiteMapperButton" DockPanel.Dock="Top" Template="{StaticResource ButtonTemplate}" Style="{StaticResource ButtonStyle}"/>
+        </DockPanel>
+
+        <!-- DockPanel for TwoBillionTrees logistics -->
+        <DockPanel x:Name="SiteMapper" Grid.Row="1" LastChildFill="true" KeyboardNavigation.TabNavigation="Local" Margin="20,12,20,12" Visibility="Collapsed">
+            <Button x:Name="BackButton" Content="Back To Tool List" Width="140" Click="ToggleBackButton" HorizontalAlignment="Left" Template="{StaticResource ButtonTemplate}" Style="{StaticResource ButtonStyle}"/>
+
+            <Label x:Name="ProjectNumber_label" Content="Filter Project Number" Style="{StaticResource LabelStyle}"/>
+            <ComboBox x:Name="ProjectNumber_Dropdown" Style="{StaticResource ComboBoxStyle}" SelectionChanged="FilterChanged"/>
+            
+            <Grid x:Name="Secondary_Filter" Visibility="Collapsed" DockPanel.Dock="Top">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Label Grid.Row="0" Content="Filter Site ID" Style="{StaticResource LabelStyle}"/>
+                <ComboBox x:Name="SiteID_Dropdown" Grid.Row="1" Style="{StaticResource ComboBoxStyle}" SelectionChanged="FilterChanged"/>
+            </Grid>
+            
+            <CheckBox x:Name="OverwriteToggle" Style="{DynamicResource Esri_CheckboxToggleSwitch}" Content="Overwrite data if it already exists?" Foreground="black" Margin="4,5,0,5" DockPanel.Dock="Top"/>
+
+            <Button x:Name="SendData" Content="Send Data" Height="55" Click="ToggleSendButton" ToolTip="Push data to the database" Template="{StaticResource ButtonTemplate}" Style="{StaticResource ButtonStyle}"/>
+
+        </DockPanel>
+    </Grid>
+</UserControl>
