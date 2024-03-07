@@ -5,39 +5,32 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://schemas.esri.com/DADF/Registry file:///C:/Users/arodway/AppData/Local/Programs/ArcGIS/Pro/bin/ArcGIS.Desktop.Framework.xsd">
 
-  <AddInInfo id="{497c2e89-3e66-4ea6-a5f6-c5e3f5c6b8cb}" version="1.0" desktopVersion="3.1.41833">
-    <Name>twobillionarcgisaddin</Name>   
-    <Description>twobillionarcgisaddin description</Description>
-    <Image>Images\AddinDesktop32.png</Image>
-    <Author>arodway</Author>
-    <Company>Government of Canada - Gouvernement du Canada</Company>
-    <Date>3/7/2024 12:34:35 PM</Date>
-    <Subject>Framework</Subject>
-    <!-- Note subject can be one or more of these topics:
-                    Content, Framework, Editing, Geodatabase, Geometry, Geoprocessing, Layouts, Map Authoring, Map Exploration -->
-  </AddInInfo>
+	<AddInInfo id="{497c2e89-3e66-4ea6-a5f6-c5e3f5c6b8cb}" version="1.0" desktopVersion="3.1.41833">
+		<Name>twobillionarcgisaddin</Name>
+		<Description>twobillionarcgisaddin description</Description>
+		<Image>Images\AddinDesktop32.png</Image>
+		<Author>arodway</Author>
+		<Company>Government of Canada - Gouvernement du Canada</Company>
+		<Date>3/7/2024 12:34:35 PM</Date>
+		<Subject>Framework</Subject>
+	</AddInInfo>
 
-  <modules>
-    <insertModule id="twobillionarcgisaddin_Module" className="Module1" autoLoad="false" caption="Module1">
-      <!-- uncomment to have the control hosted on a separate tab-->
-      <tabs>
-        <!--<tab id="twobillionarcgisaddin_Tab1" caption="New Tab">
-          <group refID="twobillionarcgisaddin_Group1"/>
-        </tab>-->
-      </tabs>
-              
-      <groups>
-        <!-- comment this out if you have no controls on the Addin tab to avoid
-              an empty group-->
-        <group id="twobillionarcgisaddin_Group1" caption="Group 1" appearsOnAddInTab="true">
-          <!-- host controls within groups -->
-        </group>
-      </groups>
-      
-      <controls>
-        <!-- add your controls here -->
-      </controls> 
-      
-    </insertModule>
-  </modules>
+	<modules>
+		<insertModule id="twobillionarcgisaddin_Module" className="Module1" autoLoad="false" caption="Module1">
+			<!-- uncomment to have the control hosted on a separate tab-->
+			<tabs>
+			</tabs>
+
+			<groups>
+				<group id="twobillionarcgisaddin_Group1" caption="Group 1" appearsOnAddInTab="true">
+					
+				</group>
+			</groups>
+
+			<controls>
+				
+			</controls>
+
+		</insertModule>
+	</modules>
 </ArcGIS>
