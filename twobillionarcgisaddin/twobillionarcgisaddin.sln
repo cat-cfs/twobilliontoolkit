@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34601.278
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "twobillionarcgisaddin", "twobillionarcgisaddin.csproj", "{4E7E36B0-EA43-4D52-B0ED-13BF42579822}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4E7E36B0-EA43-4D52-B0ED-13BF42579822}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E7E36B0-EA43-4D52-B0ED-13BF42579822}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E7E36B0-EA43-4D52-B0ED-13BF42579822}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E7E36B0-EA43-4D52-B0ED-13BF42579822}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {24EE65F7-9661-4702-A5F9-6069910A8070}
+	EndGlobalSection
+EndGlobal

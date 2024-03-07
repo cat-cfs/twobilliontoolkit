@@ -1,0 +1,13 @@
+A:\2BT\02_Tools\twobilliontoolkit\twobillionarcgisaddin\bin\Debug\net6.0-windows\twobillionarcgisaddin.deps.json
+A:\2BT\02_Tools\twobilliontoolkit\twobillionarcgisaddin\bin\Debug\net6.0-windows\twobillionarcgisaddin.dll
+A:\2BT\02_Tools\twobilliontoolkit\twobillionarcgisaddin\bin\Debug\net6.0-windows\twobillionarcgisaddin.pdb
+A:\2BT\02_Tools\twobilliontoolkit\twobillionarcgisaddin\obj\Debug\net6.0-windows\twobillionarcgisaddin.csproj.AssemblyReference.cache
+A:\2BT\02_Tools\twobilliontoolkit\twobillionarcgisaddin\obj\Debug\net6.0-windows\twobillionarcgisaddin.GeneratedMSBuildEditorConfig.editorconfig
+A:\2BT\02_Tools\twobilliontoolkit\twobillionarcgisaddin\obj\Debug\net6.0-windows\twobillionarcgisaddin.AssemblyInfoInputs.cache
+A:\2BT\02_Tools\twobilliontoolkit\twobillionarcgisaddin\obj\Debug\net6.0-windows\twobillionarcgisaddin.AssemblyInfo.cs
+A:\2BT\02_Tools\twobilliontoolkit\twobillionarcgisaddin\obj\Debug\net6.0-windows\twobillionarcgisaddin.csproj.CoreCompileInputs.cache
+A:\2BT\02_Tools\twobilliontoolkit\twobillionarcgisaddin\obj\Debug\net6.0-windows\twobillionarcgisaddin.sourcelink.json
+A:\2BT\02_Tools\twobilliontoolkit\twobillionarcgisaddin\obj\Debug\net6.0-windows\twobillionarcgisaddin.dll
+A:\2BT\02_Tools\twobilliontoolkit\twobillionarcgisaddin\obj\Debug\net6.0-windows\refint\twobillionarcgisaddin.dll
+A:\2BT\02_Tools\twobilliontoolkit\twobillionarcgisaddin\obj\Debug\net6.0-windows\twobillionarcgisaddin.pdb
+A:\2BT\02_Tools\twobilliontoolkit\twobillionarcgisaddin\obj\Debug\net6.0-windows\ref\twobillionarcgisaddin.dll

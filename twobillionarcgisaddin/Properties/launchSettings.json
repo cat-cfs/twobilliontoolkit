@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "twobillionarcgisaddin": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Users\\arodway\\AppData\\Local\\Programs\\ArcGIS\\Pro\\bin\\ArcGISPro.exe"
+    }
+  }
+}
