@@ -27,8 +27,6 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Label x:Name="ConnectedMessage" Grid.Row="0" Content="You are connected to the database!" HorizontalAlignment="Center" Foreground="LightGreen" Margin="0,12,0,0" Visibility="Collapsed" DockPanel.Dock="Top"/>
-
         <!-- DockPanel for database connection -->
         <DockPanel x:Name="UserForm" Grid.Row="1" LastChildFill="true" KeyboardNavigation.TabNavigation="Local" Margin="20,12,20,12" Visibility="Visible">
             <Label Content="Enter the path to a python toolbox" Style="{StaticResource LabelStyle}"/>
@@ -65,14 +63,37 @@
 
         <!-- DockPanel for Button Tool List -->
         <DockPanel x:Name="ButtonToolist" Grid.Row="1" LastChildFill="true" KeyboardNavigation.TabNavigation="Local" Margin="20,12,20,12" Visibility="Collapsed">
-            <Button x:Name="SiteMapperButton" Content="Site Mapper Tool" Height="55" Click="ToggleSiteMapperButton" DockPanel.Dock="Top" Template="{StaticResource ButtonTemplate}" Style="{StaticResource ButtonStyle}"/>
+            <Grid DockPanel.Dock="Top">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Border Margin="0,12,0,12" BorderBrush="LightGreen" Background="LightGreen" BorderThickness="1" CornerRadius="5">
+                    <Label x:Name="ConnectedMessage" Grid.Row="0" Content="You are connected to the database!" HorizontalContentAlignment="Center" Foreground="White"/>
+                </Border>
+
+                <Button x:Name="SiteMapperButton" Grid.Row="1" Content="Site Mapper Tool" Height="55" Click="ToggleSiteMapperButton" DockPanel.Dock="Top" Template="{StaticResource ButtonTemplate}" Style="{StaticResource ButtonStyle}"/>
+            </Grid>
         </DockPanel>
 
         <!-- DockPanel for TwoBillionTrees logistics -->
         <DockPanel x:Name="SiteMapper" Grid.Row="1" LastChildFill="true" KeyboardNavigation.TabNavigation="Local" Margin="20,12,20,12" Visibility="Collapsed">
-            <Button x:Name="BackButton" Content="Back To Tool List" Width="140" Click="ToggleBackButton" HorizontalAlignment="Left" Template="{StaticResource ButtonTemplate}" Style="{StaticResource ButtonStyle}"/>
+            <Grid DockPanel.Dock="Top" Margin="0,0,0,5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-            <Label x:Name="ProjectNumber_label" Content="Filter Project Number" Style="{StaticResource LabelStyle}"/>
+                <Button x:Name="BackButton" Grid.Row="0" Content="Back To Tool List" Click="ToggleBackButton" HorizontalAlignment="Left" VerticalAlignment="Center" Style="{DynamicResource Esri_ButtonBackSmall}" ToolTip="Back to Tool list"/>
+                <Label Content="Site Mapper" Grid.Row="0" HorizontalAlignment="Center" FontSize="17" FontWeight="Normal" Foreground="Black" VerticalAlignment="Center"/>
+            </Grid>
+        
+
+            <Label Content="Filter Project Number" Style="{StaticResource LabelStyle}"/>
             <ComboBox x:Name="ProjectNumber_Dropdown" Style="{StaticResource ComboBoxStyle}" SelectionChanged="FilterChanged"/>
             
             <Grid x:Name="Secondary_Filter" Visibility="Collapsed" DockPanel.Dock="Top">
@@ -88,6 +109,14 @@
             <CheckBox x:Name="OverwriteToggle" Style="{DynamicResource Esri_CheckboxToggleSwitch}" Content="Overwrite data if it already exists?" Foreground="black" Margin="4,5,0,5" DockPanel.Dock="Top"/>
 
             <Button x:Name="SendData" Content="Send Data" Height="55" Click="ToggleSendButton" ToolTip="Push data to the database" Template="{StaticResource ButtonTemplate}" Style="{StaticResource ButtonStyle}"/>
+
+            <Border x:Name="SiteMapper_SuccessStatus" Margin="0,12,0,12" BorderBrush="LightGreen" BorderThickness="1" CornerRadius="5" Height="Auto" Background="LightGreen" Visibility="Collapsed" DockPanel.Dock="Top">
+                <Label Content="Data successfully inserted!" HorizontalContentAlignment="Center" Foreground="White"/>
+            </Border>
+
+            <Border x:Name="SiteMapper_ErrorStatus" Margin="0,12,0,12" BorderBrush="IndianRed" BorderThickness="1" CornerRadius="5" Height="Auto" Background="IndianRed" Visibility="Collapsed" DockPanel.Dock="Top">
+                <Label Content="An error occured while inserting." HorizontalContentAlignment="Center" Foreground="White"/>
+            </Border>
 
         </DockPanel>
     </Grid>

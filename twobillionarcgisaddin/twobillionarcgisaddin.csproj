@@ -9,15 +9,17 @@
 		<NoWarn>CA1416</NoWarn>
 	</PropertyGroup>
 	<ItemGroup>
+		<None Remove="Images\2BTIcon.png" />
 		<None Remove="Images\folder.png" />
 		<None Remove="Images\question.png" />
 	</ItemGroup>
 	<ItemGroup>
 		<Content Include="Config.daml" />
+		<Content Include="Images\2BTIcon.png" />
 		<Content Include="Images\AddInDesktop16.png" />
 		<Content Include="Images\AddInDesktop32.png" />
 		<Content Include="Images\map.png">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
 		</Content>
 		<Resource Include="Images\folder.png">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

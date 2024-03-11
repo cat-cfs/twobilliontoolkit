@@ -1,6 +1,6 @@
-﻿using ArcGIS.Desktop.Core.Geoprocessing;
+﻿using ArcGIS.Core.Data;
+using ArcGIS.Desktop.Core.Geoprocessing;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
-using ArcGIS.Desktop.Internal.Editing.Attributes;
 using ArcGIS.Desktop.Mapping;
 using System;
 using System.Collections.Generic;
@@ -54,7 +54,6 @@ namespace twobillionarcgisaddin
             {
                 this.UserForm.Visibility = Visibility.Collapsed;
                 this.ButtonToolist.Visibility = Visibility.Visible;
-                this.ConnectedMessage.Visibility = Visibility.Visible;
             }
         }
 
@@ -105,47 +104,44 @@ namespace twobillionarcgisaddin
 
         private async void ToggleSendButton(object sender, RoutedEventArgs e)
         {
-            string insert = "20076,true";
-            // Call the async method
-            bool success = await ExecuteInsertDataToolAsync(insert);
+            this.SendData.IsEnabled = false;
+            this.SiteMapper_SuccessStatus.Visibility = Visibility.Collapsed;
+            this.SiteMapper_ErrorStatus.Visibility = Visibility.Collapsed;
 
-            if (!success)
-            {
-                return;
-            }
-
-            /*// Access the current map in ArcGIS Pro
+            // Access the current map in ArcGIS Pro
             MapView mapView = MapView.Active;
 
             if (mapView != null)
             {
-                QueuedTask.Run(() =>
+                string selectedGeometry = null;
+                await QueuedTask.Run(() =>
                 {
                     // get the currently selected features in the map
                     var selectedFeatures = mapView.Map.GetSelection();
 
                     // get the first layer and its corresponding selected feature OIDs
-                    var firstSelectionSet = selectedFeatures.ToDictionary();
+                    var selectionSet = selectedFeatures.ToDictionary();
 
-                    if (firstSelectionSet.Count == 0)
+                    if (selectionSet.Count == 0)
                     {
                         ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("No features on the map are selected, please select a feature you want to process and try again!");
-                        return;
+                        /*return;*/
                     }
 
-                    *//*// create an instance of the inspector class
+                    // create an instance of the inspector class
                     var inspector = new ArcGIS.Desktop.Editing.Attributes.Inspector();
 
                     // load the selected features into the inspector using a list of object IDs
-                    inspector.Load(firstSelectionSet.Key, firstSelectionSet.Value);
-                    
-                    ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show(firstSelectionSet.Value.ToString());
+                    inspector.Load(selectionSet.Keys.First(), selectionSet.Values.First());
 
-                    var myGeometry = inspector.Shape;*//*
-
+                    // Assuming the inspector.Shape represents the geometry of the selected feature
+                    selectedGeometry = inspector.Shape.ToJson();
                 });
-            }*/
+                   
+                await ExecuteInsertDataToolAsync($"{SiteID_Dropdown.SelectedItem}, {selectedGeometry}");
+            }
         }
+
 
         private void BrowseButtonToolboxClick(object sender, RoutedEventArgs e)
         {
@@ -187,7 +183,7 @@ namespace twobillionarcgisaddin
             string projectNumberSelected = this.ProjectNumber_Dropdown.SelectedItem as string;
             string siteIdSelected = this.SiteID_Dropdown.SelectedItem as string;
 
-           return new Dictionary<string, string>
+            return new Dictionary<string, string>
             {
                 { "ProjectNumber", projectNumberSelected },
                 { "SiteID", siteIdSelected },
@@ -257,9 +253,9 @@ namespace twobillionarcgisaddin
                     this.Secondary_Filter.Visibility = Visibility.Visible;
                 }
             }
-            
+
             Dictionary<string, string> filter = GetSiteMapperFilter();
-            
+
             // Repopulate the data grid with the filtered data
             SiteMapperDataGridView dockpane2 = SiteMapperDataGridView.MySiteMapperDataGridView;
             dockpane2.PopulateDataGrid(dataContainer, filter);
@@ -287,8 +283,8 @@ namespace twobillionarcgisaddin
 
                         if (layer is FeatureLayer featureLayer)
                         {
-                                // Check if the layer has the necessary attribute for filtering
-                            if (Regex.IsMatch(layerNormalized, projectNumberNormalized) || projectNumber == "" || projectNumber == null)
+                            // Check if the layer has the necessary attribute for filtering
+                            if (Regex.IsMatch(layerNormalized, projectNumberNormalized) && projectNumber != "")
                             {
                                 featureLayer.Select();
                             }
@@ -393,8 +389,7 @@ namespace twobillionarcgisaddin
                 string connectionFile = this.ArcConnectionFilePath.Text;
 
                 // Set the table name
-                /*string tableName = this.DatabaseSchema.Text + '.' + this.DatabaseTable.Text;*/
-                string tableName = this.DatabaseSchema.Text + ".site_geometry_check";
+                string tableName = this.DatabaseSchema.Text + ".site_geometry";
 
                 // Execute the Python tool and get the result
                 var parameters = Geoprocessing.MakeValueArray(connectionFile, tableName, insertData);
@@ -402,9 +397,15 @@ namespace twobillionarcgisaddin
 
                 if (returnValue.IsFailed)
                 {
-                    this.EstablishConnection.IsEnabled = true;
+                    this.SendData.IsEnabled = true;
+                    this.SiteMapper_SuccessStatus.Visibility = Visibility.Collapsed;
+                    this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
                     return false;
                 }
+
+                this.SendData.IsEnabled = true;
+                this.SiteMapper_ErrorStatus.Visibility = Visibility.Collapsed;
+                this.SiteMapper_SuccessStatus.Visibility = Visibility.Visible;
 
                 return true;
             }
@@ -412,6 +413,9 @@ namespace twobillionarcgisaddin
             {
                 // Handle any exceptions that occur during tool execution
                 ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
+                this.SendData.IsEnabled = true;
+                this.SiteMapper_SuccessStatus.Visibility = Visibility.Collapsed;
+                this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
                 return false;
             }
         }

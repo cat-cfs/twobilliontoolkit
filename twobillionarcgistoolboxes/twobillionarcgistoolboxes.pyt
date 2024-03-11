@@ -236,15 +236,21 @@ class UpdateDataTool(object):
             table_name = parameters[1].valueAsText
             insert_data = parameters[2].valueAsText
 
+            #
+            data_list = insert_data.split(',', 1)
+        
             # Connect to the enterprise geodatabase
             arcpy.env.workspace = connection_file
-
-            # Update/Insert data into the table
-            with arcpy.da.InsertCursor(table_name, ["site_id", "has_geometry"]) as cursor:
-                # Assuming data_to_insert is a comma-separated string, you may need to adapt this based on your data format
-                # data_list = insert_data.split(',')
-                # cursor.insertRow(data_list)
-                cursor.insertRow([10613, 1])
+                    
+            shape_result = arcpy.AsShape(data_list[1], True)
+            shape_result = arcpy.Polygon(shape_result.getPart(0))
+            arcpy.AddMessage(shape_result.WKT)
             
+            sql = f'INSERT INTO {table_name} ("site_id", "geom") VALUES ({data_list[0]}, ST_GeomFromText(\'{shape_result.WKT}\', 102001))'
+
+            egdb_conn = arcpy.ArcSDESQLExecute(connection_file)
+            egdb_ret = egdb_conn.execute(sql)
+            
+         
         except Exception as e:
             arcpy.AddError(f"Error: {str(e)}")
