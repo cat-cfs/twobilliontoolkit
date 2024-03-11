@@ -5,8 +5,7 @@ import json
 
 class Toolbox(object):
     def __init__(self):
-        """Define the toolbox (the name of the toolbox is the name of the
-        .pyt file)."""
+        """Define the toolbox twobillionarcgistoolboxes."""
         self.label = "TwoBillionTrees ArcGIS Toolbox"
         self.alias = "TwoBillionTreesArcGISToolbox"
 
@@ -19,12 +18,15 @@ class Toolbox(object):
 
 class EstablishConnectionTool(object):
     def __init__(self):
-        """Define the tool EstablishConnectionTool."""
+        """Define the EstablishConnectionTool class."""
+        # Tool information
         self.label = "Establish Connection"
         self.description = "Connect to an enterprise database connection."
         self.canRunInBackground = False
 
     def getParameterInfo(self):
+        """Define input parameters for the tool."""
+        # Parameter 1: Enterprise Connection File
         connection_file_param = arcpy.Parameter(
             displayName="Enterprise Connection File",
             name="connection_file",
@@ -33,7 +35,8 @@ class EstablishConnectionTool(object):
             direction="Input"
         )
         connection_file_param.filter.list = ["SDE"]
-        
+
+        # Parameter 2: Table Name
         table_name_param = arcpy.Parameter(
             displayName="Table Name",
             name="table_name",
@@ -41,7 +44,7 @@ class EstablishConnectionTool(object):
             parameterType="Required",
             direction="Input"
         )
-        
+
         return [connection_file_param, table_name_param]
 
     def isLicensed(self):
@@ -49,23 +52,25 @@ class EstablishConnectionTool(object):
         return True
 
     def updateParameters(self, parameters):
-        """Modify the values and properties of parameters before internal
-        validation is performed. This method is called whenever a parameter
-        has been changed."""
+        """Update parameters based on the selected connection file."""
         if parameters[0].value:
-            # Validate and update parameters based on the selected connection file
             connection_file = parameters[0].valueAsText
             arcpy.env.workspace = connection_file
 
         return
 
     def updateMessages(self, parameters):
-        """Modify the messages created by internal validation for each tool
-        parameter. This method is called after internal validation."""
+        """Modify messages created by internal validation."""
         return
 
     def execute(self, parameters, messages):
-        """Connect to the enterprise geodatabase and retrieve data from the specified table."""
+        """
+        Connect to the enterprise geodatabase and establish a connection.
+
+        Parameters:
+        - parameters: List of input parameters.
+        - messages: List to store messages or errors.
+        """
         try:
             # Get parameters
             connection_file = parameters[0].valueAsText
@@ -77,18 +82,22 @@ class EstablishConnectionTool(object):
             # Ping the database to establish connection
             with arcpy.da.SearchCursor(table_name, "*") as cursor:
                 pass
-            
+
         except Exception as e:
+            # Handle and log errors
             arcpy.AddError(f"Error: {str(e)}")
 
 class ReadDataTool(object):
     def __init__(self):
-        """Define the tool ReadDataTool."""
+        """Define the ReadDataTool class."""
+        # Tool information
         self.label = "Retrieve Data"
         self.description = "Connect to an enterprise geodatabase and retrieve data from a table."
         self.canRunInBackground = False
 
     def getParameterInfo(self):
+        """Define input parameters for the tool."""
+        # Parameter 1: Enterprise Connection File
         connection_file_param = arcpy.Parameter(
             displayName="Enterprise Connection File",
             name="connection_file",
@@ -97,7 +106,8 @@ class ReadDataTool(object):
             direction="Input"
         )
         connection_file_param.filter.list = ["SDE"]
-        
+
+        # Parameter 2: Table Name
         table_name_param = arcpy.Parameter(
             displayName="Table Name",
             name="table_name",
@@ -105,9 +115,10 @@ class ReadDataTool(object):
             parameterType="Required",
             direction="Input"
         )
-        
+
+        # Parameter 3: Output
         output_list = arcpy.Parameter(
-            displayName="output",
+            displayName="Output",
             name="output",
             datatype="Variant",
             parameterType="Derived",
@@ -121,19 +132,15 @@ class ReadDataTool(object):
         return True
 
     def updateParameters(self, parameters):
-        """Modify the values and properties of parameters before internal
-        validation is performed. This method is called whenever a parameter
-        has been changed."""
+        """Update parameters based on the selected connection file."""
         if parameters[0].value:
-            # Validate and update parameters based on the selected connection file
             connection_file = parameters[0].valueAsText
             arcpy.env.workspace = connection_file
 
         return
 
     def updateMessages(self, parameters):
-        """Modify the messages created by internal validation for each tool
-        parameter. This method is called after internal validation."""
+        """Modify messages created by internal validation."""
         return
 
     def execute(self, parameters, messages):
@@ -171,16 +178,20 @@ class ReadDataTool(object):
             return json_data
         
         except Exception as e:
+            # Handle and log errors
             arcpy.AddError(f"Error: {str(e)}")
             
 class UpdateDataTool(object):
     def __init__(self):
-        """Define the tool UpdateDataTool."""
+        """Define the UpdateDataTool class."""
+        # Tool information
         self.label = "Update data"
         self.description = "Connect to an enterprise geodatabase and insert data in a table."
         self.canRunInBackground = False
 
     def getParameterInfo(self):
+        """Define input parameters for the tool."""
+        # Parameter 1: Enterprise Connection File
         connection_file_param = arcpy.Parameter(
             displayName="Enterprise Connection File",
             name="connection_file",
@@ -189,7 +200,8 @@ class UpdateDataTool(object):
             direction="Input"
         )
         connection_file_param.filter.list = ["SDE"]
-        
+
+        # Parameter 2: Table Name
         table_name_param = arcpy.Parameter(
             displayName="Table Name",
             name="table_name",
@@ -197,7 +209,8 @@ class UpdateDataTool(object):
             parameterType="Required",
             direction="Input"
         )
-        
+
+        # Parameter 3: Insert Data
         insert_data = arcpy.Parameter(
             displayName="Insert Data",
             name="insert",
@@ -213,44 +226,51 @@ class UpdateDataTool(object):
         return True
 
     def updateParameters(self, parameters):
-        """Modify the values and properties of parameters before internal
-        validation is performed. This method is called whenever a parameter
-        has been changed."""
+        """Update parameters based on the selected connection file."""
         if parameters[0].value:
-            # Validate and update parameters based on the selected connection file
             connection_file = parameters[0].valueAsText
             arcpy.env.workspace = connection_file
 
         return
 
     def updateMessages(self, parameters):
-        """Modify the messages created by internal validation for each tool
-        parameter. This method is called after internal validation."""
+        """Modify messages created by internal validation."""
         return
 
     def execute(self, parameters, messages):
-        """Connect to the enterprise geodatabase and retrieve data from the specified table."""
+        """
+        Connect to the enterprise geodatabase and insert data into the specified table.
+
+        Parameters:
+        - parameters: List of input parameters.
+        - messages: List to store messages or errors.
+        """
         try:
             # Get parameters
             connection_file = parameters[0].valueAsText
             table_name = parameters[1].valueAsText
             insert_data = parameters[2].valueAsText
 
-            #
+            # Split insert_data into site_id and geometry
             data_list = insert_data.split(',', 1)
-        
+
             # Connect to the enterprise geodatabase
             arcpy.env.workspace = connection_file
-                    
-            shape_result = arcpy.AsShape(data_list[1], True)
-            shape_result = arcpy.Polygon(shape_result.getPart(0))
-            arcpy.AddMessage(shape_result.WKT)
-            
-            sql = f'INSERT INTO {table_name} ("site_id", "geom") VALUES ({data_list[0]}, ST_GeomFromText(\'{shape_result.WKT}\', 102001))'
 
-            egdb_conn = arcpy.ArcSDESQLExecute(connection_file)
-            egdb_ret = egdb_conn.execute(sql)
+            # Convert the geometry string to a polygon
+            polygon = arcpy.AsShape(data_list[1], True)
+            polygon = arcpy.Polygon(polygon.getPart(0))
             
-         
+            # Display the WKT representation of the geometry
+            # arcpy.AddMessage(polygon.WKT)
+
+            # Construct the SQL query for insertion
+            sql = f'INSERT INTO {table_name} ("site_id", "geom") VALUES ({data_list[0]}, ST_GeomFromText(\'{polygon.WKT}\', 102001))'
+
+            # Execute the SQL query
+            egdb_conn = arcpy.ArcSDESQLExecute(connection_file)
+            egdb_conn.execute(sql)
+
         except Exception as e:
+            # Handle and log errors
             arcpy.AddError(f"Error: {str(e)}")

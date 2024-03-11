@@ -54,9 +54,7 @@
             Height="Auto"
             AlternatingRowBackground="#E5E5E5"
             VerticalGridLinesBrush="LightGray"
-            HorizontalGridLinesBrush="LightGray"
-            BeginningEdit="CellBeginningEdit"
-            CellEditEnding="CellEditEnding" >
+            HorizontalGridLinesBrush="LightGray" >
             
             <DataGrid.Resources>
                 <!-- Define a style for the header cells -->

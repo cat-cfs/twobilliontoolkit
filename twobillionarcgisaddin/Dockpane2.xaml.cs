@@ -38,11 +38,11 @@ namespace twobillionarcgisaddin
             foreach (var entry in container.Data)
             {
                 if  ( filter == null || (
-                    (String.IsNullOrEmpty(filter["ProjectNumber"]) || filter["ProjectNumber"] == entry.ProjectNumber) &&
-                    (String.IsNullOrEmpty(filter["SiteID"]) || filter["SiteID"] == entry.SiteID)          
+                    (string.IsNullOrEmpty(filter["ProjectNumber"]) || filter["ProjectNumber"] == entry.ProjectNumber) &&
+                    (string.IsNullOrEmpty(filter["SiteID"]) || filter["SiteID"] == entry.SiteID)          
                     ))
                 {
-                    if (String.IsNullOrEmpty(siteNameFitler) || entry.SiteName.ToLower().StartsWith(siteNameFitler.ToLower()))
+                    if (string.IsNullOrEmpty(siteNameFitler) || entry.SiteName.ToLower().StartsWith(siteNameFitler.ToLower()))
                     {
                         // Add the object to the DataGrid
                         this.ProjectItems.Add(entry);
@@ -56,10 +56,24 @@ namespace twobillionarcgisaddin
         private void SiteNameFilterTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             TwoBillionTreesToolLogisticsView dockpane1 = TwoBillionTreesToolLogisticsView.MyTwoBillionTreesToolLogisticsView;
-            PopulateDataGrid(dockpane1.GetDataContainer(), dockpane1.GetSiteMapperFilter(), this.SiteNameFilterTextBox.Text);
+            PopulateDataGrid(dockpane1.dataContainer, dockpane1.GetSiteMapperFilter(), this.SiteNameFilterTextBox.Text);
         }
 
-        private object originalValue; // Store the original value globally
+        private void ZoomToSelectedButton(object sender, RoutedEventArgs e)
+        {
+            // Access the current map in ArcGIS Pro
+            MapView mapView = MapView.Active;
+
+            if (mapView != null)
+            {
+                QueuedTask.Run(() =>
+                {
+                    mapView.ZoomToSelected();
+                });
+            }
+        }
+
+        /*private object originalValue; // Store the original value globally
 
         private void CellBeginningEdit(object sender, DataGridBeginningEditEventArgs e)
         {
@@ -104,20 +118,6 @@ namespace twobillionarcgisaddin
             }
 
             return null;
-        }
-
-        private void ZoomToSelectedButton(object sender, RoutedEventArgs e)
-        {
-            // Access the current map in ArcGIS Pro
-            MapView mapView = MapView.Active;
-
-            if (mapView != null)
-            {
-                QueuedTask.Run(() =>
-                {
-                    mapView.ZoomToSelected();
-                });
-            }
-        }
+        }*/
     }
 }
