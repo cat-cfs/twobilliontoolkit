@@ -59,7 +59,12 @@
             <TextBox x:Name="DatabaseSchema" Style="{StaticResource TextBoxStyle}"/>
 
             <Button x:Name="EstablishConnectionButton" Content="Establish Connection" Height="55" Margin="0,12,0,0" Click="EstablishButtonClicked" DockPanel.Dock="Top" Template="{StaticResource ButtonTemplate}" Style="{StaticResource ButtonStyle}"/>
-         </DockPanel>
+
+            <Grid x:Name="HiddenCat" DockPanel.Dock="Top" Margin="0,10,0,0" Visibility="Collapsed">
+                <Label Content="Meow" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,140,20" FontSize="20"/>
+                <Image Source="pack://application:,,,/twobillionarcgisaddin;component/Images/cat.png" Height="80"/>
+            </Grid>
+        </DockPanel>
 
         <!-- DockPanel for Button Tool List -->
         <DockPanel x:Name="ButtonToolist" Grid.Row="1" LastChildFill="true" KeyboardNavigation.TabNavigation="Local" Margin="20,12,20,12" Visibility="Collapsed">
@@ -105,7 +110,19 @@
                 <ComboBox x:Name="SiteID_Dropdown" Grid.Row="1" Style="{StaticResource ComboBoxStyle}" SelectionChanged="SiteMapperFilterChanged"/>
             </Grid>
 
-            <CheckBox x:Name="OverwriteToggle" Style="{DynamicResource Esri_CheckboxToggleSwitch}" Content="Overwrite data if it already exists?" Foreground="black" Margin="4,5,0,5" DockPanel.Dock="Top" Click="OverwriteSwitchToggled" ToolTip="Toggle On"/>
+            <Grid x:Name="SelectedFeaturesGrid" Visibility="Visible" DockPanel.Dock="Top" HorizontalAlignment="Center" Margin="0,5,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Label x:Name="SelectedFeaturesNumber" Grid.Column="0" Content="NaN" Style="{StaticResource LabelStyle}" Foreground="OrangeRed" FontWeight="Normal"/>
+                <Label Grid.Column="1" Content="feature(s) currently selected" Style="{StaticResource LabelStyle}" Foreground="OrangeRed" FontWeight="Normal"/>
+            </Grid>
+
+           
+
+            <CheckBox x:Name="OverwriteToggle" Style="{DynamicResource Esri_CheckboxToggleSwitch}" Content="Overwrite data if it already exists?" Foreground="black" Margin="0,10,0,10" DockPanel.Dock="Top" Click="OverwriteSwitchToggled" ToolTip="Toggle On" HorizontalAlignment="Center"/>
 
             <Button x:Name="SendDataButton" Content="Send Data" Height="55" Click="SendButtonClicked" ToolTip="Push data to the database" Template="{StaticResource ButtonTemplate}" Style="{StaticResource ButtonStyle}"/>
 

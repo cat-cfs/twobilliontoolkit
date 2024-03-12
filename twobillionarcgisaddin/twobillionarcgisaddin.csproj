@@ -10,6 +10,7 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<None Remove="Images\2BTIcon.png" />
+		<None Remove="Images\cat.png" />
 		<None Remove="Images\folder.png" />
 		<None Remove="Images\question.png" />
 	</ItemGroup>
@@ -21,6 +22,9 @@
 		<Content Include="Images\map.png">
 			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
 		</Content>
+		<Resource Include="Images\cat.png">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Resource>
 		<Resource Include="Images\folder.png">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Resource>

@@ -1,6 +1,8 @@
-﻿using ArcGIS.Desktop.Core.Geoprocessing;
+﻿using ArcGIS.Core.Geometry;
+using ArcGIS.Desktop.Core.Geoprocessing;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
+using ArcGIS.Desktop.Mapping.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +19,7 @@ namespace twobillionarcgisaddin
     /// </summary>
     public partial class TwoBillionTreesToolLogisticsView : UserControl
     {
+        #region Global Variables
         // ******************************************************
         // Global Variables
         // ******************************************************
@@ -27,10 +30,11 @@ namespace twobillionarcgisaddin
         // Access to the data container object of the SiteMapper tool
         public DataContainer dataContainer { get; private set; }
 
-
+        #endregion
         // ******************************************************
         // Constructor
         // ******************************************************
+        #region Constructor
 
         private static TwoBillionTreesToolLogisticsView _this = null;
         static public TwoBillionTreesToolLogisticsView MyTwoBillionTreesToolLogisticsView => _this;
@@ -46,9 +50,11 @@ namespace twobillionarcgisaddin
             this.DatabaseSchema.Text = "bt_spatial_test";
         }
 
+        #endregion
         // ******************************************************
         // Event Functions (Button Clicks, Toggles, ...)
         // ******************************************************
+        #region Event Functions
 
         // Method to handle the click event of the Establish Connection button
         private async void EstablishButtonClicked(object sender, RoutedEventArgs e)
@@ -58,9 +64,12 @@ namespace twobillionarcgisaddin
                 // Disable the button (spam prevention)
                 this.EstablishConnectionButton.IsEnabled = false;
 
+                ShowHiddenCat();
+
                 bool success = await ExecuteEstablishConnectionAsync();
                 if (!success)
                 {
+                    this.EstablishConnectionButton.IsEnabled = true;
                     return;
                 }
 
@@ -78,6 +87,14 @@ namespace twobillionarcgisaddin
             }
 
             this.EstablishConnectionButton.IsEnabled = true;
+        }
+
+        private async void ShowHiddenCat()
+        {
+            ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Test");
+            this.HiddenCat.Visibility = Visibility.Visible;
+            await Task.Delay(500); // 500 milliseconds = .5 seconds
+            this.HiddenCat.Visibility = Visibility.Hidden;
         }
 
         // Method to handle the click event of the Browse button
@@ -115,9 +132,20 @@ namespace twobillionarcgisaddin
             }
         }
 
+        private async void FeatureSelectionChanged(MapSelectionChangedEventArgs args)
+        {
+            MapView mapView = MapView.Active;
+            if (mapView != null)
+            {
+                SelectedFeaturesNumber.Content = mapView.Map.SelectionCount.ToString();
+            }
+        }
+
         // Method to handle the click event of the SiteMapper button
         private async void SiteMapperButtonClicked(object sender, RoutedEventArgs e)
         {
+           MapSelectionChangedEvent.Subscribe(FeatureSelectionChanged);
+
             try
             {
                 // Disable the button (spam prevention)
@@ -187,26 +215,36 @@ namespace twobillionarcgisaddin
                         // Get the currently selected features in the map
                         var selectedFeatures = mapView.Map.GetSelection();
 
-                        // Get the first layer and its corresponding selected feature OIDs
-                        var selectionSet = selectedFeatures.ToDictionary();
-                        if (selectionSet.Count == 0)
+                        // Check if any features are selected in any layer
+                        if (selectedFeatures.Count == 0)
                         {
                             ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("No features on the map are selected, please select a feature you want to process and try again!");
-                            this.SendDataButton.IsEnabled = true;
+                            Dispatcher.Invoke(() => this.SendDataButton.IsEnabled = true);
                             return;
                         }
+
+                        // Get the first layer and its corresponding selected feature OIDs
+                        var selectionSet = selectedFeatures.ToDictionary().First();
 
                         // Create an instance of the inspector class
                         var inspector = new ArcGIS.Desktop.Editing.Attributes.Inspector();
 
                         // Load the selected features into the inspector using a list of object IDs
-                        inspector.Load(selectionSet.Keys.First(), selectionSet.Values.First());
+                        inspector.Load(selectionSet.Key, selectionSet.Value);
+
+                        // Check that there are not more than one feature selected in the processing layer
+                        if (inspector.OIDSet.Count > 1)
+                        {
+                            ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("More than one feature has been selected, please retry with only one feature selecetd.");
+                            Dispatcher.Invoke(() => this.SendDataButton.IsEnabled = true);
+                            return;
+                        }
 
                         // Assuming the inspector.Shape represents the geometry of the selected feature
                         selectedGeometry = inspector.Shape.ToJson();
                     });
-                   
-                    await ExecuteInsertDataToolAsync($"{SiteID_Dropdown.SelectedItem}, {selectedGeometry}");
+
+                    await ExecuteInsertDataToolAsync(this.SiteID_Dropdown.SelectedItem.ToString(), selectedGeometry);
                 }
             }
             catch (Exception ex)
@@ -250,9 +288,11 @@ namespace twobillionarcgisaddin
             SelectMapLayers(filter["ProjectNumber"]);
         }
 
+        #endregion
         // ******************************************************
         // Various Helper Functions
         // ******************************************************
+        #region Various Helper Functions
 
         // Method to get the selected filter values for the SiteMapper tool
         public Dictionary<string, string> GetSiteMapperFilter()
@@ -348,9 +388,11 @@ namespace twobillionarcgisaddin
             }
         }
 
+        #endregion
         // ******************************************************
         // Asyncronous Database Functions
         // ******************************************************
+        #region Asyncronous Database Functions
 
         // Method to execute the Establish Connection tool asynchronously
         private async Task<bool> ExecuteEstablishConnectionAsync()
@@ -422,17 +464,17 @@ namespace twobillionarcgisaddin
         }
 
         // Method to execute the Insert Data tool asynchronously
-        private async Task<bool> ExecuteInsertDataToolAsync(string insertData)
+        private async Task<bool> ExecuteInsertDataToolAsync(string siteID, string geometry)
         {
             try
             {
                 // Set the parameters
-                string toolboxPath = this.ArcPythonToolboxPath.Text + "\\UpdateDataTool";
+                string toolboxPath = this.ArcPythonToolboxPath.Text + "\\InsertDataTool";
                 string connectionFile = this.ArcConnectionFilePath.Text;
                 string tableName = this.DatabaseSchema.Text + ".site_geometry";
 
                 // Execute the Python tool and get the result
-                var parameters = Geoprocessing.MakeValueArray(connectionFile, tableName, insertData);
+                var parameters = Geoprocessing.MakeValueArray(connectionFile, tableName, siteID, geometry);
                 var returnValue = await Geoprocessing.ExecuteToolAsync(toolboxPath, parameters);
 
                 if (!returnValue.IsFailed)
@@ -453,5 +495,7 @@ namespace twobillionarcgisaddin
             return false;
         }
 
+
+        #endregion
     }
 }

@@ -23,8 +23,8 @@
             <Button Content="Zoom To Selected Layers" Click="ZoomToSelectedButton" Style="{StaticResource ButtonStyle}" Template="{StaticResource ButtonTemplate}" />
 
             <Grid>
-                <TextBox x:Name="SiteNameFilterTextBox" Width="250" Height="27" VerticalAlignment="Center" Margin="5" FontSize="13" TextChanged="SiteNameFilterTextBox_TextChanged"/>
-                <TextBlock IsHitTestVisible="False" Text="Filter Site Names..." VerticalAlignment="Center" Margin="10" FontSize="13" Foreground="DarkGray">
+                <TextBox x:Name="SiteNameFilterTextBox" Width="Auto" Height="27" VerticalAlignment="Center" Margin="5" FontSize="13" TextChanged="SiteNameFilterTextBox_TextChanged"/>
+                <TextBlock IsHitTestVisible="False" Text="Filter Site Names...      " VerticalAlignment="Center" Margin="10" FontSize="13" Foreground="DarkGray">
                     <TextBlock.Style>
                         <Style TargetType="{x:Type TextBlock}">
                             <Setter Property="Visibility" Value="Collapsed"/>
@@ -47,15 +47,17 @@
             AutoGenerateColumns="False" 
             CanUserAddRows="False" 
             CanUserDeleteRows="False" 
-            CanUserResizeColumns="False" 
+            CanUserResizeColumns="True" 
             CanUserReorderColumns="True" 
             CanUserResizeRows="False" 
-            Width="Auto" 
             Height="Auto"
             AlternatingRowBackground="#E5E5E5"
             VerticalGridLinesBrush="LightGray"
-            HorizontalGridLinesBrush="LightGray" >
-            
+            HorizontalGridLinesBrush="LightGray" 
+            ScrollViewer.CanContentScroll="True"
+            HorizontalScrollBarVisibility="Visible"
+            >
+
             <DataGrid.Resources>
                 <!-- Define a style for the header cells -->
                 <Style TargetType="DataGridColumnHeader">
@@ -67,7 +69,7 @@
                 <!-- Define a style for the cells -->
                 <Style TargetType="DataGridCell">
                     <Setter Property="Height" Value="23"/>
-                    
+
                     <!-- Trigger to change appearance when the cell is selected -->
                     <Style.Triggers>
                         <Trigger Property="IsSelected" Value="True">
@@ -76,20 +78,17 @@
                     </Style.Triggers>
                 </Style>
             </DataGrid.Resources>
-            
+
             <DataGrid.Columns>
                 <DataGridTextColumn 
                     Header="project__number" 
-                    Binding="{Binding ProjectNumber, Mode=TwoWay}"
-                    Width="*" />
+                    Binding="{Binding ProjectNumber, Mode=TwoWay}"/>
                 <DataGridTextColumn                     
                     Header="site__id" 
-                    Binding="{Binding SiteID, Mode=TwoWay}"  
-                    Width="*" />
+                    Binding="{Binding SiteID, Mode=TwoWay}" />
                 <DataGridTextColumn 
                     Header="site__name" 
-                    Binding="{Binding SiteName, Mode=TwoWay}"  
-                    Width="*" />
+                    Binding="{Binding SiteName, Mode=TwoWay}"/>
             </DataGrid.Columns>
         </DataGrid>
     </Grid>
