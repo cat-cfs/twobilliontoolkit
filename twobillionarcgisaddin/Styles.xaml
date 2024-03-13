@@ -64,6 +64,16 @@
         <Setter Property="Background" Value="IndianRed"/>
     </Style>
 
+    <Style x:Key="Found" TargetType="Grid">
+        <Setter Property="DockPanel.Dock" Value="Top"/>
+        <Setter Property="Visibility" Value="Hidden"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Visibility" Value="Visible"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
     <!-- Define Templates -->
     <ControlTemplate x:Key="ButtonTemplate" TargetType="Button">
         <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="3">

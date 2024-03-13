@@ -13,7 +13,8 @@ class Toolbox(object):
         self.tools = [
             EstablishConnectionTool,
             ReadDataTool,
-            InsertDataTool
+            InsertDataTool,
+            UpdateDataTool
         ]
 
 class EstablishConnectionTool(object):
@@ -315,7 +316,16 @@ class UpdateDataTool(object):
             direction="Input"
         )
 
-        # Parameter 3: Site ID
+        # Parameter 3: Row ID
+        row_id_param = arcpy.Parameter(
+            displayName="Row ID",
+            name="row_id",
+            datatype="Long",
+            parameterType="Required",
+            direction="Input"
+        )
+
+        # Parameter 4: Site ID
         site_id_param = arcpy.Parameter(
             displayName="Site ID",
             name="site_id",
@@ -324,7 +334,7 @@ class UpdateDataTool(object):
             direction="Input"
         )
 
-        # Parameter 4: New Geometry
+        # Parameter 5: New Geometry
         new_geometry_param = arcpy.Parameter(
             displayName="New Geometry",
             name="new_geometry",
@@ -333,7 +343,7 @@ class UpdateDataTool(object):
             direction="Input"
         )
 
-        return [connection_file_param, table_name_param, site_id_param, new_geometry_param]
+        return [connection_file_param, table_name_param, row_id_param, site_id_param, new_geometry_param]
 
     def isLicensed(self):
         """Set whether the tool is licensed to execute."""
@@ -363,29 +373,40 @@ class UpdateDataTool(object):
             # Get parameters
             connection_file = parameters[0].valueAsText
             table_name = parameters[1].valueAsText
-            site_id = parameters[2].valueAsText
-            new_geometry = parameters[3].valueAsText
+            row_id = parameters[2].valueAsText
+            site_id = parameters[3].valueAsText
+            new_geometry = parameters[4].valueAsText
 
-            # Connect to the enterprise geodatabase
-            arcpy.env.workspace = connection_file
-
-            # Convert the new geometry string to a polygon
-            new_polygon = arcpy.AsShape(new_geometry, True)
-
-            # Project the new polygon to Canadian Albers (wkid 102001)
-            target_ref = arcpy.SpatialReference(102001)
-            new_polygon = new_polygon.projectAs(target_ref)
-
-            # Remove the Z coordinates from the polygon
-            new_polygon = arcpy.Polygon(new_polygon.getPart(0))
+            # Call function to prepare the geometry
+            projected_multipolygon = prepare_geometry(connection_file, new_geometry)
 
             # Construct the SQL query for updating the entry
-            sql = f'UPDATE {table_name} SET "geom" = ST_GeomFromText(\'{new_polygon.WKT}\', 102001) WHERE "site_id" = \'{site_id}\''
+            sql_update = f'UPDATE {table_name} SET "dropped" = true WHERE "id" = {row_id} AND "site_id" = {site_id}'
+            
+            sql_insert = f'INSERT INTO {table_name} ("site_id", "geom") VALUES ({site_id}, ST_GeomFromText(\'{projected_multipolygon.WKT}\', 102001))'
 
             # Execute the SQL query
             egdb_conn = arcpy.ArcSDESQLExecute(connection_file)
-            egdb_conn.execute(sql)
+            egdb_conn.execute(sql_update)
+            egdb_conn.execute(sql_insert)
 
         except Exception as e:
             # Handle and log errors
             arcpy.AddError(f"Error: {str(e)}")
+
+def prepare_geometry(connection_file, geometry):
+    # Connect to the enterprise geodatabase
+    arcpy.env.workspace = connection_file
+
+    # Convert the geometry string to a polygon
+    polygon = arcpy.AsShape(geometry, True)
+    
+    # Project the polygon to Canadian Albers (wkid 102001)
+    target_Ref = arcpy.SpatialReference(102001)
+    polygon_projected = polygon.projectAs(target_Ref)   
+    
+    # Get all parts of the project polygon and construct a new polygon with no z or m-coordinates
+    array_of_polygons = arcpy.Array(polygon_projected.getPart())
+    projected_multipolygon = arcpy.Polygon(array_of_polygons, target_Ref)
+    
+    return projected_multipolygon

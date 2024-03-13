@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 
 namespace twobillionarcgisaddin
@@ -89,13 +90,7 @@ namespace twobillionarcgisaddin
             this.EstablishConnectionButton.IsEnabled = true;
         }
 
-        private async void ShowHiddenCat()
-        {
-            ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Test");
-            this.HiddenCat.Visibility = Visibility.Visible;
-            await Task.Delay(500); // 500 milliseconds = .5 seconds
-            this.HiddenCat.Visibility = Visibility.Hidden;
-        }
+
 
         // Method to handle the click event of the Browse button
         private void BrowseButtonClicked(object sender, RoutedEventArgs e)
@@ -186,10 +181,12 @@ namespace twobillionarcgisaddin
             if ((bool)this.OverwriteToggle.IsChecked)
             {
                 this.OverwriteToggle.ToolTip = "Toggle Off";
+                this.RowIDTextBoxContainer.Visibility = Visibility.Visible;
             } 
             else
             {
                 this.OverwriteToggle.ToolTip = "Toggle On";
+                this.RowIDTextBoxContainer.Visibility = Visibility.Collapsed;
             }
         }
 
@@ -221,6 +218,12 @@ namespace twobillionarcgisaddin
                             ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("No features on the map are selected, please select a feature you want to process and try again!");
                             Dispatcher.Invoke(() => this.SendDataButton.IsEnabled = true);
                             return;
+                        } 
+                        else if (selectedFeatures.Count > 1)
+                        {
+                            ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("There is more than one feature selected between all layers, please select a single feature you want to process and try again!");
+                            Dispatcher.Invoke(() => this.SendDataButton.IsEnabled = true);
+                            return;
                         }
 
                         // Get the first layer and its corresponding selected feature OIDs
@@ -235,7 +238,7 @@ namespace twobillionarcgisaddin
                         // Check that there are not more than one feature selected in the processing layer
                         if (inspector.OIDSet.Count > 1)
                         {
-                            ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("More than one feature has been selected, please retry with only one feature selecetd.");
+                            ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("More than one feature has been selected, please retry with only one feature selected.");
                             Dispatcher.Invoke(() => this.SendDataButton.IsEnabled = true);
                             return;
                         }
@@ -244,7 +247,15 @@ namespace twobillionarcgisaddin
                         selectedGeometry = inspector.Shape.ToJson();
                     });
 
-                    await ExecuteInsertDataToolAsync(this.SiteID_Dropdown.SelectedItem.ToString(), selectedGeometry);
+                    if ((bool)this.OverwriteToggle.IsChecked)
+                    {
+                        await ExecuteUpdateDataToolAsync(this.RowIDTextbox.Text, this.SiteID_Dropdown.SelectedItem.ToString(), selectedGeometry);
+                    }
+                    else
+                    {
+                        await ExecuteInsertDataToolAsync(this.SiteID_Dropdown.SelectedItem.ToString(), selectedGeometry);
+                    }
+                        
                 }
             }
             catch (Exception ex)
@@ -286,6 +297,13 @@ namespace twobillionarcgisaddin
 
             // Filter map layers based on the selected project number
             SelectMapLayers(filter["ProjectNumber"]);
+        }
+
+        private async void ShowHiddenCat()
+        {
+            this.HiddenCat.Visibility = Visibility.Visible;
+            await Task.Delay(500); // 500 milliseconds = .5 seconds
+            this.HiddenCat.Visibility = Visibility.Hidden;
         }
 
         #endregion
@@ -495,6 +513,37 @@ namespace twobillionarcgisaddin
             return false;
         }
 
+        // Method to execute the Insert Data tool asynchronously
+        private async Task<bool> ExecuteUpdateDataToolAsync(string rowID, string siteID, string geometry)
+        {
+            try
+            {
+                // Set the parameters
+                string toolboxPath = this.ArcPythonToolboxPath.Text + "\\UpdateDataTool";
+                string connectionFile = this.ArcConnectionFilePath.Text;
+                string tableName = this.DatabaseSchema.Text + ".site_geometry";
+
+                // Execute the Python tool and get the result
+                var parameters = Geoprocessing.MakeValueArray(connectionFile, tableName, rowID, siteID, geometry);
+                var returnValue = await Geoprocessing.ExecuteToolAsync(toolboxPath, parameters);
+
+                if (!returnValue.IsFailed)
+                {
+                    this.SiteMapper_ErrorStatus.Visibility = Visibility.Collapsed;
+                    this.SiteMapper_SuccessStatus.Visibility = Visibility.Visible;
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions that occur during tool execution
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
+            }
+
+            this.SiteMapper_SuccessStatus.Visibility = Visibility.Collapsed;
+            this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
+            return false;
+        }
 
         #endregion
     }

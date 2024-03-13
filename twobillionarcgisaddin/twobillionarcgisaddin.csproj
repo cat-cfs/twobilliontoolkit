@@ -11,6 +11,7 @@
 	<ItemGroup>
 		<None Remove="Images\2BTIcon.png" />
 		<None Remove="Images\cat.png" />
+		<None Remove="Images\cat2.png" />
 		<None Remove="Images\folder.png" />
 		<None Remove="Images\question.png" />
 	</ItemGroup>
@@ -23,6 +24,9 @@
 			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
 		</Content>
 		<Resource Include="Images\cat.png">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Resource>
+		<Resource Include="Images\cat2.png">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Resource>
 		<Resource Include="Images\folder.png">
