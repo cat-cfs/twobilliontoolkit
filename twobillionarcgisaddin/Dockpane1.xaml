@@ -67,7 +67,7 @@
         </DockPanel>
 
         <!-- DockPanel for Button Tool List -->
-        <DockPanel x:Name="ButtonToolist" Grid.Row="1" LastChildFill="true" KeyboardNavigation.TabNavigation="Local" Margin="20,12,20,12" Visibility="Collapsed">
+        <DockPanel x:Name="ButtonToolist" LastChildFill="False" KeyboardNavigation.TabNavigation="Local" Margin="20,12,20,12" Visibility="Collapsed">
             <Grid DockPanel.Dock="Top">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -83,6 +83,8 @@
 
                 <Button x:Name="SiteMapperButton" Grid.Row="2" Content="Site Mapper Tool" Height="55" Click="SiteMapperButtonClicked" DockPanel.Dock="Top" Template="{StaticResource ButtonTemplate}" Style="{StaticResource ButtonStyle}"/>
             </Grid>
+
+            <Button x:Name="CompleteProjectButton" Content="Finish Current Project" Height="55" Margin="0,10,0,0" Click="CompleteProjectButtonClicked"  Template="{StaticResource ButtonTemplate}" Style="{StaticResource ButtonStyle}" DockPanel.Dock="Bottom"/>
         </DockPanel>
 
         <!-- DockPanel for TwoBillionTrees logistics -->

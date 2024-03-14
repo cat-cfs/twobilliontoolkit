@@ -267,6 +267,12 @@ namespace twobillionarcgisaddin
             this.SendDataButton.IsEnabled = true;
         }
 
+        // Method to handle the click event of the Finish Project button
+        private async void CompleteProjectButtonClicked(object sender, RoutedEventArgs e)
+        {
+
+        }
+            
         // Method to handle the change event of the filters
         private void SiteMapperFilterChanged(object sender, SelectionChangedEventArgs e)
         {
