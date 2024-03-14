@@ -400,8 +400,7 @@ class Datatracker2BT(Datatracker):
                 editor_tracking_enabled=row['editor_tracking_enabled'],
                 processed=row['processed']  
             )
-            
-        
+                    
     def save_to_database(self, update: bool = False) -> None:
         """
         Save data tracker information to a database connection.

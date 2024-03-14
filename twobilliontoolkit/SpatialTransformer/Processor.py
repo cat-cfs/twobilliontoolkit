@@ -462,6 +462,12 @@ class Processor:
             #     ['date_created', 'DATE', 'date_created', None, datetime.date.today(), '']]
             # )
             
+            arcpy.management.AddField(
+                feature_class, 
+                'site_id',
+                'SHORT'               
+            )
+            
             if self.params.resume:
                 (_, data_entry) = self.data.find_matching_data(project_spatial_id=feature_class.replace('proj_', ''), editor_tracking_enabled=True)
                 if data_entry:
