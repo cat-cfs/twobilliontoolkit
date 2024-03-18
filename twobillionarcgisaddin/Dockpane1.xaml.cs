@@ -244,9 +244,39 @@ namespace twobillionarcgisaddin
         // Method to handle the click event of the Finish Project button
         private async void CompleteProjectButtonClicked(object sender, RoutedEventArgs e)
         {
+            try
+            {
+                // Access the current map in ArcGIS Pro
+                MapView mapView = MapView.Active;
+                if (mapView != null)
+                {
+                    string selectedLayer = null;
+                    await QueuedTask.Run(() =>
+                    {
+                        // Get the currently selected features in the map
+                        var selectedFeatures = mapView.GetSelectedLayers();
+                        if (selectedFeatures.Count == 0)
+                        {
+                            ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Please select a project on the left and try again.");
+                        }
+                        else if (selectedFeatures.Count > 1) 
+                        {
+                            ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Please select only one project on the left and try again.");
+                        }
 
+                        selectedLayer = selectedFeatures[0].Name;
+                    });
+
+                    await ExecuteCompleteProjectToolAsync(selectedLayer);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions that occur during tool execution
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
+            }
         }
-            
+
         // Method to handle the change event of the filters
         private void SiteMapperFilterChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -522,6 +552,35 @@ namespace twobillionarcgisaddin
 
             this.SiteMapper_SuccessStatus.Visibility = Visibility.Collapsed;
             this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
+            return false;
+        }
+
+        // Method to execute the Insert Data tool asynchronously
+        private async Task<bool> ExecuteCompleteProjectToolAsync(string projectSpatialID)
+        {
+            try
+            {
+                // Set the parameters
+                string toolboxPath = this.ArcPythonToolboxPath.Text + "\\CompleteProjectTool";
+                string connectionFile = this.ArcConnectionFilePath.Text;
+                string tableName = this.DatabaseSchema.Text + ".raw_data_tracker";
+
+                // Execute the Python tool and get the result
+                var parameters = Geoprocessing.MakeValueArray(connectionFile, tableName, projectSpatialID);
+                var returnValue = await Geoprocessing.ExecuteToolAsync(toolboxPath, parameters);
+
+                if (!returnValue.IsFailed)
+                {
+
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions that occur during tool execution
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
+            }
+
             return false;
         }
 
