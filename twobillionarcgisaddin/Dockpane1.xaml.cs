@@ -90,8 +90,6 @@ namespace twobillionarcgisaddin
             this.EstablishConnectionButton.IsEnabled = true;
         }
 
-
-
         // Method to handle the click event of the Browse button
         private void BrowseButtonClicked(object sender, RoutedEventArgs e)
         {
@@ -181,12 +179,10 @@ namespace twobillionarcgisaddin
             if ((bool)this.OverwriteToggle.IsChecked)
             {
                 this.OverwriteToggle.ToolTip = "Toggle Off";
-                this.RowIDTextBoxContainer.Visibility = Visibility.Visible;
             } 
             else
             {
                 this.OverwriteToggle.ToolTip = "Toggle On";
-                this.RowIDTextBoxContainer.Visibility = Visibility.Collapsed;
             }
         }
 
@@ -206,7 +202,7 @@ namespace twobillionarcgisaddin
                 MapView mapView = MapView.Active;
                 if (mapView != null)
                 {
-                    string selectedGeometry = null;
+                    FeatureLayer featureLayer = null;
                     await QueuedTask.Run(() =>
                     {
                         // Get the currently selected features in the map
@@ -218,44 +214,22 @@ namespace twobillionarcgisaddin
                             ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("No features on the map are selected, please select a feature you want to process and try again!");
                             Dispatcher.Invoke(() => this.SendDataButton.IsEnabled = true);
                             return;
-                        } 
-                        else if (selectedFeatures.Count > 1)
-                        {
-                            ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("There is more than one feature selected between all layers, please select a single feature you want to process and try again!");
-                            Dispatcher.Invoke(() => this.SendDataButton.IsEnabled = true);
-                            return;
                         }
 
                         // Get the first layer and its corresponding selected feature OIDs
                         var selectionSet = selectedFeatures.ToDictionary().First();
 
-                        // Create an instance of the inspector class
-                        var inspector = new ArcGIS.Desktop.Editing.Attributes.Inspector();
-
-                        // Load the selected features into the inspector using a list of object IDs
-                        inspector.Load(selectionSet.Key, selectionSet.Value);
-
-                        // Check that there are not more than one feature selected in the processing layer
-                        if (inspector.OIDSet.Count > 1)
-                        {
-                            ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("More than one feature has been selected, please retry with only one feature selected.");
-                            Dispatcher.Invoke(() => this.SendDataButton.IsEnabled = true);
-                            return;
-                        }
-
-                        // Assuming the inspector.Shape represents the geometry of the selected feature
-                        selectedGeometry = inspector.Shape.ToJson();
+                        featureLayer = selectionSet.Key as FeatureLayer;
                     });
 
                     if ((bool)this.OverwriteToggle.IsChecked)
                     {
-                        await ExecuteUpdateDataToolAsync(this.RowIDTextbox.Text, this.SiteID_Dropdown.SelectedItem.ToString(), selectedGeometry);
+                        await ExecuteUpdateDataToolAsync(this.SiteID_Dropdown.SelectedItem.ToString(), featureLayer);
                     }
                     else
                     {
-                        await ExecuteInsertDataToolAsync(this.SiteID_Dropdown.SelectedItem.ToString(), selectedGeometry);
+                        await ExecuteInsertDataToolAsync(this.SiteID_Dropdown.SelectedItem.ToString(), featureLayer);
                     }
-                        
                 }
             }
             catch (Exception ex)
@@ -488,7 +462,7 @@ namespace twobillionarcgisaddin
         }
 
         // Method to execute the Insert Data tool asynchronously
-        private async Task<bool> ExecuteInsertDataToolAsync(string siteID, string geometry)
+        private async Task<bool> ExecuteInsertDataToolAsync(string siteID, FeatureLayer featureLayer)
         {
             try
             {
@@ -498,7 +472,7 @@ namespace twobillionarcgisaddin
                 string tableName = this.DatabaseSchema.Text + ".site_geometry";
 
                 // Execute the Python tool and get the result
-                var parameters = Geoprocessing.MakeValueArray(connectionFile, tableName, siteID, geometry);
+                var parameters = Geoprocessing.MakeValueArray(connectionFile, tableName, siteID, featureLayer);
                 var returnValue = await Geoprocessing.ExecuteToolAsync(toolboxPath, parameters);
 
                 if (!returnValue.IsFailed)
@@ -520,7 +494,7 @@ namespace twobillionarcgisaddin
         }
 
         // Method to execute the Insert Data tool asynchronously
-        private async Task<bool> ExecuteUpdateDataToolAsync(string rowID, string siteID, string geometry)
+        private async Task<bool> ExecuteUpdateDataToolAsync(string siteID, FeatureLayer featureLayer)
         {
             try
             {
@@ -530,7 +504,7 @@ namespace twobillionarcgisaddin
                 string tableName = this.DatabaseSchema.Text + ".site_geometry";
 
                 // Execute the Python tool and get the result
-                var parameters = Geoprocessing.MakeValueArray(connectionFile, tableName, rowID, siteID, geometry);
+                var parameters = Geoprocessing.MakeValueArray(connectionFile, tableName, siteID, featureLayer);
                 var returnValue = await Geoprocessing.ExecuteToolAsync(toolboxPath, parameters);
 
                 if (!returnValue.IsFailed)

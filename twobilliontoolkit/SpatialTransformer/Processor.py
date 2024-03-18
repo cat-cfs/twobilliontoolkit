@@ -464,7 +464,7 @@ class Processor:
             
             arcpy.management.AddField(
                 feature_class, 
-                'site_id',
+                'bt_site_id',
                 'SHORT'               
             )
             
