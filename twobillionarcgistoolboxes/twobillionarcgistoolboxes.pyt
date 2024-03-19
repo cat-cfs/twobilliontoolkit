@@ -2,6 +2,7 @@
 
 import arcpy
 import json
+import time
 
 class Toolbox(object):
     def __init__(self):
@@ -73,6 +74,7 @@ class EstablishConnectionTool(object):
         - parameters: List of input parameters.
         - messages: List to store messages or errors.
         """
+        start = time.perf_counter()
         try:
             # Get parameters
             connection_file = parameters[0].valueAsText
@@ -88,6 +90,8 @@ class EstablishConnectionTool(object):
         except Exception as e:
             # Handle and log errors
             arcpy.AddError(f"Error: {str(e)}")
+        
+        arcpy.AddMessage(f"This tool took {start - time.perf_counter():0.4f} seconds")
 
 class ReadDataTool(object):
     def __init__(self):
@@ -156,6 +160,7 @@ class ReadDataTool(object):
         Returns:
         - (str) JSON representation of the retrieved data from the table.
         """
+        start = time.perf_counter()
         try:
             # Get parameters
             connection_file = parameters[0].valueAsText
@@ -182,6 +187,8 @@ class ReadDataTool(object):
         except Exception as e:
             # Handle and log errors
             arcpy.AddError(f"Error: {str(e)}")
+            
+        arcpy.AddMessage(f"This tool took {start - time.perf_counter():0.4f} seconds")
             
 class InsertDataTool(object):
     def __init__(self):
@@ -256,6 +263,7 @@ class InsertDataTool(object):
         - parameters: List of input parameters.
         - messages: List to store messages or errors.
         """
+        start = time.perf_counter()
         try:
             # Get parameters
             connection_file = parameters[0].valueAsText
@@ -283,16 +291,30 @@ class InsertDataTool(object):
                     # Construct the SQL query for insertion
                     sql_insert = f'INSERT INTO {table_name} ("site_id", "geom") VALUES ({site_id}, ST_GeomFromText(\'{projected_multipolygon.WKT}\', 102001))'
                     egdb_conn.execute(sql_insert)
+                  
+            # Get the feature layer location  
+            description = arcpy.Describe(feature_layer)
                     
+            # Start an edit session
+            edit = arcpy.da.Editor(description.path) 
+            edit.startEditing(False, True) 
+            edit.startOperation()
+            
             with arcpy.da.UpdateCursor(feature_layer, 'bt_site_id') as cursor:                
                 # Loop through the selected features in the layer
                 for row in cursor:                                        
                     row[0] = site_id
                     cursor.updateRow(row)
+                
+            # Stop the edit operation and session
+            edit.stopOperation()
+            edit.stopEditing(True)
 
         except Exception as e:
             # Handle and log errors
             arcpy.AddError(f"Error: {str(e)}")
+
+        arcpy.AddMessage(f"This tool took {start - time.perf_counter():0.4f} seconds")
 
 class UpdateDataTool(object):
     def __init__(self):
@@ -367,6 +389,7 @@ class UpdateDataTool(object):
         - parameters: List of input parameters.
         - messages: List to store messages or errors.
         """
+        start = time.perf_counter()
         try:
             # Get parameters
             connection_file = parameters[0].valueAsText
@@ -397,16 +420,30 @@ class UpdateDataTool(object):
                     # Construct the SQL query for insertion
                     sql_insert = f'INSERT INTO {table_name} ("site_id", "geom") VALUES ({site_id}, ST_GeomFromText(\'{projected_multipolygon.WKT}\', 102001))'
                     egdb_conn.execute(sql_insert)
+               
+            # Get the feature layer location  
+            description = arcpy.Describe(feature_layer)
                     
+            # Start an edit session
+            edit = arcpy.da.Editor(description.path) 
+            edit.startEditing(False, True) 
+            edit.startOperation()
+                 
             with arcpy.da.UpdateCursor(feature_layer, 'bt_site_id') as cursor:                
                 # Loop through the selected features in the layer
                 for row in cursor:                                        
                     row[0] = site_id
                     cursor.updateRow(row)
+                    
+            # Stop the edit operation and session
+            edit.stopOperation()
+            edit.stopEditing(True)
                             
         except Exception as e:
             # Handle and log errors
             arcpy.AddError(f"Error: {str(e)}")
+            
+        arcpy.AddMessage(f"This tool took {start - time.perf_counter():0.4f} seconds")
 
 class CompleteProjectTool(object):
     def __init__(self):
@@ -472,6 +509,7 @@ class CompleteProjectTool(object):
         - parameters: List of input parameters.
         - messages: List to store messages or errors.
         """
+        start = time.perf_counter()
         try:
             # Get parameters
             connection_file = parameters[0].valueAsText
@@ -490,3 +528,6 @@ class CompleteProjectTool(object):
         except Exception as e:
             # Handle and log errors
             arcpy.AddError(f"Error: {str(e)}")
+            
+        arcpy.AddMessage(f"This tool took {start - time.perf_counter():0.4f} seconds")
+        
