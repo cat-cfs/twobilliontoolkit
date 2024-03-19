@@ -23,7 +23,7 @@
             <Button Content="Zoom To Selected Layers" Click="ZoomToSelectedButton" Style="{StaticResource ButtonStyle}" Template="{StaticResource ButtonTemplate}" />
 
             <Grid>
-                <TextBox x:Name="SiteNameFilterTextBox" Width="Auto" Height="27" VerticalAlignment="Center" Margin="5" FontSize="13" TextChanged="SiteNameFilterTextBox_TextChanged"/>
+                <TextBox x:Name="SiteNameFilterTextBox" Width="200" Height="27" VerticalAlignment="Center" Margin="5" FontSize="13" TextChanged="SiteNameFilterTextBox_TextChanged"/>
                 <TextBlock IsHitTestVisible="False" Text="Filter Site Names...      " VerticalAlignment="Center" Margin="10" FontSize="13" Foreground="DarkGray">
                     <TextBlock.Style>
                         <Style TargetType="{x:Type TextBlock}">
