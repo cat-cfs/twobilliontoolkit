@@ -42,6 +42,7 @@
         <DataGrid 
             x:Name="SiteMapperDataGrid" 
             Grid.Row="1"
+            Style="{DynamicResource Esri_DataGrid}"
             ItemsSource="{Binding ProjectItems}" 
             IsReadOnly="False" 
             AutoGenerateColumns="False" 
@@ -50,34 +51,11 @@
             CanUserResizeColumns="True" 
             CanUserReorderColumns="True" 
             CanUserResizeRows="False" 
-            Height="Auto"
-            AlternatingRowBackground="#E5E5E5"
-            VerticalGridLinesBrush="LightGray"
-            HorizontalGridLinesBrush="LightGray" 
             ScrollViewer.CanContentScroll="True"
             HorizontalScrollBarVisibility="Visible"
+            ColumnHeaderHeight="25"
+            CanUserSortColumns="True"
             >
-
-            <DataGrid.Resources>
-                <!-- Define a style for the header cells -->
-                <Style TargetType="DataGridColumnHeader">
-                    <Setter Property="Height" Value="33"/>
-                    <Setter Property="TextElement.FontWeight" Value="Bold" />
-                    <Setter Property="TextElement.FontSize" Value="12" />
-                </Style>
-
-                <!-- Define a style for the cells -->
-                <Style TargetType="DataGridCell">
-                    <Setter Property="Height" Value="23"/>
-
-                    <!-- Trigger to change appearance when the cell is selected -->
-                    <Style.Triggers>
-                        <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="BorderThickness" Value="1.8"/>
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-            </DataGrid.Resources>
 
             <DataGrid.Columns>
                 <DataGridTextColumn 

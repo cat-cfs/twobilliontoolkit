@@ -202,25 +202,26 @@ namespace twobillionarcgisaddin
                 MapView mapView = MapView.Active;
                 if (mapView != null)
                 {
-                    FeatureLayer featureLayer = null;
+                    SelectionSet selectedFeatures = null;
                     await QueuedTask.Run(() =>
                     {
                         // Get the currently selected features in the map
-                        var selectedFeatures = mapView.Map.GetSelection();
-
-                        // Check if any features are selected in any layer
-                        if (selectedFeatures.Count == 0)
-                        {
-                            ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("No features on the map are selected, please select a feature you want to process and try again!");
-                            Dispatcher.Invoke(() => this.SendDataButton.IsEnabled = true);
-                            return;
-                        }
-
-                        // Get the first layer and its corresponding selected feature OIDs
-                        var selectionSet = selectedFeatures.ToDictionary().First();
-
-                        featureLayer = selectionSet.Key as FeatureLayer;
+                        selectedFeatures = mapView.Map.GetSelection();
                     });
+
+                    // Check if any features are selected in any layer
+                    if (selectedFeatures.Count == 0)
+                    {
+                        ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("No features on the map are selected, please select a feature you want to process and try again!");
+                        this.SendDataButton.IsEnabled = true;
+                        this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
+                        return;
+                    }
+
+                    // Get the first layer and its corresponding selected feature OIDs
+                    var selectionSet = selectedFeatures.ToDictionary().First();
+
+                    FeatureLayer featureLayer = selectionSet.Key as FeatureLayer;
 
                     if ((bool)this.OverwriteToggle.IsChecked)
                     {
@@ -285,12 +286,14 @@ namespace twobillionarcgisaddin
         // Method to handle the change event of the filters
         private void SiteMapperFilterChanged(object sender, SelectionChangedEventArgs e)
         {
+            Dictionary<string, string> filter = GetSiteMapperFilter();
+
             if (sender == this.ProjectNumber_Dropdown)
             {
                 // Create a DataContainer instance to process the JSON string
                 dataContainer = new DataContainer(siteMapperToolOutput);
 
-                //
+                // 
                 PopulateFilters(dataContainer, true);
 
                 if (string.IsNullOrEmpty(this.ProjectNumber_Dropdown.SelectedItem as string))
@@ -302,16 +305,14 @@ namespace twobillionarcgisaddin
                 {
                     this.Secondary_Filter.Visibility = Visibility.Visible;
                 }
-            }
 
-            Dictionary<string, string> filter = GetSiteMapperFilter();
+                // Filter map layers based on the selected project number
+                SelectMapLayers(filter["ProjectNumber"]);
+            }
 
             // Repopulate the data grid with the filtered data
             SiteMapperDataGridView dockpane2 = SiteMapperDataGridView.MySiteMapperDataGridView;
-            dockpane2.PopulateDataGrid(dataContainer, filter);
-
-            // Filter map layers based on the selected project number
-            SelectMapLayers(filter["ProjectNumber"]);
+            dockpane2.PopulateDataGrid(dataContainer, filter);   
         }
 
         private async void ShowHiddenCat()

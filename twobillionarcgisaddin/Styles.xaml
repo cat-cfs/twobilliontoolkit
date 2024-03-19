@@ -8,9 +8,11 @@
         <Setter Property="BorderBrush" Value="#A3A3A3"/>
         <Setter Property="Background" Value="#E7E7E7"/>
         <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Background" Value="{DynamicResource Esri_ControlBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource Esri_TextStyleEmphasisBrush}"/>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="#d5ebf7"/>
+                <Setter Property="Background" Value="{DynamicResource Esri_BackgroundHoverSelectedBrush}"/>
             </Trigger>
         </Style.Triggers>
     </Style>
@@ -22,11 +24,14 @@
         <Setter Property="FontWeight" Value="Normal"/>
         <Setter Property="Padding" Value="2,0,0,0"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Background" Value="{DynamicResource Esri_DialogFrameBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource Esri_TextStyleEmphasisBrush}"/>
     </Style>
 
     <Style x:Key="LabelStyle" TargetType="Label">
         <Setter Property="DockPanel.Dock" Value="Top"/>
         <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="{DynamicResource Esri_TextStyleEmphasisBrush}"/>
     </Style>
 
     <Style x:Key="SeperatorStyle" TargetType="Separator">
@@ -34,17 +39,9 @@
         <Setter Property="HorizontalAlignment" Value="Left"/>
         <Setter Property="Width" Value="125"/>
         <Setter Property="Margin" Value="0,0,0,10"/>
+        <Setter Property="Background" Value="{DynamicResource Esri_TextStyleEmphasisBrush}"/>
     </Style>
-
-    <Style x:Key="ComboBoxStyle" TargetType="ComboBox">
-        <Setter Property="DockPanel.Dock" Value="Top"/>
-        <Setter Property="Height" Value="55"/>
-        <Setter Property="FontWeight" Value="Normal"/>
-        <Setter Property="VerticalContentAlignment" Value="Center"/>
-        <Setter Property="Padding" Value="10,0,0,0"/>
-        <Setter Property="Foreground" Value="Black"/>
-    </Style>
-
+    
     <Style x:Key="CheckBoxStyle" TargetType="CheckBox">
         <Setter Property="DockPanel.Dock" Value="Top"/>
         <Setter Property="Style" Value="{DynamicResource Esri_CheckboxToggleSwitch}"/>
