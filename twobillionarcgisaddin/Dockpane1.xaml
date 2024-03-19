@@ -22,13 +22,8 @@
     </UserControl.Resources>
     
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-
         <!-- DockPanel for database connection -->
-        <DockPanel x:Name="UserForm" Grid.Row="1" LastChildFill="true" KeyboardNavigation.TabNavigation="Local" Margin="20,12,20,12" Visibility="Visible">
+        <DockPanel x:Name="UserForm" LastChildFill="true" KeyboardNavigation.TabNavigation="Local" Margin="20,12,20,12" Visibility="Visible">
             <Label Content="Enter the path to a python toolbox" Style="{StaticResource LabelStyle}"/>
             <Grid HorizontalAlignment="Stretch" DockPanel.Dock="Top">
                 <Grid.ColumnDefinitions>
@@ -67,9 +62,18 @@
         </DockPanel>
 
         <!-- DockPanel for Button Tool List -->
-        <DockPanel x:Name="ButtonToolist" LastChildFill="False" KeyboardNavigation.TabNavigation="Local" Margin="20,12,20,12" Visibility="Collapsed">
+        <DockPanel x:Name="ButtonToolist" LastChildFill="False" Margin="20,12,20,12" Visibility="Collapsed">
             <Grid DockPanel.Dock="Top">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -81,10 +85,49 @@
                     <Label x:Name="ConnectedMessage" Content="You are connected to the database!" HorizontalContentAlignment="Center" Foreground="White"/>
                 </Border>
 
-                <Button x:Name="SiteMapperButton" Grid.Row="2" Content="Site Mapper Tool" Height="55" Click="SiteMapperButtonClicked" DockPanel.Dock="Top" Template="{StaticResource ButtonTemplate}" Style="{StaticResource ButtonStyle}"/>
+                <Border Style="{StaticResource OutlineBorder}" Grid.Row="2">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Button x:Name="PreviousWorkingProjectButton" Style="{DynamicResource Esri_ButtonBackSmall}" ToolTip="Go to previous working project"/>
+                        
+                        <StackPanel Orientation="Vertical" Margin="40,0,40,0">
+                            <Label Content="Working Project:" HorizontalAlignment="Center" FontSize="15" FontWeight="Normal" Foreground="Black" VerticalAlignment="Center"/>
+                            <Label Content="None" HorizontalAlignment="Center" FontSize="13" FontWeight="Bold" Foreground="Black" VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <Button x:Name="NextWorkingProjectButton" Style="{DynamicResource Esri_ButtonForwardSmall}" ToolTip="Go to next working project"/>
+                    </StackPanel>
+                </Border>
+
+                <StackPanel Grid.Row="3" Orientation="Vertical">
+                    <Label Content="Step 1" FontSize="14" FontWeight="Bold" Foreground="Black"/>
+                    <Separator Style="{StaticResource SeperatorStyle}"/>
+                </StackPanel>
+
+                <Button x:Name="x" Grid.Row="4" Content="Placeholder" Height="55" Click="SiteMapperButtonClicked" DockPanel.Dock="Top" Template="{StaticResource ButtonTemplate}" Style="{StaticResource ButtonStyle}" IsEnabled="False"/>
+
+                <StackPanel Grid.Row="5" Orientation="Vertical">
+                    <Label Content="Step 2" FontSize="14" FontWeight="Bold" Foreground="Black"/>
+                    <Separator Style="{StaticResource SeperatorStyle}"/>
+                </StackPanel>
+
+                <Button x:Name="xx" Grid.Row="6" Content="Placeholder" Height="55" Click="SiteMapperButtonClicked" DockPanel.Dock="Top" Template="{StaticResource ButtonTemplate}" Style="{StaticResource ButtonStyle}" IsEnabled="False"/>
+
+                <StackPanel Grid.Row="7" Orientation="Vertical">
+                    <Label Content="Step 3" FontSize="14" FontWeight="Bold" Foreground="Black"/>
+                    <Separator Style="{StaticResource SeperatorStyle}"/>
+                </StackPanel>
+
+                <Button x:Name="xxx" Grid.Row="8" Content="Placeholder" Height="55" Click="SiteMapperButtonClicked" DockPanel.Dock="Top" Template="{StaticResource ButtonTemplate}" Style="{StaticResource ButtonStyle}" IsEnabled="False"/>
+
+                <StackPanel Grid.Row="9" Orientation="Vertical">
+                    <Label Content="Step 4" FontSize="14" FontWeight="Bold" Foreground="Black"/>
+                    <Separator Style="{StaticResource SeperatorStyle}"/>
+                </StackPanel>
+
+                <Button x:Name="SiteMapperButton" Grid.Row="10" Content="Site Mapper Tool" Height="55" Click="SiteMapperButtonClicked" DockPanel.Dock="Top" Template="{StaticResource ButtonTemplate}" Style="{StaticResource ButtonStyle}"/>
             </Grid>
 
-            <Button x:Name="CompleteProjectButton" Content="Finish Current Project" Height="55" Margin="0,10,0,0" Click="CompleteProjectButtonClicked"  Template="{StaticResource ButtonTemplate}" Style="{StaticResource ButtonStyle}" DockPanel.Dock="Bottom"/>
+            <Button x:Name="CompleteProjectButton" Content="Finish Working Project" Height="55" Margin="0,10,0,0" Click="CompleteProjectButtonClicked" Template="{StaticResource ButtonTemplate}" Style="{StaticResource ButtonStyle}" DockPanel.Dock="Bottom"/>
         </DockPanel>
 
         <!-- DockPanel for TwoBillionTrees logistics -->
@@ -98,7 +141,6 @@
                 <Label Content="Site Mapper" Grid.Row="0" HorizontalAlignment="Center" FontSize="17" FontWeight="Normal" Foreground="Black" VerticalAlignment="Center"/>
             </Grid>
         
-
             <Label Content="Filter Project Number" Style="{StaticResource LabelStyle}"/>
             <ComboBox x:Name="ProjectNumber_Dropdown" Style="{StaticResource ComboBoxStyle}" SelectionChanged="SiteMapperFilterChanged"/>
             

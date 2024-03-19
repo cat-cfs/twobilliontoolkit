@@ -258,16 +258,21 @@ namespace twobillionarcgisaddin
                         if (selectedFeatures.Count == 0)
                         {
                             ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Please select a project on the left and try again.");
+                            return;
                         }
                         else if (selectedFeatures.Count > 1) 
                         {
                             ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Please select only one project on the left and try again.");
+                            return;
                         }
 
                         selectedLayer = selectedFeatures[0].Name;
                     });
 
-                    await ExecuteCompleteProjectToolAsync(selectedLayer);
+                    if (selectedLayer != null)
+                    {
+                        await ExecuteCompleteProjectToolAsync(selectedLayer);
+                    }
                 }
             }
             catch (Exception ex)
