@@ -271,7 +271,10 @@ class InsertDataTool(object):
             site_id = parameters[2].valueAsText
             feature_layer = parameters[3].value
             
-            # 
+            # Define the target spatial reference for all features
+            target_Ref = arcpy.SpatialReference(102001)
+            
+            # Get all of the selected features' geometries in the layer 
             with arcpy.da.SearchCursor(feature_layer, 'SHAPE@') as cursor:
                 
                 # Connect to the enterprise geodatabase
@@ -281,7 +284,6 @@ class InsertDataTool(object):
                 # Loop through the selected features in the layer
                 for row in cursor:                  
                     # Project the polygon to Canadian Albers (wkid 102001)
-                    target_Ref = arcpy.SpatialReference(102001)
                     polygon_projected = row[0].projectAs(target_Ref)   
                     
                     # Get all parts of the project polygon and construct a new polygon with no z or m-coordinates
@@ -397,6 +399,10 @@ class UpdateDataTool(object):
             site_id = parameters[2].valueAsText
             feature_layer = parameters[3].value
 
+            # Define the target spatial reference for all features
+            target_Ref = arcpy.SpatialReference(102001)
+
+            # Get all of the selected features' geometries in the layer 
             with arcpy.da.SearchCursor(feature_layer, 'SHAPE@') as cursor:
                 
                 # Connect to the enterprise geodatabase
@@ -410,7 +416,6 @@ class UpdateDataTool(object):
                 # Loop through the selected features in the layer
                 for row in cursor:                    
                     # Project the polygon to Canadian Albers (wkid 102001)
-                    target_Ref = arcpy.SpatialReference(102001)
                     polygon_projected = row[0].projectAs(target_Ref)   
                     
                     # Get all parts of the project polygon and construct a new polygon with no z or m-coordinates
