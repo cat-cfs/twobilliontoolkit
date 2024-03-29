@@ -45,7 +45,7 @@ class Colors:
 #========================================================
 # Logger Functions
 #========================================================   
-def log(file_path: str = None, type: str = Colors.ERROR, message: str = '', filename: str = None, line_num: int = None) -> None:
+def log(file_path: str = None, type: str = Colors.ERROR, message: str = '', suppress: bool = False, filename: str = None, line_num: int = None) -> None:
     """
     Log messages with colored tags and timestamps.
 
@@ -53,6 +53,7 @@ def log(file_path: str = None, type: str = Colors.ERROR, message: str = '', file
         file_path (str, optional): Path to the log file.
         type (str): Color code for the log message type.
         message (str): The log message.
+        suppress (bool, optional): Suppress warnings in the command line.
         filename (str, optional): The filename where the error occured if known.
         line_num (int, optional): The line number in the file that the error occured if known.
     """
@@ -64,9 +65,11 @@ def log(file_path: str = None, type: str = Colors.ERROR, message: str = '', file
     if type == Colors.INFO:
         tag = 'INFO'
         print(f'{type}[{tag}] {message}{Colors.END}')
-    elif type == Colors.WARNING:
+    elif type == Colors.WARNING and not suppress:
         tag = 'WARNING'
         print(f'{type}[{tag}] {message}{Colors.END}')
+    elif type == Colors.WARNING and suppress:
+        tag = 'WARNING'
     elif type == Colors.ERROR:
         tag = 'ERROR'
         print(f'{type}[{tag}] {traceback}{message}{Colors.END}')
@@ -79,7 +82,9 @@ def log(file_path: str = None, type: str = Colors.ERROR, message: str = '', file
         if not os.path.exists(directory):
             os.makedirs(directory)
         
-        # Open the file in append mode and append a log message
-        with open(file_path, 'a') as log_file:
-            log_file.write(f'{datetime.now().strftime("%d/%m/%Y %H:%M:%S")} [{tag}] {traceback}{message}\n')
-    
+        try:
+            # Open the file in append mode and append a log message
+            with open(file_path, 'a') as log_file:
+                log_file.write(f'{datetime.now().strftime("%d/%m/%Y %H:%M:%S")} [{tag}] {traceback}{message}\n')
+        except PermissionError as e:
+            print(f"Permission denied to write to file: {file_path}. Error: {e}")

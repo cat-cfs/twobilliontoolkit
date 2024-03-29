@@ -418,42 +418,46 @@ class Datatracker2BT(Datatracker):
         existing_ids = set(row[0] for row in rows)
 
         for key, value in self.data_dict.items():
-            if key in existing_ids and update:
-                self.database_connection.update(
-                    schema=self.database_connection.schema, 
-                    table=self.database_connection.table,
-                    values_dict={
-                        'dropped': value['dropped'],
-                        'in_raw_gdb': value['in_raw_gdb'], 
-                        'contains_pdf': value['contains_pdf'], 
-                        'contains_image': value['contains_image'],
-                        'editor_tracking_enabled': value['editor_tracking_enabled'], 
-                        'processed': value['processed']
-                    },
-                    condition=f"project_spatial_id='{key}'"
-                )
-                
-            elif key not in existing_ids:
-                self.database_connection.create(
-                    schema=self.database_connection.schema, 
-                    table=self.database_connection.table,
-                    columns=('project_spatial_id', 'project_number', 'dropped', 'project_path', 'raw_data_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled', 'processed'),
-                    values=(
-                        key, 
-                        value['project_number'], 
-                        value['dropped'], 
-                        value['project_path'], 
-                        value['raw_data_path'],
-                        value['absolute_file_path'], 
-                        value['in_raw_gdb'], 
-                        value['contains_pdf'], 
-                        value['contains_image'],
-                        value['extracted_attachments_path'],
-                        value['editor_tracking_enabled'],
-                        value['processed']
+            try:
+                if key in existing_ids and update:
+                    self.database_connection.update(
+                        schema=self.database_connection.schema, 
+                        table=self.database_connection.table,
+                        values_dict={
+                            'dropped': value['dropped'],
+                            'in_raw_gdb': value['in_raw_gdb'], 
+                            'contains_pdf': value['contains_pdf'], 
+                            'contains_image': value['contains_image'],
+                            'editor_tracking_enabled': value['editor_tracking_enabled'], 
+                            'processed': value['processed']
+                        },
+                        condition=f"project_spatial_id='{key}'"
                     )
-                ) 
-        
+                    
+                elif key not in existing_ids:
+                    self.database_connection.create(
+                        schema=self.database_connection.schema, 
+                        table=self.database_connection.table,
+                        columns=('project_spatial_id', 'project_number', 'dropped', 'project_path', 'raw_data_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled', 'processed'),
+                        values=(
+                            key, 
+                            value['project_number'], 
+                            value['dropped'], 
+                            value['project_path'], 
+                            value['raw_data_path'],
+                            value['absolute_file_path'], 
+                            value['in_raw_gdb'], 
+                            value['contains_pdf'], 
+                            value['contains_image'],
+                            value['extracted_attachments_path'],
+                            value['editor_tracking_enabled'],
+                            value['processed']
+                        )
+                    ) 
+                    
+            except psycopg2.errors.ForeignKeyViolation as error:
+                log(self.log_path, Colors.ERROR, error)
+            
         self.database_connection.disconnect()
 
     def save_to_file(self) -> None:

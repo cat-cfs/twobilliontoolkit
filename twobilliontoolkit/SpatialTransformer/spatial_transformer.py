@@ -40,7 +40,7 @@ from twobilliontoolkit.SpatialTransformer.Processor import Processor
 #========================================================
 # Entry Function
 #========================================================  
-def spatial_transformer(input_path: str, output_path: str, gdb_path: str, master_data_path: str, load_from: str, save_to: str, datatracker_path: str, attachments_path: str, debug: bool = False, resume: bool = False) -> None:
+def spatial_transformer(input_path: str, output_path: str, gdb_path: str, master_data_path: str, load_from: str, save_to: str, datatracker_path: str, attachments_path: str, debug: bool = False, resume: bool = False, suppress: bool = False) -> None:
     """
     The spatial_transformer function serves as the main entry point for the spatial transformation script. Its primary purpose is to handle various tasks related to spatial data processing, such as starting the ripple_unzipple tool and geodatabase creation.
 
@@ -55,6 +55,7 @@ def spatial_transformer(input_path: str, output_path: str, gdb_path: str, master
         attachments_path (str): Path where the extracted attachments will be.
         debug (bool, optional): Determines if the program is in debug mode. Defaults False.
         resume (bool, optional): Determines if the program should resume from where a crash happened. Defaults False.
+        suppress (bool, optional): Determines if the program will suppress Warning Messages to the command line while running.
     """
     # Create the logfile path
     log_path = gdb_path.replace('.gdb', f"{datetime.datetime.now().strftime('%Y-%m-%d')}.txt")
@@ -64,7 +65,7 @@ def spatial_transformer(input_path: str, output_path: str, gdb_path: str, master
     
     try:       
         # Initialize Parameters class
-        setup_parameters = Parameters(input_path, output_path, gdb_path, master_data_path, datatracker_path, attachments_path, load_from, save_to, log_path, debug, resume)
+        setup_parameters = Parameters(input_path, output_path, gdb_path, master_data_path, datatracker_path, attachments_path, load_from, save_to, log_path, debug, resume, suppress)
                 
         # Start the unzip tool 
         setup_parameters.handle_unzip()
@@ -126,12 +127,13 @@ def main():
     parser.add_argument('--attachments', default='', help='The location where the attachments will be extracted to if applicable (optional, defaults to same root output as Ripple Unzipple)')
     parser.add_argument('--debug', action='store_true', default=False, help='Enable debug mode')
     parser.add_argument('--resume', action='store_true', default=False, help='Resume from where a crash happened')
+    parser.add_argument('--suppress', action='store_true', default=False, help='Suppress Warnings in the command-line and only show Errors')
     
     # Parse the command-line arguments
     args = parser.parse_args()
         
     # Call the entry function
-    spatial_transformer(args.input, args.output, args.gdb, args.master, args.load, args.save, args.datatracker, args.attachments,args.debug, args.resume)
+    spatial_transformer(args.input, args.output, args.gdb, args.master, args.load, args.save, args.datatracker, args.attachments,args.debug, args.resume, args.suppress)
                         
     # Get the end time of the script and calculate the elapsed time
     end_time = time.time()

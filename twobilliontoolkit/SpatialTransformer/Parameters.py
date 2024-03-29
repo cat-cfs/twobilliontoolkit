@@ -13,7 +13,7 @@ from twobilliontoolkit.RippleUnzipple.ripple_unzipple import ripple_unzip
 # Classes
 #========================================================
 class Parameters:
-    def __init__(self, input_path: str, output_path: str, gdb_path: str, master_data_path: str, datatracker_path: str, attachments_path: str, load_from: str = 'database', save_to: str = 'database', log_path: str = None, debug: bool = False, resume: bool = False) -> None:
+    def __init__(self, input_path: str, output_path: str, gdb_path: str, master_data_path: str, datatracker_path: str, attachments_path: str, load_from: str = 'database', save_to: str = 'database', log_path: str = None, debug: bool = False, resume: bool = False, suppress: bool = False) -> None:
         """
         Initializes the Parameters class with input parameters.
 
@@ -29,6 +29,7 @@ class Parameters:
         - log_path (str, optional): Path to log file. Defaults to an empty string.
         - debug (bool, optional): Determines if the program is in debug mode.
         - resume (bool, optional): Determines if the program should resume from where a crash happened.
+        - suppress (bool, optional): Determines if the program will suppress warnings to the command line.
         """
         # Ensure that if a datatracker is specified for loading or saving, then a path must be passed
         if (load_from == 'datatracker' or save_to == 'datatracker') and datatracker_path == '':
@@ -60,6 +61,7 @@ class Parameters:
         self.log = log_path
         self.debug = debug
         self.resume = resume
+        self.suppress = suppress
         
         # Extra validation on master data to check it has project number column
         if 'Project Number' not in self.masterdata.columns:

@@ -7,6 +7,7 @@ import re
 import tempfile
 import xml.etree.ElementTree as ET
 import win32wnet
+import arcgisscripting
 
 from twobilliontoolkit.SpatialTransformer.common import *
 from twobilliontoolkit.Logger.logger import log, Colors
@@ -68,10 +69,10 @@ class Processor:
                 log(None, Colors.INFO, file)
                 log(None, Colors.INFO, formatted_project_spatial_id)
 
-            # Convert the raw data path to a relative path and extract the project path
+            # Convert the raw data path to a relative path and extract the project path            
             raw_data_path = os.path.relpath(file, self.params.output)
             project_path = raw_data_path.split("\\")[0]
-            absolute_file_path = win32wnet.WNetGetUniversalName(os.path.abspath(file), 1)
+            absolute_file_path = convert_to_actual_drive_path(file)
 
             # Call a method to process raw data matching
             self.call_raw_data_match(formatted_project_spatial_id, raw_data_path)
@@ -103,11 +104,11 @@ class Processor:
                 # Check the file type and call the appropriate processing method
                 lowercase_file = file.lower()
                 if lowercase_file.endswith(LAYOUT_FILE_EXTENSIONS):
-                    log(self.params.log, Colors.WARNING, f'Layout file: {file} will be added to data tracker but not resulting gdb.')
+                    log(self.params.log, Colors.WARNING, f'Layout file: {file} will be added to data tracker but not resulting gdb.', self.params.suppress)
                 elif lowercase_file.endswith(DATA_SHEET_EXTENSIONS):
-                    log(self.params.log, Colors.WARNING, f'Datasheet: {file} will be added to data tracker but not resulting gdb.')
+                    log(self.params.log, Colors.WARNING, f'Datasheet: {file} will be added to data tracker but not resulting gdb.', self.params.suppress)
                 elif lowercase_file.endswith(IMAGE_FILE_EXTENSIONS):
-                    log(self.params.log, Colors.WARNING, f'Image/PDF file: {file} will be added to data tracker but not resulting gdb.')
+                    log(self.params.log, Colors.WARNING, f'Image/PDF file: {file} will be added to data tracker but not resulting gdb.', self.params.suppress)
                     
                     # Update data tracker based on specific file types
                     if lowercase_file.endswith('.pdf'):
@@ -124,15 +125,16 @@ class Processor:
                 elif lowercase_file.endswith('.gdb'):
                     self.process_gdb(file, formatted_project_spatial_id)
                 elif lowercase_file.endswith(('.gpkg', '.sqlite')):
-                    log(self.params.log, Colors.WARNING, f'GeoPackage/SQLite file: {file} will be added to data tracker but not resulting gdb.')
+                    log(self.params.log, Colors.WARNING, f'GeoPackage/SQLite file: {file} will be added to data tracker but not resulting gdb.', self.params.suppress)
 
                 self.data.set_data(project_spatial_id=formatted_project_spatial_id, processed=True)
             
             except arcpy.ExecuteError as error:
-                log(self.params.log, Colors.ERROR, f'An error occured when processing the layer for {file}, removing it from the datatracker/database, run the command again with --resume')
-                raise arcpy.ExecuteError(error)
+                log(self.params.log, Colors.ERROR, f'An error occured when processing the layer for {file}: {error}, removing it from the datatracker/database, run the command again with --resume')
+            except arcgisscripting.ExecuteError as error:
+                log(self.params.log, Colors.ERROR, f'An error occured when processing the layer for {file}: {error}, removing it from the datatracker/database, run the command again with --resume')
             except Exception as error:
-                log(self.params.log, Colors.ERROR, f'An error occured when processing the layer for {file}, removing it from the datatracker/database, run the command again with --resume')
+                log(self.params.log, Colors.ERROR, f'An error occured when processing the layer for {file}: {error}, removing it from the datatracker/database, run the command again with --resume')
                 raise Exception(error)
                  
         log(None, Colors.INFO, 'Processing of the files into the Geodatabase has completed.')
@@ -140,8 +142,8 @@ class Processor:
         # Extract attachments from the Geodatabase
         self.extract_attachments()
         
-        # Enable the editor tracking in the Geodatabase
-        self.enable_version_control()
+        # # Enable the editor tracking in the Geodatabase
+        # self.enable_version_control()
             
         # Save the data tracker before returning
         self.data.save_data()
@@ -166,7 +168,7 @@ class Processor:
         
         # If no match is found, log a warning and assign an arbitrary project number
         if not search:
-            log(self.params.log, Colors.WARNING, f'Could not find a project number for: {file_path} - Giving it an arbitrary project number "0000 XXX - 000"')
+            log(self.params.log, Colors.WARNING, f'Could not find a project number for: {file_path} - Giving it an arbitrary project number "0000 XXX - 000"', self.params.suppress)
             formatted_result = '0000 XXX - 000'
         else:
             # Format the result using the matched groups
@@ -175,7 +177,7 @@ class Processor:
         # Check if the project number is found in the master datasheet
         project_found = master_df['Project Number'].str.replace(' ', '').eq(formatted_result.replace(' ', '').upper()).any()
         if not project_found:
-            log(self.params.log, Colors.WARNING, f'The project number does not match any in the master datasheet')
+            log(self.params.log, Colors.WARNING, f'The project number does not match any in the master datasheet', self.params.suppress)
             
         return formatted_result
         
@@ -190,7 +192,7 @@ class Processor:
         # Find a corresponding project spatial ID in the data dictionary based on the raw data path
         (found_match, _) = self.data.find_matching_data(raw_data_path=raw_data_path)
         if found_match is not None:
-            log(self.params.log, Colors.WARNING, f'Raw path: {raw_data_path} already exists in the data tracker! -  Current Spatial ID: {current_spatial_id} Matching Spatial ID: {found_match}')    
+            log(self.params.log, Colors.WARNING, f'Raw path: {raw_data_path} already exists in the data tracker! -  Current Spatial ID: {current_spatial_id} Matching Spatial ID: {found_match}', self.params.suppress)    
 
     def process_shp(self, file: str, formatted_project_spatial_id: str) -> None:
         """
@@ -205,6 +207,9 @@ class Processor:
             file,
             self.params.gdb + f'\proj_{formatted_project_spatial_id}'
         )
+        
+        #
+        self.enable_version_control(self.params.gdb + f'\proj_{formatted_project_spatial_id}')
         
         # Change the flag to indicate it was succefully put into the Geodatabase
         self.data.set_data(
@@ -263,7 +268,7 @@ class Processor:
                     project_number=current_feature_data['project_number'],
                     dropped=False,
                     project_path=current_feature_data['project_path'],
-                    absolute_file_path=win32wnet.WNetGetUniversalName(os.path.abspath(file), 1),    
+                    absolute_file_path=convert_to_actual_drive_path(file),    
                     raw_data_path=current_feature_data['raw_data_path'],
                     in_raw_gdb=False,
                     contains_pdf=False,
@@ -282,6 +287,9 @@ class Processor:
                 os.path.join(self.temp_directory, f'kml_layer.gdb/Placemarks/{feature_class}'),
                 os.path.join(self.params.gdb, new_name)
             )   
+            
+            #
+            self.enable_version_control(os.path.join(self.params.gdb, new_name))
             
             # Set the flag to indicate that the first feature class has been processed
             first_feature_class_processed = True
@@ -346,6 +354,9 @@ class Processor:
             self.params.gdb + f'\proj_{formatted_project_spatial_id}'
         )
         
+        #
+        self.enable_version_control(self.params.gdb + f'\proj_{formatted_project_spatial_id}')
+        
         # Change the flag to indicate it was succefully put into the Geodatabase
         self.data.set_data(
             project_spatial_id=formatted_project_spatial_id, 
@@ -383,7 +394,7 @@ class Processor:
                     dropped=False,
                     project_path=current_feature_data['project_path'],
                     raw_data_path=current_feature_data['raw_data_path'],
-                    absolute_file_path=win32wnet.WNetGetUniversalName(os.path.abspath(file), 1),
+                    absolute_file_path=convert_to_actual_drive_path(file),
                     in_raw_gdb=False,
                     contains_pdf=False,
                     contains_image=False,
@@ -394,14 +405,17 @@ class Processor:
                 
                 # Update the formatted project spatial ID
                 formatted_project_spatial_id = spatial_project_id
-            
-            if arcpy.Describe(feature).dataType == 'FeatureClass':
+                
+            if arcpy.Exists(feature) and arcpy.Describe(feature).dataType == 'FeatureClass':
                 # Create a new name and export feature class
                 new_name = f"proj_{formatted_project_spatial_id}"
                 arcpy.conversion.ExportFeatures(
                     os.path.join(file, feature),
                     os.path.join(self.params.gdb, new_name)
                 )
+                
+                #
+                self.enable_version_control(os.path.join(self.params.gdb, new_name))
                 
                 # Update the entry of the Geodatabase feature class
                 self.data.set_data(
@@ -486,3 +500,39 @@ class Processor:
         # Log completion of this task
         log(None, Colors.INFO, 'Enabling version control for feature classes in the Geodatabase has completed.')
         
+    def enable_version_control(self, feature_class) -> None:
+        """
+        Enable the editor tracking version control for a feature class in the Geodatabase.
+        """
+        try:
+            # Set the arc environement to the resulting GDB
+            arcpy.env.workspace = self.params.gdb
+            
+            #
+            arcpy.management.AddField(
+                feature_class, 
+                'bt_site_id',
+                'SHORT'               
+            )
+            
+            #
+            arcpy.EnableEditorTracking_management(feature_class, "bt_created_by", "bt_date_created", "bt_last_edited_by", "bt_date_edited", "ADD_FIELDS", "UTC")
+        except Exception as error:
+            log(self.params.log, Colors.ERROR, f'An error has been caught while trying to enable editor tracking for {feature_class} in resulting gdb, {error}\n')
+
+        
+def convert_to_actual_drive_path(file_path):
+    abs_file_path = os.path.abspath(file_path)
+    actual_drive_path = abs_file_path
+
+    if os.path.exists(abs_file_path) and os.path.splitdrive(abs_file_path)[0]:
+        # If the path is already an actual drive path, use it directly
+        return abs_file_path
+
+    try:
+        # Convert mapped drive path to UNC path
+        actual_drive_path = win32wnet.WNetGetUniversalName(abs_file_path, 1)
+    except Exception as e:
+        print(f"Error: {e}")
+
+    return actual_drive_path
