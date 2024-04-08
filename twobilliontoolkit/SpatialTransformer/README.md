@@ -30,8 +30,8 @@ To use the Spatial Transformer, run the script from the command line with the fo
 arcpy_environment_python_path /path/to/spatial_transformer.py [-h] --input input_path --output output_path --gdb gdb_path --master master_data_path --load {datatracker,database} --save {datatracker,database} [--datatracker_path datatracker_path] [--attachments attachments_path] [--debug] [--resume]
 ```
 - [-h, --help] (optional): List all of the available commands and a description for help.
-- --input input_path : Path to the input directory or compressed file.
-- --output output_path: Path to the output directory where the uncompressed data will be stored.
+- --input_path input_path : Path to the input directory or compressed file.
+- --output_network_path output_path: Path to the output directory where the uncompressed data will be stored.
 - --gdb gdb_path: Path to where the resulting GeoDatabase will be stored, it can be an existing GeoDatabase, else it will create the GeoDatabase itself.
 - --master master_data_path: Path to where the aspatial master datasheet is located.
 - --load {datatracker,database}: Specify wheather the tool loads the data from an exisiting datatracker or a database connection. 
@@ -43,7 +43,7 @@ arcpy_environment_python_path /path/to/spatial_transformer.py [-h] --input input
 
 Example from root of project:
 ```
-python ./twobilliontoolkit/SpatialTransformer/spatial_transformer.py --input ./Testing/Data/TestFolder.zip --output ./Testing/OutputFolder --gdb ./Testing/OutputGDB.gdb --datatracker ./Testing/OutputDataSheet.xlsx --load datatracker --save datatracker --master ./MasterDatasheet --attachments ./Testing/Attachments
+python ./twobilliontoolkit/SpatialTransformer/spatial_transformer.py --input_path ./Testing/Data/TestFolder.zip --output_network_path ./Testing/OutputFolder --gdb ./Testing/OutputGDB.gdb --datatracker ./Testing/OutputDataSheet.xlsx --load datatracker --save datatracker --master ./MasterDatasheet --attachments ./Testing/Attachments
 ```
 
 You also have the option of calling this function from a module import with the following syntax (you may need to use relative or absolute paths depending on your environment and where you are calling from):
@@ -56,7 +56,7 @@ from twobilliontoolkit.SpatialTransformer.spatial_transformer import spatial_tra
 
 # Example input parameters
 input_path = "/path/to/input/data"
-output_path = "/path/to/output/data"
+output_network_path = "/path/to/output/data"
 gdb_path = "/path/to/geodatabase.gdb"
 master_data_path = "/path/to/master_data.xlsx"
 load_from = "database"
@@ -68,7 +68,7 @@ resume = False
 
 # Call the spatial_transformer function
 spatial_transformer(
-    input_path, output_path, gdb_path, master_data_path, load_from, save_to,
+    input_path, output_network_path, gdb_path, master_data_path, load_from, save_to,
     datatracker_path, attachments_path, debug, resume
 )
 ```

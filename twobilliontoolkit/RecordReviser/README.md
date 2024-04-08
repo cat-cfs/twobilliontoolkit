@@ -65,7 +65,7 @@ def main():
 ```
 **Note**: providing call_record_reviser a value for changes will not open the GUI and just process everything in the background, if changes are not provided a popup GUI will appear and the user will need to make their changes, save and close the GUI before continuing on. An image of what that GUI looks like is below.
 
-![Alt text](image.png)
+![Record Reviser GUI](../../images/record_reviser.png)
 
 ## Configuration
 
@@ -94,7 +94,7 @@ If you would like to contribute to RecordReviser, follow these guidelines:
 
 ## License
 
-This project is licensed under the MIT License. [Click here to view the license file](LICENSE) and review the terms and conditions of the MIT License.
+This project is licensed under the MIT License. [Click here to view the license file](../../LICENSE) and review the terms and conditions of the MIT License.
 
 ## Contact
 

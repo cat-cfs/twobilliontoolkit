@@ -3,7 +3,7 @@
 ## Project Description
 
 This repo stands as a singular place for all the tools that will be developed for the processing of 2 Billion Trees data and information. It is a collection of tools, so each one has its own respective READMEs:
-- [GeoAttachmentSearth README](twobilliontoolkit/GeoAttachmentSeeker/README.md)
+- [GeoAttachmentSeeker README](twobilliontoolkit/GeoAttachmentSeeker/README.md)
 - [RecordReviser README](twobilliontoolkit/RecordReviser/README.md)
 - [RippleUnzipple README](twobilliontoolkit/RippleUnzipple/README.md)
 - [SpatialTransformer README](twobilliontoolkit/SpatialTransformer/README.md)
