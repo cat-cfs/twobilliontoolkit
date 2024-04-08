@@ -60,7 +60,7 @@ def ripple_unzip(input_path: str, output_path: str, log_path: str = '') -> None:
         if os.path.isdir(input_path):
             # First copy the directory to the new location 
             copy_tree(input_path, output_path)
-            recursive_unzip(input_path, output_path, log_path)
+            recursive_unzip(output_path, output_path, log_path)
         
         elif input_path.endswith((".zip", ".7z")):
             os.makedirs(output_path, exist_ok=True)
@@ -101,14 +101,15 @@ def recursive_unzip(input_path: str, output_path: str, original_input_path: str,
             # Make sure that the original zip does not get touched
             if file_path == original_input_path:
                 continue
-            
-            # Get the path that the file will be extracted to
-            extract_path = os.path.join(output_path, os.path.splitext(file_path)[0][len(input_path) + 1:])
 
             file_to_remove = ''
             if file.endswith((".zip", ".7z")):
                 try:    
                     with ZipFile(file_path, mode='r') if file.endswith(".zip") else SevenZipFile(file_path, mode='r') as archive_ref:
+                        # Get the path that the file will be extracted to
+                        extract_path = os.path.join(output_path, os.path.splitext(file_path)[0]) 
+                        
+                        # unzip the file to the location
                         archive_ref.extractall(extract_path)
 
                         # Recursively call the function to check every file in the directory tree
