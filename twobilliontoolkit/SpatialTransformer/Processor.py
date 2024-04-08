@@ -15,6 +15,7 @@ from twobilliontoolkit.GeoAttachmentSeeker.geo_attachment_seeker import find_att
 from twobilliontoolkit.SpatialTransformer.Datatracker import Datatracker2BT
 from twobilliontoolkit.RecordReviser.record_reviser import call_record_reviser
 from twobilliontoolkit.SpatialTransformer.Parameters import Parameters
+from twobilliontoolkit.SpatialTransformer.network_transfer import transfer
 
 #========================================================
 # Helper Class
@@ -42,7 +43,7 @@ class Processor:
         Populates the `spatial_files` list with file paths.
         """
         # Step through unzip output path and keep track of paths
-        for root, dirs, files in os.walk(self.params.output):
+        for root, dirs, files in os.walk(self.params.local_output):
             for dir in dirs:
                 if dir.endswith('.gdb'):
                     self.spatial_files.append(os.path.join(root, dir))
@@ -70,7 +71,7 @@ class Processor:
                 log(None, Colors.INFO, formatted_project_spatial_id)
 
             # Convert the raw data path to a relative path and extract the project path            
-            raw_data_path = os.path.relpath(file, self.params.output)
+            raw_data_path = os.path.relpath(file, self.params.local_output)
             project_path = raw_data_path.split("\\")[0]
             absolute_file_path = convert_to_actual_drive_path(file)
 
@@ -141,12 +142,17 @@ class Processor:
 
         # Extract attachments from the Geodatabase
         self.extract_attachments()
-        
-        # # Enable the editor tracking in the Geodatabase
-        # self.enable_version_control()
-            
+                    
         # Save the data tracker before returning
         self.data.save_data()
+        
+        # Move the local files to the specified output
+        transfer(
+            self.params.local_output,
+            self.params.output[:self.params.output.rfind("\\")],
+            [self.params.gdb, self.params.datatracker, self.params.attachments, self.params.log],
+            self.params.log
+        )
         
         # Open the record reviser
         call_record_reviser(self.data, self.params.gdb)
@@ -457,48 +463,6 @@ class Processor:
         
         # Log completion of this task
         log(None, Colors.INFO, 'All attachments have been extracted from the result Geodatabase.')
-            
-    def enable_version_control(self) -> None:
-        """
-        Enable the editor tracking version control for each feature class in the Geodatabase.
-        """
-        # Set the arc environement to the resulting GDB
-        arcpy.env.workspace = self.params.gdb
-        
-        # Set editor tracking for each feature class in the GDB
-        feature_classes = arcpy.ListFeatureClasses()
-        for feature_class in feature_classes:
-            # TODO: Possibly add in the "created_by" and "date_created" fields to each feature class and populate them with the current computer username and date and then afterwards enable the editor tracking, it should not overwrite and will actually fill out the fields
-            
-            # arcpy.management.AddFields(
-            #     feature_class, 
-            #     [['created_by', 'TEXT', 'created_by', 255, os.getlogin().upper(), ''], 
-            #     ['date_created', 'DATE', 'date_created', None, datetime.date.today(), '']]
-            # )
-            
-            arcpy.management.AddField(
-                feature_class, 
-                'bt_site_id',
-                'SHORT'               
-            )
-            
-            if self.params.resume:
-                (_, data_entry) = self.data.find_matching_data(project_spatial_id=feature_class.replace('proj_', ''), editor_tracking_enabled=True)
-                if data_entry:
-                    continue
-            
-            try:
-                arcpy.EnableEditorTracking_management(feature_class, "bt_created_by", "bt_date_created", "bt_last_edited_by", "bt_date_edited", "ADD_FIELDS", "UTC")
-                
-                self.data.set_data(
-                    project_spatial_id=feature_class.replace('proj_', ''),
-                    editor_tracking_enabled=True
-                )
-            except Exception as error:
-                log(self.params.log, Colors.ERROR, f'An error has been caught while trying to enable editor tracking for {feature_class} in resulting gdb: {error}\n')
-            
-        # Log completion of this task
-        log(None, Colors.INFO, 'Enabling version control for feature classes in the Geodatabase has completed.')
         
     def enable_version_control(self, feature_class) -> None:
         """
@@ -508,14 +472,14 @@ class Processor:
             # Set the arc environement to the resulting GDB
             arcpy.env.workspace = self.params.gdb
             
-            #
+            # Add a site id for mapping in a later tool
             arcpy.management.AddField(
                 feature_class, 
                 'bt_site_id',
                 'SHORT'               
             )
             
-            #
+            # Enable the 4 fields for editor tracking
             arcpy.EnableEditorTracking_management(feature_class, "bt_created_by", "bt_date_created", "bt_last_edited_by", "bt_date_edited", "ADD_FIELDS", "UTC")
         except Exception as error:
             log(self.params.log, Colors.ERROR, f'An error has been caught while trying to enable editor tracking for {feature_class} in resulting gdb, {error}\n')
@@ -525,8 +489,8 @@ def convert_to_actual_drive_path(file_path):
     abs_file_path = os.path.abspath(file_path)
     actual_drive_path = abs_file_path
 
+    # If the path is already an actual drive path, use it directly
     if os.path.exists(abs_file_path) and os.path.splitdrive(abs_file_path)[0]:
-        # If the path is already an actual drive path, use it directly
         return abs_file_path
 
     try:

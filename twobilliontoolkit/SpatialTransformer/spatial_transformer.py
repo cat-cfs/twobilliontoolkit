@@ -22,7 +22,7 @@ Description:
     The spatial_transformer.py script is a Python tool for processing spatial data. It handles tasks like geodatabase creation, file validation, and checking project numbers against a master data sheet. 
 
 Usage:
-    python path/to/spatial_transformer.py [-h] --input input_path --output output_path --gdb gdb_path --master master_data_path --load {datatracker,database} --save {datatracker,database} [--datatracker datatracker_path] [--attachments attachments_path] [--debug] [--resume]
+    python path/to/spatial_transformer.py [-h] --input_path input_path --output_network_path output_path --gdb gdb_path --master master_data_path --load {datatracker,database} --save {datatracker,database} [--datatracker datatracker_path] [--attachments attachments_path] [--debug] [--resume]
 """
 #========================================================
 # Imports
@@ -40,36 +40,36 @@ from twobilliontoolkit.SpatialTransformer.Processor import Processor
 #========================================================
 # Entry Function
 #========================================================  
-def spatial_transformer(input_path: str, output_path: str, gdb_path: str, master_data_path: str, load_from: str, save_to: str, datatracker_path: str, attachments_path: str, debug: bool = False, resume: bool = False, suppress: bool = False) -> None:
+def spatial_transformer(input_path: str, output_path: str, load_from: str, save_to: str, gdb: str, datatracker: str, attachments: str, master_data_path: str, debug: bool = False, resume: bool = False, suppress: bool = False) -> None:
     """
     The spatial_transformer function serves as the main entry point for the spatial transformation script. Its primary purpose is to handle various tasks related to spatial data processing, such as starting the ripple_unzipple tool and geodatabase creation.
 
     Args:
         input_path (str): Path to input data.
-        output_path (str): Path to output data.
-        gdb_path (str): Path to geodatabase file.
-        master_data_path (str): Path to the aspatial master data.
+        output_path (str): Path to output data on network.
         load_from (str): Either 'database' or 'datatracker' to determine what to load the data from.
         save_to (str): Either 'database' or 'datatracker' to determine what to save the data to.
-        datatracker_path (str): Path to data tracker file.
-        attachments_path (str): Path where the extracted attachments will be.
+        gdb (str): Geodatabase folder name.
+        datatracker(str): Datatracker file name.
+        attachments (str): Attachment folder name.
+        master_data_path (str): Path to the aspatial master data.
         debug (bool, optional): Determines if the program is in debug mode. Defaults False.
         resume (bool, optional): Determines if the program should resume from where a crash happened. Defaults False.
         suppress (bool, optional): Determines if the program will suppress Warning Messages to the command line while running.
     """
     # Create the logfile path
-    log_path = gdb_path.replace('.gdb', f"{datetime.datetime.now().strftime('%Y-%m-%d')}.txt")
+    log_path = gdb.replace('.gdb', f"{datetime.datetime.now().strftime('%Y-%m-%d')}.txt")
     
     # Initialize a variable for the processor in case an error occurs beforehand
     spatial_data = None
     
     try:       
         # Initialize Parameters class
-        setup_parameters = Parameters(input_path, output_path, gdb_path, master_data_path, datatracker_path, attachments_path, load_from, save_to, log_path, debug, resume, suppress)
+        setup_parameters = Parameters(input_path, output_path, gdb, master_data_path, datatracker, attachments, load_from, save_to, log_path, debug, resume, suppress)
                 
         # Start the unzip tool 
         setup_parameters.handle_unzip()
-        
+
         # Create the GDB
         setup_parameters.create_gdb()
         
@@ -117,14 +117,14 @@ def main():
     parser = argparse.ArgumentParser(description='Spatial Transformer Tool')
     
     # Define command-line arguments
-    parser.add_argument('--input', required=True, default='', help='Directory or Compressed file location that will be handed to Ripple Unzipple')
-    parser.add_argument('--output', required=True, default='', help='Where to output the result from Ripple Unzipple')
-    parser.add_argument('--gdb', required=True, default='', help='The new location or where an exsiting Geodatabase is located')
-    parser.add_argument('--master', required=True, default='', help='The location of the master aspatial datasheet')
+    parser.add_argument('--input_path', required=True, default='', help='Directory or Compressed file location that will be handed to Ripple Unzipple')
+    parser.add_argument('--output_network_path', required=True, default='', help='Where to output the result from Ripple Unzipple')
     parser.add_argument('--load', choices=['datatracker', 'database'], required=True, default='database', help='Specify what to load from (datatracker or database)')
     parser.add_argument('--save', choices=['datatracker', 'database'], required=True, default='database', help='Specify what to save to (datatracker or database)')
-    parser.add_argument('--datatracker', default='', help='The new location or where an exsiting data tracker is located')
-    parser.add_argument('--attachments', default='', help='The location where the attachments will be extracted to if applicable (optional, defaults to same root output as Ripple Unzipple)')
+    parser.add_argument('--gdb', required=True, default='', help='Name of the geodatabase that will be saved in the output network folder')
+    parser.add_argument('--datatracker', default='', help='Name of the datatracker file that will be saved in the output network folder')
+    parser.add_argument('--attachments', default='', help='Name of the attachments folder that will be saved in the output network folder')
+    parser.add_argument('--master', required=True, default='', help='The location of the master aspatial datasheet')
     parser.add_argument('--debug', action='store_true', default=False, help='Enable debug mode')
     parser.add_argument('--resume', action='store_true', default=False, help='Resume from where a crash happened')
     parser.add_argument('--suppress', action='store_true', default=False, help='Suppress Warnings in the command-line and only show Errors')
@@ -133,7 +133,7 @@ def main():
     args = parser.parse_args()
         
     # Call the entry function
-    spatial_transformer(args.input, args.output, args.gdb, args.master, args.load, args.save, args.datatracker, args.attachments,args.debug, args.resume, args.suppress)
+    spatial_transformer(args.input_path, args.output_network_path, args.load, args.save, args.gdb, args.datatracker, args.attachments, args.master, args.debug, args.resume, args.suppress)
                         
     # Get the end time of the script and calculate the elapsed time
     end_time = time.time()

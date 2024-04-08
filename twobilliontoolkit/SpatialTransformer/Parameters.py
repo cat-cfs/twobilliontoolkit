@@ -13,51 +13,62 @@ from twobilliontoolkit.RippleUnzipple.ripple_unzipple import ripple_unzip
 # Classes
 #========================================================
 class Parameters:
-    def __init__(self, input_path: str, output_path: str, gdb_path: str, master_data_path: str, datatracker_path: str, attachments_path: str, load_from: str = 'database', save_to: str = 'database', log_path: str = None, debug: bool = False, resume: bool = False, suppress: bool = False) -> None:
+    def __init__(self, input_path: str, output_path: str, gdb: str, master_data_path: str, datatracker: str, attachments: str, load_from: str = 'database', save_to: str = 'database', log_path: str = None, debug: bool = False, resume: bool = False, suppress: bool = False) -> None:
         """
         Initializes the Parameters class with input parameters.
 
         Args:
         - input_path (str): Path to input data.
         - output_path (str): Path to output data.
-        - gdb_path (str): Path to geodatabase file.
+        - gdb (str): Geodatabase folder name.
         - master_data_path (str): Path to the aspatial master data.
         - load_from (str): Either 'database' or 'datatracker' to determine what to load the data from.
         - save_to (str): Either 'database' or 'datatracker' to determine what to save the data to.
-        - datatracker_path (str): Path to data tracker file.
-        - attachments_path (str): Path where the extracted attachments will be.
+        - datatracker (str): Datatracker file name.
+        - attachments (str): Attachment folder name.
         - log_path (str, optional): Path to log file. Defaults to an empty string.
         - debug (bool, optional): Determines if the program is in debug mode.
         - resume (bool, optional): Determines if the program should resume from where a crash happened.
         - suppress (bool, optional): Determines if the program will suppress warnings to the command line.
         """
-        # Ensure that if a datatracker is specified for loading or saving, then a path must be passed
-        if (load_from == 'datatracker' or save_to == 'datatracker') and datatracker_path == '':
-            raise argparse.ArgumentTypeError("If --load or --save is 'datatracker', --datatracker_path must be specified.")
-        elif (load_from == 'datatracker' or save_to == 'datatracker') and datatracker_path != '':
-            self.validate_path('datatracker_path', datatracker_path, must_ends_with=DATA_SHEET_EXTENSIONS)
-            if resume:
-                self.validate_path('datatracker_path', datatracker_path, must_exists=True)
-            
+        self.local_output = r'C:\LocalTwoBillionToolkit\Output\\'
+        
+        # Check if the directory exists, if it doesn't exist, create it
+        if not os.path.exists(self.local_output):
+            os.makedirs(self.local_output)
+        
+        # Build the paths
+        gdb = self.local_output + gdb
+        datatracker = self.local_output + datatracker
+        
         # If nothing was specified for the attachments path, set it to the same place as the output of the ripple unzipple tool.
-        if attachments_path == '':
-            attachments_path = output_path + 'Attachments'
-            
+        if attachments == '':
+            attachments = output_path + 'Attachments'
+        attachments = self.local_output + attachments
+        
+        # Ensure that if a datatracker is specified for loading or saving, then a path must be passed
+        if (load_from == 'datatracker' or save_to == 'datatracker') and datatracker == '':
+            raise argparse.ArgumentTypeError("If --load or --save is 'datatracker', --datatracker must be specified.")
+        elif (load_from == 'datatracker' or save_to == 'datatracker') and datatracker != '':
+            self.validate_path('datatracker', datatracker, must_ends_with=DATA_SHEET_EXTENSIONS)
+            if resume:
+                self.validate_path('datatracker', datatracker, must_exists=True)
+
         # Validate and set paths
         self.validate_path('input_path', input_path, must_exists=True)
-        self.validate_path('output_path', output_path)
-        self.validate_path('gdb_path', gdb_path, must_ends_with='.gdb')
+        self.validate_path('output_network_path', output_path)
+        self.validate_path('gdb', gdb, must_ends_with='.gdb')
         self.validate_path('master_data_path', master_data_path, must_exists=True, must_ends_with='.xlsx')
-        self.validate_path('attachments_path', attachments_path)
-        
+        self.validate_path('attachments', attachments)
+                
         self.input = input_path
         self.output = output_path
-        self.gdb = gdb_path
+        self.gdb = gdb
         self.masterdata = pd.read_excel(master_data_path)
         self.load_from = load_from
         self.save_to = save_to
-        self.datatracker = datatracker_path
-        self.attachments = attachments_path
+        self.datatracker = datatracker
+        self.attachments = attachments
         self.log = log_path
         self.debug = debug
         self.resume = resume
@@ -99,7 +110,7 @@ class Parameters:
         if self.resume:
             return
         
-        ripple_unzip(self.input, self.output, self.log)
+        ripple_unzip(self.input, self.local_output, self.log)
         
     def create_gdb(self) -> None:
         """
