@@ -29,7 +29,6 @@ Usage:
 # Imports
 #========================================================
 import os
-import sys
 from datetime import datetime
 
 #========================================================
@@ -77,6 +76,9 @@ def log(file_path: str = None, type: str = Colors.ERROR, message: str = '', supp
     
     # If a file path is provided
     if file_path is not None:
+        # Split the log files into seperate Warning and Error logs
+        file_path = r'C:\LocalTwoBillionToolkit\Output\\' + file_path[:-4] + '_' + tag + '.txt'
+        
         # Check if the directory exists, if not, create it
         directory = os.path.dirname(file_path)
         if not os.path.exists(directory):
