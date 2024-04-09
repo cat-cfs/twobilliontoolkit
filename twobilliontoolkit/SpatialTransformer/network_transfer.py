@@ -53,6 +53,10 @@ def merge_gdbs(src_gdb: str, dest_gdb: str, log_path: str = None) -> None:
         # Set the workplace for the source geodatabase
         arcpy.env.workspace = src_gdb
         
+        # Create the gdb if it does not exist
+        if not arcpy.Exists(dest_gdb):
+            arcpy.management.CreateFileGDB(os.path.dirname(dest_gdb), os.path.basename(dest_gdb))
+        
         # Get a list of feature classes in the source geodatabase
         feature_classes = arcpy.ListFeatureClasses()
         for feature_class in feature_classes:
@@ -67,7 +71,7 @@ def merge_gdbs(src_gdb: str, dest_gdb: str, log_path: str = None) -> None:
         
         log(None, Colors.INFO, f'Merging to {dest_gdb} has completed.')
     except Exception as error:
-        log(log_path, Colors.ERROR, f'An error has been caught while trying merge the geodatabase to {dest_gdb}: {error}\n')
+        log(log_path, Colors.ERROR, f'An error has been caught while trying to merge the geodatabase to {dest_gdb}: {error}')
 
 def safe_copy(source: str, destination: str):
     """
@@ -90,7 +94,6 @@ def safe_copy(source: str, destination: str):
             new_destination = f"{destination}_{suffix}"
             if not os.path.exists(new_destination):
                 shutil.copytree(source, new_destination)
-                print(f"Directory copied to: {new_destination}")
                 break
             suffix += 1
                 
@@ -116,15 +119,15 @@ def transfer(local_path: str, network_path: str, list_files: list[str] = None, l
             # Build full paths for source and destination
             src_path = os.path.join(local_path, item)
             dest_path = os.path.join(network_path, item)
-            
+
             # Skip processing files that do not exist in the source directory
             if not os.path.exists(src_path):
                 continue
-            
+
             # Transfer files or directories
             if os.path.isdir(src_path):
                 # Merge Geodatabases if destination exists
-                if item.endswith(".gdb") and os.path.exists(dest_path):
+                if item.endswith(".gdb"):
                     merge_gdbs(src_path, dest_path, log_path)
                 else:
                     # Use safe_copy to copy directories
@@ -134,7 +137,7 @@ def transfer(local_path: str, network_path: str, list_files: list[str] = None, l
                 
         log(None, Colors.INFO, f'The transfer of files has been completed')
     except Exception as error:
-        log(log_path, Colors.ERROR, f'An error has been caught while transfering files from {local_path} to {network_path}: {error}\n')
+        log(log_path, Colors.ERROR, f'An error has been caught while transfering files from {local_path} to {network_path}: {error}')
 
 #========================================================
 # Main
