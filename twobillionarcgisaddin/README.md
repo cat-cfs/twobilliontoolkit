@@ -33,7 +33,9 @@ If you are on the NRCAN network, you can find the add-in at \\vic-fas1\projects_
     You should see the twobillionarcgisaddin add-in in this list like shown above, if not you may need to re-install the add-in or ArcGIS Pro.
     ```
 6. You can then open a project, or start a new project and you may notice a new tab at the top of the window called Add-in. ![ArcGIS Pro Add-in Tab](../images/add-in_tab.png)
-7. The click the button Two Billion Trees Tools (or hover to see a description). ![ArcGIS Pro Add-in Button](../images/add-in_button.png)
+7. The click the button Two Billion Trees Tools (or hover to see a description). 
+
+    ![ArcGIS Pro Add-in Button](../images/add-in_button.png)
 
 
 Another thing that you will need to do is to add the database connection file inside your ArcGIS pro project. To do that, you can do the following: 
@@ -46,7 +48,9 @@ Another thing that you will need to do is to add the database connection file in
     Note:
     If on the network, it should be located at \\vic-fas1\projects_a\2BT\02_Tools\EsriAddIns\database_connection.sde
     ```
-5. After selecting the file, verify that it was added to the project. It should be under the Databases dropdown in the catalog. ![Database Connection in the Catalog](../images/database_conn_catalog.png)
+5. After selecting the file, verify that it was added to the project. It should be under the Databases dropdown in the catalog. 
+
+    ![Database Connection in the Catalog](../images/database_conn_catalog.png)
 6. The database has now been added to the project, if you want to check the tables you can expand the .sde file, it will prompt the user to enter a username and password in a popup, doing so successfully will grant the user permission to use the connection.
 ```
 Note:
