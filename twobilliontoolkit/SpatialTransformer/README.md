@@ -27,23 +27,28 @@ You should then be set up to use the tool!
 
 To use the Spatial Transformer, run the script from the command line with the following syntax:
 ```
-arcpy_environment_python_path /path/to/spatial_transformer.py [-h] --input input_path --output output_path --gdb gdb_path --master master_data_path --load {datatracker,database} --save {datatracker,database} [--datatracker_path datatracker_path] [--attachments attachments_path] [--debug] [--resume]
+arcpy_environment_python_path /path/to/spatial_transformer.py [-h] --input_path input_path --output_network_path output_path --gdb gdb_path --master master_data_path --load {datatracker,database} --save {datatracker,database} [--datatracker datatracker_path] [--attachments attachments_path] [--debug] [--suppress] [--resume]
 ```
 - [-h, --help] (optional): List all of the available commands and a description for help.
 - --input_path input_path : Path to the input directory or compressed file.
-- --output_network_path output_path: Path to the output directory where the uncompressed data will be stored.
-- --gdb gdb_path: Path to where the resulting GeoDatabase will be stored, it can be an existing GeoDatabase, else it will create the GeoDatabase itself.
+- --output_network_path output_path: Path to output data on network.
+- --gdb gdb: The GeoDatabase name. It will be either created or merged into a GeoDatabase in the output if it already exists.
 - --master master_data_path: Path to where the aspatial master datasheet is located.
 - --load {datatracker,database}: Specify wheather the tool loads the data from an exisiting datatracker or a database connection. 
 - --save {datatracker,database}: Specify wheather the tool saves the data to a specified datatracker or a database connection. 
-- [--datatracker_path datatracker_path] (conditional): Path to where the resulting Data Tracker Excell sheet will be stored, it can be an existing datasheet, else it will create it when it is complete.
-- [--attachments attachments_path] (optional): The location that the attachments from the geodatabase will be located, if left empty it will be located in the same output folder as ripple zipple outputs to in the end.
+- [--datatracker datatracker] (conditional): Name of the resulting Data Tracker Excell sheet to be stored, it can be an existing datasheet, else it will create it when it is complete.
+- [--attachments attachments] (optional): The name of the attachments folder extracted from the geodatabase.
 - [--debug] (optional): include to enable debugging mode, giving some more information.
+- [--suppress] (optional): omits Warning logs from the command line, they are still added to their relivant log file though.
 - [--resume] (optional): include to continue where the code left off from if there was a fatal crash, this may be a bit buggy and need some manual intervention afterwards.
+
+**Note**: If an attachments name is not provided, it will take the same name provided for the geodatabase and append _Attachments. (ie. If --gdb testing223.gdb, then the attachments folder will be named testing223_Attachments). It will also be adjacent to the geodatabase in the output.
+
+**Note**: Multiple logs are automatically created with the name of your gdb, a date (YYYY-MM-DD) and what type of log was passed (WARNING, ERROR). They will also be adjacent to the output.
 
 Example from root of project:
 ```
-python ./twobilliontoolkit/SpatialTransformer/spatial_transformer.py --input_path ./Testing/Data/TestFolder.zip --output_network_path ./Testing/OutputFolder --gdb ./Testing/OutputGDB.gdb --datatracker ./Testing/OutputDataSheet.xlsx --load datatracker --save datatracker --master ./MasterDatasheet --attachments ./Testing/Attachments
+python ./twobilliontoolkit/SpatialTransformer/spatial_transformer.py --input_path ./Testing/Data/TestFolder.zip --output_network_path ./Testing/OutputFolder --gdb ./Testing/OutputGDB.gdb --datatracker ./Testing/OutputDataSheet.xlsx --load datatracker --save datatracker --master ./MasterDatasheet --attachments ./Testing/Attachments --suppress
 ```
 
 You also have the option of calling this function from a module import with the following syntax (you may need to use relative or absolute paths depending on your environment and where you are calling from):
@@ -57,22 +62,21 @@ from twobilliontoolkit.SpatialTransformer.spatial_transformer import spatial_tra
 # Example input parameters
 input_path = "/path/to/input/data"
 output_network_path = "/path/to/output/data"
-gdb_path = "/path/to/geodatabase.gdb"
-master_data_path = "/path/to/master_data.xlsx"
 load_from = "database"
 save_to = "datatracker"
-datatracker_path = "/path/to/datatracker.xlsx"
-attachments_path = "/path/to/attachments"
+gdb ="geodatabase.gdb"
+datatracker = "datatracker.xlsx"
+attachments = "attachmentsfolder"
+master_data_path = "/path/to/master_data.xlsx"
 debug = True
 resume = False
+suppress = True
 
 # Call the spatial_transformer function
 spatial_transformer(
-    input_path, output_network_path, gdb_path, master_data_path, load_from, save_to,
-    datatracker_path, attachments_path, debug, resume
+    input_path, output_network_path, load_from, save_to, gdb, datatracker, attachments, master_data_path, debug, resume, suppress
 )
 ```
-**Note**: A log is automatically created with the name of your gdb and a date (YYYY-MM-DD) atached to it to easily find and look back.
 
 ## Configuration
 
