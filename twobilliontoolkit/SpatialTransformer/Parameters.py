@@ -31,7 +31,8 @@ class Parameters:
         - resume (bool, optional): Determines if the program should resume from where a crash happened.
         - suppress (bool, optional): Determines if the program will suppress warnings to the command line.
         """
-        self.local_output = r'C:\LocalTwoBillionToolkit\Output'
+        self.local_dir = r'C:\LocalTwoBillionToolkit'
+        self.local_output = os.path.join(self.local_dir, 'Output')
         
         # Check if the directory exists, if it doesn't exist, create it
         if not os.path.exists(self.local_output):
@@ -42,9 +43,9 @@ class Parameters:
             attachments = gdb.replace('.gdb', '_Attachments')
         
         # Build the paths
-        gdb = os.path.join(self.local_output, gdb)
-        datatracker = os.path.join(self.local_output, datatracker)
-        attachments = os.path.join(self.local_output, attachments)
+        gdb = os.path.join(self.local_dir, gdb)
+        datatracker = os.path.join(self.local_dir, datatracker)
+        attachments = os.path.join(self.local_dir, attachments)
     
         # Ensure that if a datatracker is specified for loading or saving, then a path must be passed
         if (load_from == 'datatracker' or save_to == 'datatracker') and datatracker == '':
@@ -56,10 +57,10 @@ class Parameters:
 
         # Validate and set paths
         self.validate_path('input_path', input_path, must_exists=True)
-        self.validate_path('output_network_path', output_path)
+        # self.validate_path('output_network_path', output_path)
         self.validate_path('gdb', gdb, must_ends_with='.gdb')
         self.validate_path('master_data_path', master_data_path, must_exists=True, must_ends_with='.xlsx')
-        self.validate_path('attachments', attachments)
+        # self.validate_path('attachments', attachments)
                 
         self.input = input_path
         self.output = output_path

@@ -77,7 +77,7 @@ def log(file_path: str = None, type: str = Colors.ERROR, message: str = '', supp
     # If a file path is provided
     if file_path is not None:
         # Split the log files into seperate Warning and Error logs
-        file_path = r'C:\LocalTwoBillionToolkit\Output\\' + file_path[:-4] + '_' + tag + '.txt'
+        file_path = r'C:\LocalTwoBillionToolkit\\' + file_path[:-4] + '_' + tag + '.txt'
         
         # Check if the directory exists, if not, create it
         directory = os.path.dirname(file_path)
@@ -87,6 +87,6 @@ def log(file_path: str = None, type: str = Colors.ERROR, message: str = '', supp
         try:
             # Open the file in append mode and append a log message
             with open(file_path, 'a') as log_file:
-                log_file.write(f'{datetime.now().strftime("%d/%m/%Y %H:%M:%S")} [{tag}] {traceback}{message}\n')
+                log_file.write(f'{datetime.now().strftime("%d/%m/%Y %H:%M:%S")} [{tag}] {traceback}{message}\n\n')
         except PermissionError as e:
             print(f"Permission denied to write to file: {file_path}. Error: {e}")
