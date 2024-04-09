@@ -22,7 +22,7 @@ Description:
     The spatial_transformer.py script is a Python tool for processing spatial data. It handles tasks like geodatabase creation, file validation, and checking project numbers against a master data sheet. 
 
 Usage:
-    python path/to/spatial_transformer.py [-h] --input_path input_path --output_network_path output_path --gdb gdb_path --master master_data_path --load {datatracker,database} --save {datatracker,database} [--datatracker datatracker_path] [--attachments attachments_path] [--debug] [--suppress] [--resume]
+    python path/to/spatial_transformer.py [-h] --input_path input_path [--output_network_path output_path] --gdb gdb_path --master master_data_path --load {datatracker,database} --save {datatracker,database} [--datatracker datatracker_path] [--attachments attachments_path] [--debug] [--suppress] [--resume]
 """
 #========================================================
 # Imports
@@ -119,7 +119,7 @@ def main():
     
     # Define command-line arguments
     parser.add_argument('--input_path', required=True, default='', help='Directory or Compressed file location that will be handed to Ripple Unzipple')
-    parser.add_argument('--output_network_path', required=True, default='', help='Where to output the result from Ripple Unzipple')
+    parser.add_argument('--output_network_path', required=False, default='', help='Where the final output will be transferred. Otherwise it remains in the local drive C:/LocalTwoBillionToolkit/Output')
     parser.add_argument('--load', choices=['datatracker', 'database'], required=True, default='database', help='Specify what to load from (datatracker or database)')
     parser.add_argument('--save', choices=['datatracker', 'database'], required=True, default='database', help='Specify what to save to (datatracker or database)')
     parser.add_argument('--gdb', required=True, default='', help='Name of the geodatabase that will be saved in the output network folder')

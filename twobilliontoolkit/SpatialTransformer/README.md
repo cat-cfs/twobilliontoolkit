@@ -31,7 +31,7 @@ arcpy_environment_python_path /path/to/spatial_transformer.py [-h] --input_path 
 ```
 - [-h, --help] (optional): List all of the available commands and a description for help.
 - --input_path input_path : Path to the input directory or compressed file.
-- --output_network_path output_path: Path to output data on network.
+- [--output_network_path output_path]: (Optional) Path to output data on network. If not provided, the output will remain in the local output drive C:/LocalTwoBillionToolkit/Output.
 - --gdb gdb: The GeoDatabase name. It will be either created or merged into a GeoDatabase in the output if it already exists.
 - --master master_data_path: Path to where the aspatial master datasheet is located.
 - --load {datatracker,database}: Specify wheather the tool loads the data from an exisiting datatracker or a database connection. 
