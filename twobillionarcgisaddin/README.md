@@ -24,15 +24,23 @@ Next you will need to install the Add-in, to do so:
 1. Locate the ArcGIS Pro Add-in called twobillionarcgisaddin.esriAddinX. 
 Note:
 If you are on the NRCAN network, you can find the add-in at \\vic-fas1\projects_a\2BT\02_Tools\twobilliontoolkit\twobillionarcgisaddin\bin\Debug\net6.0-windows\twobillionarcgisaddin.esriAddinX.
-2. Double-click the file and you will see a pop-up. ![Add-in Installer Popup](../images/add-in_installer.png)
+2. Double-click the file and you will see a pop-up. 
+
+    ![Add-in Installer Popup](../images/add-in_installer.png)
 3. Click the Install Add-in button and you will then see another popup saying the add-in was installed successfully. 
 4. Dismiss this popup by clicking OK. 
-5. Open ArcGIS Pro and verify it was installed correctly by navigating to Settings>Add-in Manager ![ArcGIS Pro Settings](../images/arc_settings.png) ![ArcGIS Pro Add-in Manager](../images/add-in_manager.png)
+5. Open ArcGIS Pro and verify it was installed correctly by navigating to Settings>Add-in Manager 
+
+    ![ArcGIS Pro Settings](../images/arc_settings.png) 
+
+    ![ArcGIS Pro Add-in Manager](../images/add-in_manager.png)
     ```
     Note:
     You should see the twobillionarcgisaddin add-in in this list like shown above, if not you may need to re-install the add-in or ArcGIS Pro.
     ```
-6. You can then open a project, or start a new project and you may notice a new tab at the top of the window called Add-in. ![ArcGIS Pro Add-in Tab](../images/add-in_tab.png)
+6. You can then open a project, or start a new project and you may notice a new tab at the top of the window called Add-in. 
+
+    ![ArcGIS Pro Add-in Tab](../images/add-in_tab.png)
 7. The click the button Two Billion Trees Tools (or hover to see a description). 
 
     ![ArcGIS Pro Add-in Button](../images/add-in_button.png)
@@ -41,8 +49,12 @@ If you are on the NRCAN network, you can find the add-in at \\vic-fas1\projects_
 Another thing that you will need to do is to add the database connection file inside your ArcGIS pro project. To do that, you can do the following: 
 
 1. Open the ArcGIS Pro and choose a project you wish to connect the database to.
-2. In the Insert tab at the top, click the Connections button dropdown. ![Connections Dropdown](../images/connections_dropdown.png)
-3. Click the Database expand, then choose Add Database. ![Add Database](../images/add_database.png)
+2. In the Insert tab at the top, click the Connections button dropdown. 
+
+    ![Connections Dropdown](../images/connections_dropdown.png)
+3. Click the Database expand, then choose Add Database. 
+
+    ![Add Database](../images/add_database.png)
 4. Navigate the file explorer to the database_connection.sde file.
     ```
     Note:
