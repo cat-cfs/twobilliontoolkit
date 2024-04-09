@@ -131,11 +131,11 @@ class Processor:
                 self.data.set_data(project_spatial_id=formatted_project_spatial_id, processed=True)
             
             except arcpy.ExecuteError as error:
-                log(self.params.log, Colors.ERROR, f'An error occured when processing the layer for {file}: {error}, removing it from the datatracker/database, run the command again with --resume')
+                log(self.params.log, Colors.ERROR, f'An error occured when processing the layer for {file}: {error} You can fix or remove it from the datatracker/database, then run the command again with --resume\n')
             except arcgisscripting.ExecuteError as error:
-                log(self.params.log, Colors.ERROR, f'An error occured when processing the layer for {file}: {error}, removing it from the datatracker/database, run the command again with --resume')
+                log(self.params.log, Colors.ERROR, f'An error occured when processing the layer for {file}: {error} You can fix or remove it from the datatracker/database, then run the command again with --resume\n')
             except Exception as error:
-                log(self.params.log, Colors.ERROR, f'An error occured when processing the layer for {file}: {error}, removing it from the datatracker/database, run the command again with --resume')
+                log(self.params.log, Colors.ERROR, f'An uncaught error occured when processing the layer for {file}\n')
                 raise Exception(error)
                  
         log(None, Colors.INFO, 'Processing of the files into the Geodatabase has completed.')
@@ -258,7 +258,7 @@ class Processor:
         # Iterate through the feature classes and rename them
         feature_classes = arcpy.ListFeatureClasses()
         if feature_classes is None:
-            log(self.params.log, Colors.ERROR, f'The kml file {file} does not have any features')
+            log(self.params.log, Colors.ERROR, f'The kml file {file} does not have any features\n')
             self.data.set_data(
                 project_spatial_id=formatted_project_spatial_id,
                 processed=True
