@@ -22,7 +22,7 @@ Description:
     The spatial_transformer.py script is a Python tool for processing spatial data. It handles tasks like geodatabase creation, file validation, and checking project numbers against a master data sheet. 
 
 Usage:
-    python path/to/spatial_transformer.py [-h] --input_path input_path --output_network_path output_path --gdb gdb_path --master master_data_path --load {datatracker,database} --save {datatracker,database} [--datatracker datatracker_path] [--attachments attachments_path] [--debug] [--resume]
+    python path/to/spatial_transformer.py [-h] --input_path input_path --output_network_path output_path --gdb gdb_path --master master_data_path --load {datatracker,database} --save {datatracker,database} [--datatracker datatracker_path] [--attachments attachments_path] [--debug] [--suppress] [--resume]
 """
 #========================================================
 # Imports
@@ -45,11 +45,11 @@ def spatial_transformer(input_path: str, output_path: str, load_from: str, save_
     The spatial_transformer function serves as the main entry point for the spatial transformation script. Its primary purpose is to handle various tasks related to spatial data processing, such as starting the ripple_unzipple tool and geodatabase creation.
 
     Args:
-        input_path (str): Path to input data.
+        input_path (str): Path to the input directory or compressed file.
         output_path (str): Path to output data on network.
         load_from (str): Either 'database' or 'datatracker' to determine what to load the data from.
         save_to (str): Either 'database' or 'datatracker' to determine what to save the data to.
-        gdb (str): Geodatabase folder name.
+        gdb (str): Geodatabase name.
         datatracker(str): Datatracker file name.
         attachments (str): Attachment folder name.
         master_data_path (str): Path to the aspatial master data.
@@ -58,7 +58,7 @@ def spatial_transformer(input_path: str, output_path: str, load_from: str, save_
         suppress (bool, optional): Determines if the program will suppress Warning Messages to the command line while running.
     """
     # Create the logfile path
-    log_path = gdb.replace('.gdb', f"{datetime.datetime.now().strftime('%Y-%m-%d')}.txt")
+    log_path = gdb.replace('.gdb', f"_Log_{datetime.datetime.now().strftime('%Y-%m-%d')}.txt")
     
     # Initialize a variable for the processor in case an error occurs beforehand
     spatial_data = None
@@ -69,6 +69,7 @@ def spatial_transformer(input_path: str, output_path: str, load_from: str, save_
                 
         # Start the unzip tool 
         setup_parameters.handle_unzip()
+        log(None, Colors.INFO, 'The input has been successfully extracted to the local directory C:\LocalTwoBillionToolkit\Output.')
 
         # Create the GDB
         setup_parameters.create_gdb()
