@@ -31,21 +31,21 @@ class Parameters:
         - resume (bool, optional): Determines if the program should resume from where a crash happened.
         - suppress (bool, optional): Determines if the program will suppress warnings to the command line.
         """
-        self.local_output = r'C:\LocalTwoBillionToolkit\Output\\'
+        self.local_output = r'C:\LocalTwoBillionToolkit\Output'
         
         # Check if the directory exists, if it doesn't exist, create it
         if not os.path.exists(self.local_output):
             os.makedirs(self.local_output)
         
-        # Build the paths
-        gdb = self.local_output + gdb
-        datatracker = self.local_output + datatracker
-        
         # If nothing was specified for the attachments path, set it to the same place as the output of the ripple unzipple tool.
         if attachments == '':
-            attachments = output_path + 'Attachments'
-        attachments = self.local_output + attachments
+            attachments = gdb.replace('.gdb', '_Attachments')
         
+        # Build the paths
+        gdb = os.path.join(self.local_output, gdb)
+        datatracker = os.path.join(self.local_output, datatracker)
+        attachments = os.path.join(self.local_output, attachments)
+    
         # Ensure that if a datatracker is specified for loading or saving, then a path must be passed
         if (load_from == 'datatracker' or save_to == 'datatracker') and datatracker == '':
             raise argparse.ArgumentTypeError("If --load or --save is 'datatracker', --datatracker must be specified.")
