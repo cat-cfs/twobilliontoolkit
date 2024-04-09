@@ -146,11 +146,13 @@ class Processor:
         # Save the data tracker before returning
         self.data.save_data()
         
+        log(None, Colors.INFO, f'Moving on to transfering local output to {self.params.output}.')
+        
         # Move the local files to the specified output
         transfer(
             self.params.local_output,
             self.params.output[:self.params.output.rfind("\\")],
-            [self.params.gdb, self.params.datatracker, self.params.attachments, self.params.log],
+            [os.path.basename(self.params.gdb), os.path.basename(self.params.datatracker), os.path.basename(self.params.attachments), self.params.log[:-4] + '_WARNING.txt', self.params.log[:-4] + '_ERROR.txt'],
             self.params.log
         )
         
