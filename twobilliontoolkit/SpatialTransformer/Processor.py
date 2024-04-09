@@ -52,9 +52,7 @@ class Processor:
                 file = file.lower()
                 if file.endswith(SPATIAL_FILE_EXTENSIONS) or file.endswith(DATA_SHEET_EXTENSIONS) or file.endswith(LAYOUT_FILE_EXTENSIONS) or file.endswith(IMAGE_FILE_EXTENSIONS):
                     self.spatial_files.append(os.path.join(root, file))   
-                    
-        # TODO: In the topic of fault handling, want to add all the relevant stuff to the datatracker so that if need be can recover from a fataly crash             
-      
+            
     def process_spatial_files(self) -> None:
         """Process all of the found spatial files."""
         for file in self.spatial_files:
@@ -131,11 +129,11 @@ class Processor:
                 self.data.set_data(project_spatial_id=formatted_project_spatial_id, processed=True)
             
             except arcpy.ExecuteError as error:
-                log(self.params.log, Colors.ERROR, f'An error occured when processing the layer for {file}: {error} You can fix or remove it from the datatracker/database, then run the command again with --resume\n')
+                log(self.params.log, Colors.ERROR, f'An error occured when processing the layer for {file}: {error} You can fix or remove it from the datatracker/database, then run the command again with --resume')
             except arcgisscripting.ExecuteError as error:
-                log(self.params.log, Colors.ERROR, f'An error occured when processing the layer for {file}: {error} You can fix or remove it from the datatracker/database, then run the command again with --resume\n')
+                log(self.params.log, Colors.ERROR, f'An error occured when processing the layer for {file}: {error} You can fix or remove it from the datatracker/database, then run the command again with --resume')
             except Exception as error:
-                log(self.params.log, Colors.ERROR, f'An uncaught error occured when processing the layer for {file}\n')
+                log(self.params.log, Colors.ERROR, f'An uncaught error occured when processing the layer for {file}')
                 raise Exception(error)
                  
         log(None, Colors.INFO, 'Processing of the files into the Geodatabase has completed.')
@@ -145,16 +143,16 @@ class Processor:
                     
         # Save the data tracker before returning
         self.data.save_data()
-        
-        log(None, Colors.INFO, f'Moving on to transfering local output to {self.params.output}.')
-        
+
         # Move the local files to the specified output
-        transfer(
-            self.params.local_output,
-            self.params.output[:self.params.output.rfind("\\")],
-            [os.path.basename(self.params.gdb), os.path.basename(self.params.datatracker), os.path.basename(self.params.attachments), self.params.log[:-4] + '_WARNING.txt', self.params.log[:-4] + '_ERROR.txt'],
-            self.params.log
-        )
+        if self.params.output is not '':
+            log(None, Colors.INFO, f'Transfering local output to {self.params.output}.')
+            transfer(
+                self.params.local_dir,
+                self.params.output,
+                [os.path.basename(self.params.gdb), os.path.basename(self.params.datatracker), os.path.basename(self.params.attachments), self.params.log[:-4] + '_WARNING.txt', self.params.log[:-4] + '_ERROR.txt'],
+                self.params.log
+            )
         
         # Open the record reviser
         call_record_reviser(self.data, self.params.gdb)
@@ -258,7 +256,7 @@ class Processor:
         # Iterate through the feature classes and rename them
         feature_classes = arcpy.ListFeatureClasses()
         if feature_classes is None:
-            log(self.params.log, Colors.ERROR, f'The kml file {file} does not have any features\n')
+            log(self.params.log, Colors.ERROR, f'The kml file {file} does not have any features')
             self.data.set_data(
                 project_spatial_id=formatted_project_spatial_id,
                 processed=True
@@ -384,35 +382,35 @@ class Processor:
         
         # Set starting raw data path and a flag for skipping first iteration
         base_raw_data_path = self.data.get_data(formatted_project_spatial_id)['raw_data_path']
-        first_feature_class_processed = False
+        # first_feature_class_processed = False
         
         # Iterate through the feature classes and tables
         feature_tables = arcpy.ListTables()
         feature_classes = arcpy.ListFeatureClasses()
         for feature in feature_classes + feature_tables:
-            if first_feature_class_processed:
-                # Get data for the current feature and create a new project spatial ID
-                current_feature_data = self.data.get_data(formatted_project_spatial_id)
-                spatial_project_id = self.data.create_project_spatial_id(current_feature_data['project_number'])
-                
-                # Add data for the new project spatial ID
-                self.data.add_data(
-                    project_spatial_id=spatial_project_id,
-                    project_number=current_feature_data['project_number'],
-                    dropped=False,
-                    project_path=current_feature_data['project_path'],
-                    raw_data_path=current_feature_data['raw_data_path'],
-                    absolute_file_path=convert_to_actual_drive_path(file),
-                    in_raw_gdb=False,
-                    contains_pdf=False,
-                    contains_image=False,
-                    extracted_attachments_path=None,
-                    editor_tracking_enabled=False,
-                    processed=False
-                )
-                
-                # Update the formatted project spatial ID
-                formatted_project_spatial_id = spatial_project_id
+            # if first_feature_class_processed:
+            # Get data for the current feature and create a new project spatial ID
+            current_feature_data = self.data.get_data(formatted_project_spatial_id)
+            spatial_project_id = self.data.create_project_spatial_id(current_feature_data['project_number'])
+            
+            # Add data for the new project spatial ID
+            self.data.add_data(
+                project_spatial_id=spatial_project_id,
+                project_number=current_feature_data['project_number'],
+                dropped=False,
+                project_path=current_feature_data['project_path'],
+                raw_data_path=current_feature_data['raw_data_path'],
+                absolute_file_path=convert_to_actual_drive_path(file),
+                in_raw_gdb=False,
+                contains_pdf=False,
+                contains_image=False,
+                extracted_attachments_path=None,
+                editor_tracking_enabled=False,
+                processed=False
+            )
+            
+            # Update the formatted project spatial ID
+            formatted_project_spatial_id = spatial_project_id
                 
             if arcpy.Exists(feature) and arcpy.Describe(feature).dataType == 'FeatureClass':
                 # Create a new name and export feature class
@@ -432,8 +430,8 @@ class Processor:
                     processed=True
                 )
             
-            # Set the flag to indicate that the first feature class has been processed
-            first_feature_class_processed = True
+            # # Set the flag to indicate that the first feature class has been processed
+            # first_feature_class_processed = True
             
             new_raw_data_path = os.path.join(base_raw_data_path, feature)
             self.call_raw_data_match(formatted_project_spatial_id, new_raw_data_path)
@@ -484,7 +482,7 @@ class Processor:
             # Enable the 4 fields for editor tracking
             arcpy.EnableEditorTracking_management(feature_class, "bt_created_by", "bt_date_created", "bt_last_edited_by", "bt_date_edited", "ADD_FIELDS", "UTC")
         except Exception as error:
-            log(self.params.log, Colors.ERROR, f'An error has been caught while trying to enable editor tracking for {feature_class} in resulting gdb, {error}\n')
+            log(self.params.log, Colors.ERROR, f'An error has been caught while trying to enable editor tracking for {feature_class} in resulting gdb, {error}')
 
         
 def convert_to_actual_drive_path(file_path):
