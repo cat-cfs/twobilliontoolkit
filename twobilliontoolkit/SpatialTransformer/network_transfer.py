@@ -22,7 +22,7 @@ Description:
     The script will transfer all files or any files specified from a source directory to a destination. It's main purpose will be used to transfer files from the local computers to a network drive with specific focus on the two billion trees toolkit processing.
 
 Usage:
-    python path/to/network_transfer.py <local_path> <network_path> [--gdb_filename GDB_FILENAME] [--log_filename LOG_FILENAME] [--datatracker_filename DATATRACKER_FILENAME]
+    python path/to/network_transfer.py <local_path> <network_path> [--files [...list of files...]] 
 
 """
 #========================================================
@@ -69,31 +69,30 @@ def merge_gdbs(src_gdb: str, dest_gdb: str, log_path: str = None) -> None:
     except Exception as error:
         log(log_path, Colors.ERROR, f'An error has been caught while trying merge the geodatabase to {dest_gdb}: {error}\n')
 
-def safe_copy(file_path: str, out_dir: str, dst: str = None):
+def safe_copy(source: str, destination: str):
     """
     Safely copy the specified directory. If a directory with the 
     same name already exists, the copied directory name is altered to preserve both.
 
     Args
-        file_path (str): Path to the directory to copy.
-        out_dir (str): Directory to copy.
-        dst (str): New name for the copied directory. If None, use 
+        source (str): Path to the directory to copy.
+        destination (str): Directory to copy.
+        new_name (str): New name for the copied directory. If None, use 
         the name of the original directory. 
-    """
-    # Get the base name of the directory
-    name = dst or os.path.basename(file_path)
-    
+    """    
     # If directory doesn't exist in the destination, simply copy it
-    if not os.path.exists(os.path.join(out_dir, name)):
-        shutil.copytree(file_path, os.path.join(out_dir, name))
+    if not os.path.exists(destination):
+        shutil.copytree(source, destination)
     else:
-        # If directory with the same name already exists, append _1, _2, ... to the copied directory name
-        base, extension = os.path.splitext(name)
-        i = 1
-        while os.path.exists(os.path.join(out_dir, '{}_{}.{}'.format(base, i, extension))):
-            i += 1
-        shutil.copytree(file_path, out_dir + '{}_{}{}'.format(base, i, 
-        extension))
+        # Destination directory exists, find a unique name with suffix
+        suffix = 1
+        while True:
+            new_destination = f"{destination}_{suffix}"
+            if not os.path.exists(new_destination):
+                shutil.copytree(source, new_destination)
+                print(f"Directory copied to: {new_destination}")
+                break
+            suffix += 1
                 
 def transfer(local_path: str, network_path: str, list_files: list[str] = None, log_path: str = None) -> None:
     """
@@ -111,12 +110,16 @@ def transfer(local_path: str, network_path: str, list_files: list[str] = None, l
             items = os.listdir(local_path)
         else:
             items = list_files
-
+        
         # Iterate over files in the local directory
-        for item in items:
+        for item in items:            
             # Build full paths for source and destination
             src_path = os.path.join(local_path, item)
             dest_path = os.path.join(network_path, item)
+            
+            # Skip processing files that do not exist in the source directory
+            if not os.path.exists(src_path):
+                continue
             
             # Transfer files or directories
             if os.path.isdir(src_path):
@@ -125,7 +128,7 @@ def transfer(local_path: str, network_path: str, list_files: list[str] = None, l
                     merge_gdbs(src_path, dest_path, log_path)
                 else:
                     # Use safe_copy to copy directories
-                    safe_copy(src_path, network_path)
+                    safe_copy(src_path, dest_path)
             else:
                 shutil.copy2(src_path, dest_path)  # preserves metadata              
                 
