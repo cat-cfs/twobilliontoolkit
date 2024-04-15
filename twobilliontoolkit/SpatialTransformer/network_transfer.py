@@ -127,7 +127,7 @@ def transfer(local_path: str, network_path: str, list_files: list[str] = None, l
             # Transfer files or directories
             if os.path.isdir(src_path):
                 # Merge Geodatabases if destination exists
-                if item.endswith(".gdb"):
+                if item.endswith(".gdb") and arcpy.Exists(dest_path):
                     merge_gdbs(src_path, dest_path, log_path)
                 else:
                     # Use safe_copy to copy directories

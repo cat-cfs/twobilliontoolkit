@@ -32,11 +32,6 @@ class Parameters:
         - suppress (bool, optional): Determines if the program will suppress warnings to the command line.
         """
         self.local_dir = r'C:\LocalTwoBillionToolkit'
-        self.local_output = os.path.join(self.local_dir, 'Output')
-        
-        # Check if the directory exists, if it doesn't exist, create it
-        if not os.path.exists(self.local_output):
-            os.makedirs(self.local_output)
         
         # If nothing was specified for the attachments path, set it to the same place as the output of the ripple unzipple tool.
         if attachments == '':
@@ -111,7 +106,7 @@ class Parameters:
         if self.resume:
             return
         
-        ripple_unzip(self.input, self.local_output, self.log)
+        ripple_unzip(self.input, self.output, self.log)
         
     def create_gdb(self) -> None:
         """

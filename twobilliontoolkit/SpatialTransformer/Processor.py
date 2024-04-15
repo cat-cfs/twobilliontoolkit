@@ -43,7 +43,7 @@ class Processor:
         Populates the `spatial_files` list with file paths.
         """
         # Step through unzip output path and keep track of paths
-        for root, dirs, files in os.walk(self.params.local_output):
+        for root, dirs, files in os.walk(self.params.output):
             for dir in dirs:
                 if dir.endswith('.gdb'):
                     self.spatial_files.append(os.path.join(root, dir))
@@ -69,7 +69,7 @@ class Processor:
                 log(None, Colors.INFO, formatted_project_spatial_id)
 
             # Convert the raw data path to a relative path and extract the project path            
-            raw_data_path = os.path.relpath(file, self.params.local_output)
+            raw_data_path = os.path.relpath(file, self.params.output)
             project_path = raw_data_path.split("\\")[0]
             absolute_file_path = convert_to_actual_drive_path(file)
 
