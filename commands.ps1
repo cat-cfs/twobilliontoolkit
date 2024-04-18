@@ -35,7 +35,7 @@ $transfer_files = @("${gdb}", "${gdb_name}_Attachments", "${gdb_name}_Log_${date
 
 # Define menu function
 function Show-Menu {
-    Clear-Host
+    # Clear-Host
     Write-Host "Choose an option:"
     Write-Host "1. Clone the ArcGIS Pro environement"
     Write-Host "2. Install/Update twobilliontoolkit package"
@@ -67,63 +67,63 @@ do {
         }
         "2" {
             Write-Host "Installing or Updating the twobilliontoolkit package..."
-            Write-Host $python_exe -m pip install .
+            Write-Host $python_exe -m pip install $toolkit_dir
             Write-Host
-            & $python_exe -m pip install .
+            & $python_exe -m pip install $toolkit_dir
             Write-Host
             Write-Host "The twobilliontoolkit has completed installing or updating!"
             Pause
         }
         "3" {
             Write-Host "Running Spatial Transformer..."
-            Write-Host $python_exe "$toolkit_dir\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_network_path "$output_path" --gdb "$gdb" --datatracker "$datatracker" --master "$master_data" --suppress
+            Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_network_path "$output_path" --gdb "$gdb" --datatracker "$datatracker" --master "$master_data" --suppress
             Write-Host
-            & $python_exe "$toolkit_dir\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_network_path "$output_path" --gdb "$gdb" --datatracker "$datatracker" --master "$master_data" --suppress
+            & $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_network_path "$output_path" --gdb "$gdb" --datatracker "$datatracker" --master "$master_data" --suppress
             Write-Host
             Write-Host "The SpatialTransformer has completed its processing!"
             Pause
         }
         "4" {
             Write-Host "Resuming Spatial Transformer from failure..."
-            Write-Host $python_exe "$toolkit_dir\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_network_path "$output_path" --gdb "$gdb" --datatracker "$datatracker" --master "$master_data" --suppress --resume
+            Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_network_path "$output_path" --gdb "$gdb" --datatracker "$datatracker" --master "$master_data" --suppress --resume
             Write-Host
-            & $python_exe "$toolkit_dir\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_network_path "$output_path" --gdb "$gdb" --datatracker "$datatracker" --master "$master_data" --suppress --resume
+            & $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_network_path "$output_path" --gdb "$gdb" --datatracker "$datatracker" --master "$master_data" --suppress --resume
             Write-Host
             Write-Host "The SpatialTransformer has completed its processing!"
             Pause
         }
         "5" {
             Write-Host "Running Ripple Unzipple Independently..."
-            Write-Host $python_exe "$toolkit_dir\RippleUnzipple\ripple_unzipple.py" --input "$input_path" --output "$output_path"
+            Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\RippleUnzipple\ripple_unzipple.py" --input "$input_path" --output "$output_path"
             Write-Host
-            & $python_exe "$toolkit_dir\RippleUnzipple\ripple_unzipple.py" --input "$input_path" --output "$output_path"
+            & $python_exe "$toolkit_dir\twobilliontoolkit\RippleUnzipple\ripple_unzipple.py" --input "$input_path" --output "$output_path"
             Write-Host
             Write-Host "Ripple Unzipple has completed its processing!"
             Pause
         }
         "6" {
             Write-Host "Running Geo Attachment Seeker Independently..."
-            Write-Host $python_exe "$toolkit_dir\GeoAttachmentSeeker\geo_attachment_seeker.py" "$output_path\$gdb" $output_path
+            Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\GeoAttachmentSeeker\geo_attachment_seeker.py" "$output_path\$gdb" $output_path
             Write-Host
-            & $python_exe "$toolkit_dir\GeoAttachmentSeeker\geo_attachment_seeker.py" "$output_path\$gdb" $output_path
+            & $python_exe "$toolkit_dir\twobilliontoolkit\GeoAttachmentSeeker\geo_attachment_seeker.py" "$output_path\$gdb" $output_path
             Write-Host
             Write-Host "Geo Attachment Seeker has completed its processing!"
             Pause
         }
         "7" {
             Write-Host "Running Network Transfer Independently..."
-            Write-Host $python_exe "$toolkit_dir\SpatialTransformer\network_transfer.py" "$local_dir_path" "$output_path" --files $transfer_files
+            Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\network_transfer.py" "$local_dir_path" "$output_path" --files $transfer_files
             Write-Host
-            & $python_exe "$toolkit_dir\SpatialTransformer\network_transfer.py" "$local_dir_path" "$output_path" --files $transfer_files
+            & $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\network_transfer.py" "$local_dir_path" "$output_path" --files $transfer_files
             Write-Host
             Write-Host "Network Transfer has completed its processing!"
             Pause
         }
         "8" {
             Write-Host "Running Record Reviser Independently..."
-            Write-Host $python_exe "$toolkit_dir\RecordReviser\record_reviser.py" --gdb "$output_path\$gdb" --load $load --save $save --datatracker "$output_path\$datatracker"
+            Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\RecordReviser\record_reviser.py" --gdb "$output_path\$gdb" --load $load --save $save --datatracker "$output_path\$datatracker"
             Write-Host
-            & $python_exe "$toolkit_dir\RecordReviser\record_reviser.py" --gdb "$output_path\$gdb" --load $load --save $save --datatracker "$output_path\$datatracker"
+            & $python_exe "$toolkit_dir\twobilliontoolkit\RecordReviser\record_reviser.py" --gdb "$output_path\$gdb" --load $load --save $save --datatracker "$output_path\$datatracker"
             Write-Host
             Write-Host "Record Reviser has completed its processing!"
             Pause
