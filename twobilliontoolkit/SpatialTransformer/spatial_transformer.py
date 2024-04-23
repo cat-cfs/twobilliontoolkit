@@ -36,6 +36,8 @@ from twobilliontoolkit.SpatialTransformer.common import *
 from twobilliontoolkit.Logger.logger import log, Colors
 from twobilliontoolkit.SpatialTransformer.Parameters import Parameters
 from twobilliontoolkit.SpatialTransformer.Processor import Processor
+from twobilliontoolkit.RecordReviser.record_reviser import call_record_reviser
+from twobilliontoolkit.SpatialTransformer.network_transfer import transfer
        
 #========================================================
 # Entry Function
@@ -69,10 +71,11 @@ def spatial_transformer(input_path: str, output_path: str, load_from: str, save_
                 
         # Start the unzip tool 
         setup_parameters.handle_unzip()
-        log(None, Colors.INFO, 'The input has been successfully extracted to the local directory C:\LocalTwoBillionToolkit\Output.')
+        log(None, Colors.INFO, 'Ripple Unzipple has completed extracted the files.')
 
         # Create the GDB
         setup_parameters.create_gdb()
+        log(None, Colors.INFO, 'The GDB has been created.')
         
         # Initialize the SpatialData class
         spatial_data = Processor(setup_parameters)
@@ -82,6 +85,29 @@ def spatial_transformer(input_path: str, output_path: str, load_from: str, save_
                 
         # Start the processing
         spatial_data.process_spatial_files()
+        log(None, Colors.INFO, 'The Processor has completed processing the files into the Geodatabase.')
+        
+        # Move the local files to the specified output
+        if spatial_data.params.output is not '':
+            transfer(
+                spatial_data.params.local_dir,
+                spatial_data.params.output,
+                [os.path.basename(spatial_data.params.gdb), os.path.basename(spatial_data.params.datatracker), os.path.basename(spatial_data.params.attachments), spatial_data.params.log[:-4] + '_WARNING.txt', spatial_data.params.log[:-4] + '_ERROR.txt'],
+                spatial_data.params.log
+            )
+            
+            log(None, Colors.INFO, 'The Network Transfer has completed moving the files from local to the network.')
+        
+        # Extract attachments from the Geodatabase
+        spatial_data.extract_attachments()
+        log(None, Colors.INFO, 'The Attachments Seeker has completed extracting the attachments from the geodatabase.')
+                    
+        # Save the data tracker before returning
+        spatial_data.data.save_data()
+        
+        # Open the record reviser
+        call_record_reviser(spatial_data.data, spatial_data.params.gdb)
+        log(None, Colors.INFO, 'The Record Reviser has completed editing any entries and is closing.')
             
     except (ValueError, Exception) as error:
         # Print the traceback
