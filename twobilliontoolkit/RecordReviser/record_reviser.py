@@ -63,9 +63,7 @@ class DataTableApp(QWidget):
         self.key = 'project_spatial_id'
 
         # Store the original and current dataframes
-        self.data = data
-        self.original_dataframe = self.format_data(data)
-        self.dataframe = self.original_dataframe.copy()
+        self.refresh_data(data)
         self.gdb = gdb
         
         # Initialize the user interface
@@ -119,7 +117,8 @@ class DataTableApp(QWidget):
         """
         # Update the data, original and current dataframe
         self.data = data
-        self.original_dataframe = self.format_data(data)
+        formatted_data = self.format_data(data)
+        self.original_dataframe = formatted_data[formatted_data['dropped'] != True]
         self.dataframe = self.original_dataframe.copy()
 
     def format_data(self, data: Datatracker2BT) -> pd.DataFrame:
@@ -135,7 +134,11 @@ class DataTableApp(QWidget):
         # Convert raw data to a DataFrame and rename index column
         dataframe = pd.DataFrame.from_dict(data.data_dict, orient='index').reset_index()
         dataframe.rename(columns={'index': self.key}, inplace=True)
-        return dataframe 
+        
+        # Sort the DataFrame by the 'self.key' column alphabetically
+        dataframe_sorted = dataframe.sort_values(by=self.key)
+
+        return dataframe_sorted 
 
     def populate_table(self) -> None:
         """
@@ -193,22 +196,22 @@ class DataTableApp(QWidget):
         changes_dict = {}
 
         # Iterate over rows and columns to identify changes
-        for i in range(len(self.dataframe.index)):
+        for row in range(len(self.dataframe.index)):
             row_changes = {}
 
-            for j in range(len(self.dataframe.columns)):
-                item = self.table.item(i, j)
+            for column in range(len(self.dataframe.columns)):
+                item = self.table.item(row, column)
                 if item is not None:
                     edited_value = item.text()
-                    original_value = str(self.original_dataframe.iloc[i, j])
+                    original_value = str(self.original_dataframe.iloc[row, column])
 
                     # Record changes if the value is different
                     if edited_value != original_value:
-                        row_changes[self.dataframe.columns[j]] = edited_value
+                        row_changes[self.dataframe.columns[column]] = edited_value
 
             if row_changes:
                 # Store changes with project_spatial_id as key
-                project_spatial_id_value = self.dataframe.at[i, self.key]
+                project_spatial_id_value = self.dataframe.iat[row, 0]
                 changes_dict[project_spatial_id_value] = row_changes
 
         # Log the changes
