@@ -13,9 +13,7 @@ from twobilliontoolkit.SpatialTransformer.common import *
 from twobilliontoolkit.Logger.logger import log, Colors
 from twobilliontoolkit.GeoAttachmentSeeker.geo_attachment_seeker import find_attachments
 from twobilliontoolkit.SpatialTransformer.Datatracker import Datatracker2BT
-from twobilliontoolkit.RecordReviser.record_reviser import call_record_reviser
 from twobilliontoolkit.SpatialTransformer.Parameters import Parameters
-from twobilliontoolkit.SpatialTransformer.network_transfer import transfer
 
 #========================================================
 # Helper Class
@@ -128,34 +126,11 @@ class Processor:
 
                 self.data.set_data(project_spatial_id=formatted_project_spatial_id, processed=True)
             
-            except arcpy.ExecuteError as error:
-                log(self.params.log, Colors.ERROR, f'An error occured when processing the layer for {file}: {error} You can fix or remove it from the datatracker/database, then run the command again with --resume')
-            except arcgisscripting.ExecuteError as error:
-                log(self.params.log, Colors.ERROR, f'An error occured when processing the layer for {file}: {error} You can fix or remove it from the datatracker/database, then run the command again with --resume')
+            except (arcpy.ExecuteError, arcgisscripting.ExecuteError) as error:
+                log(self.params.log, Colors.ERROR, f'An error occured when processing the layer for {file}, you can fix or remove it from the datatracker/database, then run the command again with --resume\n{error}')
             except Exception as error:
                 log(self.params.log, Colors.ERROR, f'An uncaught error occured when processing the layer for {file}')
                 raise Exception(error)
-                 
-        log(None, Colors.INFO, 'Processing of the files into the Geodatabase has completed.')
-
-        # Extract attachments from the Geodatabase
-        self.extract_attachments()
-                    
-        # Save the data tracker before returning
-        self.data.save_data()
-
-        # Move the local files to the specified output
-        if self.params.output is not '':
-            log(None, Colors.INFO, f'Transfering local output to {self.params.output}.')
-            transfer(
-                self.params.local_dir,
-                self.params.output,
-                [os.path.basename(self.params.gdb), os.path.basename(self.params.datatracker), os.path.basename(self.params.attachments), self.params.log[:-4] + '_WARNING.txt', self.params.log[:-4] + '_ERROR.txt'],
-                self.params.log
-            )
-        
-        # Open the record reviser
-        call_record_reviser(self.data, self.params.gdb)
         
     def check_project_numbers(self, file_path: str, master_df: pd.DataFrame) -> str:
         """
@@ -458,7 +433,8 @@ class Processor:
             # Update the entry of the Geodatabase feature class
             self.data.set_data(
                 project_spatial_id=key.replace('proj_', ''), 
-                extracted_attachments_path=value
+                # extracted_attachments_path=value
+                extracted_attachments_path=os.path.join(self.params.output, value.replace(f"C:\LocalTwoBillionToolkit\\", ''))
             )
         
         # Log completion of this task
@@ -481,6 +457,13 @@ class Processor:
             
             # Enable the 4 fields for editor tracking
             arcpy.EnableEditorTracking_management(feature_class, "bt_created_by", "bt_date_created", "bt_last_edited_by", "bt_date_edited", "ADD_FIELDS", "UTC")
+            
+            # Set flag in data object for editor tracking to True
+            self.data.set_data(
+                project_spatial_id=os.path.basename(feature_class).replace('proj_', ''),
+                editor_tracking_enabled=True
+            )
+        
         except Exception as error:
             log(self.params.log, Colors.ERROR, f'An error has been caught while trying to enable editor tracking for {feature_class} in resulting gdb, {error}')
 
