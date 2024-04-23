@@ -40,7 +40,7 @@ class Parameters:
         # Build the paths
         gdb = os.path.join(self.local_dir, gdb)
         datatracker = os.path.join(self.local_dir, datatracker)
-        attachments = os.path.join(self.local_dir, attachments)
+        attachments = os.path.join(output_path, attachments)
     
         # Ensure that if a datatracker is specified for loading or saving, then a path must be passed
         if (load_from == 'datatracker' or save_to == 'datatracker') and datatracker == '':
