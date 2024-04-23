@@ -21,15 +21,17 @@ $ArcPro_PYENV = "C:\Users\$username\AppData\Local\Programs\ArcGIS\Pro\bin\Python
 $ArcPro_original = "C:\Users\$username\AppData\Local\Programs\ArcGIS\Pro\bin\Python\envs\arcgispro-py3"
 $ArcPro_clone = "C:\Users\$username\AppData\Local\ESRI\conda\envs\arcgispro-py3-clone"
 $python_exe = "$ArcPro_clone\python.exe"
-$toolkit_dir = ""
-$input_path = ""
-$output_path = ""
-$master_data = ""
+$toolkit_dir = "..."
+$input_path = "..."
+$output_path = "..."
+$master_data = "..."
 $load = "database"
 $save = "database"
 $gdb_name = "Output"
 $gdb = "${gdb_name}.gdb"
+$gdb_path = "...\${gdb}"
 $datatracker = "OutputDatatracker.xlsx"
+$datatracker_path = "...\${datatracker}"
 $local_dir_path = "C:\LocalTwoBillionToolkit"
 $transfer_files = @("${gdb}", "${gdb_name}_Attachments", "${gdb_name}_Log_${datestamp}_ERROR.txt", "${gdb_name}_Log_${datestamp}_WARNING.txt")
 
@@ -76,18 +78,18 @@ do {
         }
         "3" {
             Write-Host "Running Spatial Transformer..."
-            Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_network_path "$output_path" --gdb "$gdb" --datatracker "$datatracker" --master "$master_data" --suppress
+            Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --suppress
             Write-Host
-            & $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_network_path "$output_path" --gdb "$gdb" --datatracker "$datatracker" --master "$master_data" --suppress
+            & $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --suppress
             Write-Host
             Write-Host "The SpatialTransformer has completed its processing!"
             Pause
         }
         "4" {
             Write-Host "Resuming Spatial Transformer from failure..."
-            Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_network_path "$output_path" --gdb "$gdb" --datatracker "$datatracker" --master "$master_data" --suppress --resume
+            Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --suppress --resume
             Write-Host
-            & $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_network_path "$output_path" --gdb "$gdb" --datatracker "$datatracker" --master "$master_data" --suppress --resume
+            & $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --suppress --resume
             Write-Host
             Write-Host "The SpatialTransformer has completed its processing!"
             Pause
@@ -103,9 +105,9 @@ do {
         }
         "6" {
             Write-Host "Running Geo Attachment Seeker Independently..."
-            Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\GeoAttachmentSeeker\geo_attachment_seeker.py" "$output_path\$gdb" $output_path
+            Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\GeoAttachmentSeeker\geo_attachment_seeker.py" "$gdb_path" $output_path
             Write-Host
-            & $python_exe "$toolkit_dir\twobilliontoolkit\GeoAttachmentSeeker\geo_attachment_seeker.py" "$output_path\$gdb" $output_path
+            & $python_exe "$toolkit_dir\twobilliontoolkit\GeoAttachmentSeeker\geo_attachment_seeker.py" "$gdb_path" $output_path
             Write-Host
             Write-Host "Geo Attachment Seeker has completed its processing!"
             Pause
@@ -121,9 +123,9 @@ do {
         }
         "8" {
             Write-Host "Running Record Reviser Independently..."
-            Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\RecordReviser\record_reviser.py" --gdb "$output_path\$gdb" --load $load --save $save --datatracker "$output_path\$datatracker"
+            Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\RecordReviser\record_reviser.py" --gdb "$gdb_path" --load $load --save $save --datatracker "$datatracker_path"
             Write-Host
-            & $python_exe "$toolkit_dir\twobilliontoolkit\RecordReviser\record_reviser.py" --gdb "$output_path\$gdb" --load $load --save $save --datatracker "$output_path\$datatracker"
+            & $python_exe "$toolkit_dir\twobilliontoolkit\RecordReviser\record_reviser.py" --gdb "$gdb_path" --load $load --save $save --datatracker "$datatracker_path"
             Write-Host
             Write-Host "Record Reviser has completed its processing!"
             Pause

@@ -28,15 +28,17 @@ set "ArcPro_PYENV=C:\Users\%USERNAME%\AppData\Local\Programs\ArcGIS\Pro\bin\Pyth
 set "ArcPro_original=C:\Users\%USERNAME%\AppData\Local\Programs\ArcGIS\Pro\bin\Python\envs\arcgispro-py3"
 set "ArcPro_clone=C:\Users\%USERNAME%\AppData\Local\ESRI\conda\envs\arcgispro-py3-clone"
 set "python_exe=C:\Users\%USERNAME%\AppData\Local\ESRI\conda\envs\arcgispro-py3-clone\python.exe"
-set "toolkit_dir="
-set "input_path="
-set "output_path="
-set "master_data="
+set "toolkit_dir=..."
+set "input_path=..."
+set "output_path=..."
+set "master_data=..."
 set "load=database"
 set "save=database"
 set "gdb_name=Output"
 set "gdb=%gdb_name%.gdb"
+set "gdb_path=...\%gdb%"
 set "datatracker=OutputDatatracker.xlsx"
+set "datatracker_path=...\%datatracker%"
 set "local_dir_path=C:\LocalTwoBillionToolkit\Output"
 set transfer_files="%gdb%" "%gdb_name%_Attachments" "%gdb_name%_Log_%datestamp%_ERROR.txt" "%gdb_name%_Log_%datestamp%_WARNING.txt"
 
@@ -92,10 +94,10 @@ goto menu
 
 :command3
 echo Running Spatial Transformer...
-echo "%python_exe%" "%toolkit_dir%\SpatialTransformer\spatial_transformer.py" --load %load% --save %save% --input_path "%input_path%" --output_network_path "%output_path%" --gdb "%gdb%" --datatracker "%datatracker%" --master "%master_data%" --suppress
+echo "%python_exe%" "%toolkit_dir%\SpatialTransformer\spatial_transformer.py" --load %load% --save %save% --input_path "%input_path%" --output_path "%output_path%" --gdb_path "%gdb_path%" --datatracker "%datatracker%" --master "%master_data%" --suppress
 echo
 rem
-"%python_exe%" "%toolkit_dir%\SpatialTransformer\spatial_transformer.py" --load %load% --save %save% --input_path "%input_path%" --output_network_path "%output_path%" --gdb "%gdb%" --datatracker "%datatracker%" --master "%master_data%" --suppress
+"%python_exe%" "%toolkit_dir%\SpatialTransformer\spatial_transformer.py" --load %load% --save %save% --input_path "%input_path%" --output_path "%output_path%" --gdb_path "%gdb_path%" --datatracker "%datatracker%" --master "%master_data%" --suppress
 echo
 echo The SpatialTransformer has completed its processing!
 pause
@@ -103,10 +105,10 @@ goto menu
 
 :command4
 echo Resuming Spatial Transformer from failure...
-echo "%python_exe%" "%toolkit_dir%\SpatialTransformer\spatial_transformer.py" --load %load% --save %save% --input_path "%input_path%" --output_network_path "%output_path%" --gdb "%gdb%" --datatracker "%datatracker%" --master "%master_data%" --suppress --resume
+echo "%python_exe%" "%toolkit_dir%\SpatialTransformer\spatial_transformer.py" --load %load% --save %save% --input_path "%input_path%" --output_path "%output_path%" --gdb_path "%gdb_path%" --datatracker "%datatracker%" --master "%master_data%" --suppress --resume
 echo
 rem
-"%python_exe%" "%toolkit_dir%\SpatialTransformer\spatial_transformer.py" --load %load% --save %save% --input_path "%input_path%" --output_network_path "%output_path%" --gdb "%gdb%" --datatracker "%datatracker%" --master "%master_data%" --suppress --resume
+"%python_exe%" "%toolkit_dir%\SpatialTransformer\spatial_transformer.py" --load %load% --save %save% --input_path "%input_path%" --output_path "%output_path%" --gdb_path "%gdb_path%" --datatracker "%datatracker%" --master "%master_data%" --suppress --resume
 echo
 echo The SpatialTransformer has completed its processing!
 pause
@@ -125,10 +127,10 @@ goto menu
 
 :command6
 echo Running Geo Attachment Seeker Independently...
-echo "%python_exe%" "%toolkit_dir%\GeoAttachmentSeeker\geo_attachment_seeker.py" "%output_path%\%gdb%" "%output_path%"
+echo "%python_exe%" "%toolkit_dir%\GeoAttachmentSeeker\geo_attachment_seeker.py" "%gdb_path%" "%output_path%"
 echo
 rem
-"%python_exe%" "%toolkit_dir%\GeoAttachmentSeeker\geo_attachment_seeker.py" "%output_path%\%gdb%" "%output_path%"
+"%python_exe%" "%toolkit_dir%\GeoAttachmentSeeker\geo_attachment_seeker.py" "%gdb_path%" "%output_path%"
 echo
 echo Geo Attachment Seeker has completed its processing!
 pause
@@ -147,10 +149,10 @@ goto menu
 
 :command8
 echo Running Record Reviser Independently...
-echo "%python_exe%" "%toolkit_dir%\RecordReviser\record_reviser.py" --gdb "%output_path%\%gdb%" --load "%load%" --save "%save%" --datatracker "%output_path%\%datatracker%"
+echo "%python_exe%" "%toolkit_dir%\RecordReviser\record_reviser.py" --gdb "%gdb_path%" --load "%load%" --save "%save%" --datatracker "%datatracker_path%"
 echo
 rem
-"%python_exe%" "%toolkit_dir%\RecordReviser\record_reviser.py" --gdb "%output_path%\%gdb%" --load "%load%" --save "%save%" --datatracker "%output_path%\%datatracker%"
+"%python_exe%" "%toolkit_dir%\RecordReviser\record_reviser.py" --gdb "%gdb_path%" --load "%load%" --save "%save%" --datatracker "%datatracker_path%"
 echo
 echo Record Reviser has completed its processing!
 pause
