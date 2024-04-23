@@ -109,8 +109,8 @@ class TestDatatracker2BT(unittest.TestCase):
             project_spatial_id='proj3',
             project_number='101',
             dropped=False,
-            project_path='/path/to/project3',
             raw_data_path='/path/to/raw_data3',
+            raw_gdb_path='/path/to/gdb.gdb',
             absolute_file_path='/path/to/file3',
             in_raw_gdb=True,
             contains_pdf=False,
@@ -130,9 +130,9 @@ class TestDatatracker2BT(unittest.TestCase):
         loaded_data = new_datatracker2bt_f.get_data(project_spatial_id='proj3')
         expected_data = {
             'project_number': '101',
-            'project_path': '/path/to/project3',
             'dropped': False,
             'raw_data_path': '/path/to/raw_data3',
+            'raw_gdb_path':'/path/to/gdb.gdb',
             'absolute_file_path': '/path/to/file3',
             'in_raw_gdb': True,
             'contains_pdf': False,

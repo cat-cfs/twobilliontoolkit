@@ -59,7 +59,7 @@ class DataTableApp(QWidget):
         super().__init__()
 
         # Columns that are not editable and the key
-        self.columns_noedit = ['project_spatial_id', 'dropped', 'project_path', 'raw_data_path']
+        self.columns_noedit = ['project_spatial_id', 'dropped', 'raw_data_path']
         self.key = 'project_spatial_id'
 
         # Store the original and current dataframes
@@ -290,8 +290,8 @@ def create_duplicate(data: Datatracker2BT, project_spatial_id: str, new_project_
         project_spatial_id=new_project_spatial_id,
         project_number=new_project_number,
         dropped=entry_to_duplicate.get('dropped'),
-        project_path=entry_to_duplicate.get('project_path'),
         raw_data_path=entry_to_duplicate.get('raw_data_path'),
+        raw_gdb_path=entry_to_duplicate.get('raw_gdb_path'),
         absolute_file_path=entry_to_duplicate.get('absolute_file_path'),
         in_raw_gdb=entry_to_duplicate.get('in_raw_gdb'),
         contains_pdf=entry_to_duplicate.get('contains_pdf'),

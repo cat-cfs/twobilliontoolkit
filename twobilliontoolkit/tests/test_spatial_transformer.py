@@ -91,88 +91,27 @@ class TestDataHandling(unittest.TestCase):
         master_data_df = pd.read_excel(r".\Redacted_Master_Data.xlsx")
         temp_processor.process_spatial_files(master_data_df)
 
-        arcpy.env.workspace = temp_processor.params.gdb
+        arcpy.env.workspace = temp_processor.params.gdb_path
 
         self.assertTrue(arcpy.Exists('proj_0000_XXX_000_1')) 
         self.assertTrue(arcpy.Exists('proj_0000_XXX_000_2')) 
         self.assertTrue(arcpy.Exists('proj_0000_XXX_000_3')) 
         self.assertTrue(arcpy.Exists('proj_0000_XXX_000_4')) 
         self.assertTrue(arcpy.Exists('proj_0000_XXX_000_5')) 
-   
-    # def test_process_shp(self):
-    #     # Test case for processing a shapefile        
-    #     file = os.path.join(self.test_directory,'..', 'input', 'test.shp')
-    #     formatted_project_spatial_id = '0001_XXX_000_1'
-        
-    #     if not arcpy.Exists(self.startparams.gdb):
-    #         arcpy.management.CreateFileGDB(os.path.dirname(self.startparams.gdb), os.path.basename(self.startparams.gdb))
-
-    #     # arcpy.env.workspace = self.startparams.gdb
-
-    #     self.processor.process_shp(file, formatted_project_spatial_id, self.datatracker)
-                
-    #     self.assertTrue(arcpy.Exists('proj_0001_XXX_000_1')) 
-    
-    # def test_process_kml(self):
-    #     # Test case for processing a kml
-    #     file = os.path.join(self.test_directory,'..', 'input', 'test.kml')
-    #     formatted_project_spatial_id = '0002_XXX_000_1'
-        
-    #     # Add data for the new project spatial ID
-    #     self.datatracker.add_data(
-    #         project_spatial_id=formatted_project_spatial_id,
-    #         project_number='0002 XXX 000',
-    #         project_path='path',
-    #         raw_data_path='path',
-    #         in_raw_gdb=False,
-    #         contains_pdf=False,
-    #         contains_image=False
-    #     )
-    
-    #     if not arcpy.Exists(self.startparams.gdb):
-    #         arcpy.management.CreateFileGDB(os.path.dirname(self.startparams.gdb), os.path.basename(self.startparams.gdb))
-            
-    #     self.processor.process_kml(file, formatted_project_spatial_id, self.datatracker)
-                
-    #     self.assertTrue(arcpy.Exists('proj_0002_XXX_000_1')) 
-    
-    # def test_process_geojson(self):
-    #     # Test case for processing a geojson
-    #     file = os.path.join(self.test_directory,'..', 'input', 'test.geojson')
-    #     formatted_project_spatial_id = '0003_XXX_000_1'
-        
-    #     if not arcpy.Exists(self.startparams.gdb):
-    #         arcpy.management.CreateFileGDB(os.path.dirname(self.startparams.gdb), os.path.basename(self.startparams.gdb))
-        
-    #     self.processor.process_json(file, formatted_project_spatial_id, self.datatracker)
-                
-    #     self.assertTrue(arcpy.Exists('proj_0003_XXX_000_1')) 
-            
-    # def test_process_gdb(self):
-    #     # Test case for processing a gdb
-    #     file = os.path.join(self.test_directory,'..', 'input', 'test.gdb')
-    #     formatted_project_spatial_id = '0004_XXX_000_1'
-            
-    #     if not arcpy.Exists(self.startparams.gdb):
-    #         arcpy.management.CreateFileGDB(os.path.dirname(self.startparams.gdb), os.path.basename(self.startparams.gdb))
-            
-    #     self.processor.process_gdb(file, formatted_project_spatial_id, self.datatracker)
-                
-    #     self.assertTrue(arcpy.Exists('proj_0004_XXX_000_1')) 
             
     def test_add_data(self):
         # Test the add_data method
         project_spatial_id = 1
         project_number = '0000 XXX - 111'
-        project_path = '/path/to/project1'
         raw_data_path = '/path/to/raw/data1'
+        raw_gdb_path = '/path/to/gdb,gdb'
 
         # Add initial data
         self.datatracker.add_data(
             project_spatial_id=project_spatial_id, 
             project_number=project_number, 
-            project_path=project_path, 
             raw_data_path=raw_data_path, 
+            raw_gdb_path=raw_gdb_path,
             in_raw_gdb=False, 
             contains_pdf=False, 
             contains_image=False
@@ -181,7 +120,7 @@ class TestDataHandling(unittest.TestCase):
         # Check if the data was added correctly
         self.assertNotEqual(self.datatracker.get_data(project_spatial_id), None)
         self.assertEqual(self.datatracker.get_data(project_spatial_id)['project_number'], project_number)
-        self.assertEqual(self.datatracker.get_data(project_spatial_id)['project_path'], project_path)
+        self.assertEqual(self.datatracker.get_data(project_spatial_id)['raw_gdb_path'], raw_gdb_path)
         self.assertEqual(self.datatracker.get_data(project_spatial_id)['raw_data_path'], raw_data_path)
         self.assertFalse(self.datatracker.get_data(project_spatial_id)['in_raw_gdb'])
         self.assertFalse(self.datatracker.get_data(project_spatial_id)['contains_pdf'])
@@ -191,15 +130,15 @@ class TestDataHandling(unittest.TestCase):
         # Test the set_data method
         project_spatial_id = 2
         project_number = '0000 XXX - 222'
-        project_path = '/path/to/project2'
         raw_data_path = '/path/to/raw/data2'
+        raw_gdb_path = '/path/to/gdb.gdb'
 
         # Add initial data
         self.datatracker.add_data(
             project_spatial_id=project_spatial_id, 
             project_number=project_number, 
-            project_path=project_path, 
             raw_data_path=raw_data_path, 
+            raw_gdb_path=raw_gdb_path,
             in_raw_gdb=False, 
             contains_pdf=False, 
             contains_image=False
@@ -225,8 +164,8 @@ class TestDataHandling(unittest.TestCase):
         # Test the find_matching_spatial_id method
         project_spatial_id = 3
         project_number = '0000 XXX - 333'
-        project_path = '/path/to/project3'
         raw_data_path = '/path/to/raw/data3'
+        raw_gdb_path = '/path/to/gdb.gdb'
 
         # Test the method before adding the data
         matching_spatial_id = self.datatracker.find_matching_spatial_id(raw_data_path)
@@ -236,8 +175,8 @@ class TestDataHandling(unittest.TestCase):
         self.datatracker.add_data(
             project_spatial_id=project_spatial_id, 
             project_number=project_number, 
-            project_path=project_path, 
             raw_data_path=raw_data_path, 
+            raw_gdb_path=raw_gdb_path,
             in_raw_gdb=False, 
             contains_pdf=False, 
             contains_image=False
@@ -252,15 +191,15 @@ class TestDataHandling(unittest.TestCase):
         # Test the count_occurances method        
         project_spatial_id = 4
         project_number = '0000 XXX - 444'
-        project_path = '/path/to/project4'
         raw_data_path = '/path/to/raw/data4'
+        raw_gdb_path = '/path/to/gdb.gdb'
 
         # Add initial data
         self.datatracker.add_data(
             project_spatial_id=project_spatial_id, 
             project_number=project_number, 
-            project_path=project_path, 
             raw_data_path=raw_data_path, 
+            raw_gdb_path=raw_gdb_path,
             in_raw_gdb=False, 
             contains_pdf=False, 
             contains_image=False
@@ -274,8 +213,8 @@ class TestDataHandling(unittest.TestCase):
         self.datatracker.add_data(
             project_spatial_id=44, 
             project_number=project_number, 
-            project_path=project_path, 
             raw_data_path=raw_data_path, 
+            raw_gdb_path=raw_gdb_path,
             in_raw_gdb=False, 
             contains_pdf=False, 
             contains_image=False
@@ -283,8 +222,8 @@ class TestDataHandling(unittest.TestCase):
         self.datatracker.add_data(
             project_spatial_id=444, 
             project_number=project_number, 
-            project_path=project_path, 
             raw_data_path=raw_data_path, 
+            raw_gdb_path=raw_gdb_path,
             in_raw_gdb=False, 
             contains_pdf=False, 
             contains_image=False
@@ -292,8 +231,8 @@ class TestDataHandling(unittest.TestCase):
         self.datatracker.add_data(
             project_spatial_id=4444, 
             project_number=project_number, 
-            project_path=project_path, 
             raw_data_path=raw_data_path, 
+            raw_gdb_path=raw_gdb_path,
             in_raw_gdb=False, 
             contains_pdf=False, 
             contains_image=False
@@ -307,8 +246,8 @@ class TestDataHandling(unittest.TestCase):
         # Test the create_project_spatial_id method
         project_spatial_id = 5
         project_number = '0000 XXX - 555'
-        project_path = '/path/to/project5'
         raw_data_path = '/path/to/raw/data5'
+        raw_gdb_path = '/path/to/gdb.gdb'
         
         # Test the method before addng the data, so it should be ..._1
         new_project_spatial_id = self.datatracker.create_project_spatial_id(project_number)
@@ -318,8 +257,8 @@ class TestDataHandling(unittest.TestCase):
         self.datatracker.add_data(
             project_spatial_id=project_spatial_id, 
             project_number=project_number, 
-            project_path=project_path, 
             raw_data_path=raw_data_path, 
+            raw_gdb_path=raw_gdb_path,
             in_raw_gdb=False, 
             contains_pdf=False, 
             contains_image=False
@@ -329,8 +268,8 @@ class TestDataHandling(unittest.TestCase):
         self.datatracker.add_data(
             project_spatial_id=55, 
             project_number=project_number, 
-            project_path=project_path, 
             raw_data_path=raw_data_path, 
+            raw_gdb_path=raw_gdb_path,
             in_raw_gdb=False, 
             contains_pdf=False, 
             contains_image=False
@@ -344,15 +283,15 @@ class TestDataHandling(unittest.TestCase):
         # Test the load_data and _save_data methods
         project_spatial_id = 6
         project_number = '0000 XXX - 666'
-        project_path = '/path/to/project6'
         raw_data_path = '/path/to/raw/data6'
+        raw_gdb_path = '/path/to/gdb.gdb'
 
         # Add initial data
         self.datatracker.add_data(
             project_spatial_id=project_spatial_id, 
             project_number=project_number, 
-            project_path=project_path, 
             raw_data_path=raw_data_path, 
+            raw_gdb_path=raw_gdb_path,
             in_raw_gdb=False, 
             contains_pdf=False, 
             contains_image=False

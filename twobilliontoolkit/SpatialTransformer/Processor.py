@@ -66,10 +66,9 @@ class Processor:
                 log(None, Colors.INFO, file)
                 log(None, Colors.INFO, formatted_project_spatial_id)
 
-            # Convert the raw data path to a relative path and extract the project path            
+            # Convert the raw data path to a relative path           
             raw_data_path = os.path.relpath(file, self.params.output)
-            project_path = raw_data_path.split("\\")[0]
-            absolute_file_path = convert_to_actual_drive_path(file)
+            absolute_file_path = convert_drive_path(file)
 
             # Call a method to process raw data matching
             self.call_raw_data_match(formatted_project_spatial_id, raw_data_path)
@@ -85,8 +84,8 @@ class Processor:
                 project_spatial_id=formatted_project_spatial_id,
                 project_number=formatted_result, 
                 dropped=False,
-                project_path=project_path, 
                 raw_data_path=raw_data_path, 
+                raw_gdb_path=convert_drive_path(self.params.gdb_path),
                 absolute_file_path=absolute_file_path,
                 in_raw_gdb=False, 
                 contains_pdf=False, 
@@ -186,11 +185,11 @@ class Processor:
         # Export features from shapefile to a geodatabase
         arcpy.conversion.ExportFeatures(
             file,
-            self.params.gdb + f'\proj_{formatted_project_spatial_id}'
+            self.params.local_gdb_path + f'\proj_{formatted_project_spatial_id}'
         )
         
         #
-        self.enable_version_control(self.params.gdb + f'\proj_{formatted_project_spatial_id}')
+        self.enable_version_control(self.params.local_gdb_path + f'\proj_{formatted_project_spatial_id}')
         
         # Change the flag to indicate it was succefully put into the Geodatabase
         self.data.set_data(
@@ -248,9 +247,9 @@ class Processor:
                     project_spatial_id=spatial_project_id,
                     project_number=current_feature_data['project_number'],
                     dropped=False,
-                    project_path=current_feature_data['project_path'],
-                    absolute_file_path=convert_to_actual_drive_path(file),    
+                    absolute_file_path=convert_drive_path(file),    
                     raw_data_path=current_feature_data['raw_data_path'],
+                    raw_gdb_path=convert_drive_path(self.params.gdb_path),
                     in_raw_gdb=False,
                     contains_pdf=False,
                     contains_image=False,
@@ -266,11 +265,11 @@ class Processor:
             new_name = f"proj_{formatted_project_spatial_id}"
             arcpy.management.Copy(
                 os.path.join(self.temp_directory, f'kml_layer.gdb/Placemarks/{feature_class}'),
-                os.path.join(self.params.gdb, new_name)
+                os.path.join(self.params.local_gdb_path, new_name)
             )   
             
             #
-            self.enable_version_control(os.path.join(self.params.gdb, new_name))
+            self.enable_version_control(os.path.join(self.params.local_gdb_path, new_name))
             
             # Set the flag to indicate that the first feature class has been processed
             first_feature_class_processed = True
@@ -332,11 +331,11 @@ class Processor:
         # Export features from GeoJSON to a geodatabase
         arcpy.conversion.JSONToFeatures(
             file,
-            self.params.gdb + f'\proj_{formatted_project_spatial_id}'
+            self.params.local_gdb_path + f'\proj_{formatted_project_spatial_id}'
         )
         
         #
-        self.enable_version_control(self.params.gdb + f'\proj_{formatted_project_spatial_id}')
+        self.enable_version_control(self.params.local_gdb_path + f'\proj_{formatted_project_spatial_id}')
         
         # Change the flag to indicate it was succefully put into the Geodatabase
         self.data.set_data(
@@ -355,7 +354,7 @@ class Processor:
         # Set the workspace to the specified .gdb
         arcpy.env.workspace = file
         
-        # Set starting raw data path and a flag for skipping first iteration
+        # Set starting raw data path and a flag for skipping first iteration because it was added in the process_spatial_files function
         base_raw_data_path = self.data.get_data(formatted_project_spatial_id)['raw_data_path']
         # first_feature_class_processed = False
         
@@ -367,15 +366,15 @@ class Processor:
             # Get data for the current feature and create a new project spatial ID
             current_feature_data = self.data.get_data(formatted_project_spatial_id)
             spatial_project_id = self.data.create_project_spatial_id(current_feature_data['project_number'])
-            
+
             # Add data for the new project spatial ID
             self.data.add_data(
                 project_spatial_id=spatial_project_id,
                 project_number=current_feature_data['project_number'],
                 dropped=False,
-                project_path=current_feature_data['project_path'],
                 raw_data_path=current_feature_data['raw_data_path'],
-                absolute_file_path=convert_to_actual_drive_path(file),
+                raw_gdb_path=convert_drive_path(self.params.gdb_path),
+                absolute_file_path=convert_drive_path(file),
                 in_raw_gdb=False,
                 contains_pdf=False,
                 contains_image=False,
@@ -386,17 +385,17 @@ class Processor:
             
             # Update the formatted project spatial ID
             formatted_project_spatial_id = spatial_project_id
-                
+            
             if arcpy.Exists(feature) and arcpy.Describe(feature).dataType == 'FeatureClass':
                 # Create a new name and export feature class
                 new_name = f"proj_{formatted_project_spatial_id}"
                 arcpy.conversion.ExportFeatures(
                     os.path.join(file, feature),
-                    os.path.join(self.params.gdb, new_name)
+                    os.path.join(self.params.local_gdb_path, new_name)
                 )
                 
                 #
-                self.enable_version_control(os.path.join(self.params.gdb, new_name))
+                self.enable_version_control(os.path.join(self.params.local_gdb_path, new_name))
                 
                 # Update the entry of the Geodatabase feature class
                 self.data.set_data(
@@ -405,7 +404,7 @@ class Processor:
                     processed=True
                 )
             
-            # # Set the flag to indicate that the first feature class has been processed
+            # Set the flag to indicate that the first feature class has been processed
             # first_feature_class_processed = True
             
             new_raw_data_path = os.path.join(base_raw_data_path, feature)
@@ -422,7 +421,7 @@ class Processor:
         Call the GeoAttachmentSeeker module function to find, extract and note down any attachments in the result GDB.
         """        
         # Find and process attachments from the gdb
-        attachment_dict = find_attachments(self.params.gdb, self.params.attachments)
+        attachment_dict = find_attachments(self.params.local_gdb_path, self.params.attachments)
         
         # Print file information if debugging is enabled
         if self.params.debug:
@@ -434,7 +433,7 @@ class Processor:
             self.data.set_data(
                 project_spatial_id=key.replace('proj_', ''), 
                 # extracted_attachments_path=value
-                extracted_attachments_path=os.path.join(self.params.output, value.replace(f"C:\LocalTwoBillionToolkit\\", ''))
+                extracted_attachments_path=os.path.join(self.params.gdb_path, value.replace(f"C:\LocalTwoBillionToolkit\\", ''))
             )
         
         # Log completion of this task
@@ -446,7 +445,7 @@ class Processor:
         """
         try:
             # Set the arc environement to the resulting GDB
-            arcpy.env.workspace = self.params.gdb
+            arcpy.env.workspace = self.params.local_gdb_path
             
             # Add a site id for mapping in a later tool
             arcpy.management.AddField(
@@ -468,7 +467,10 @@ class Processor:
             log(self.params.log, Colors.ERROR, f'An error has been caught while trying to enable editor tracking for {feature_class} in resulting gdb, {error}')
 
         
-def convert_to_actual_drive_path(file_path):
+def convert_drive_path(file_path):
+    """
+    Converts a path with a mapped drive (ie. M:\, V:\) to the actual network drive name.
+    """
     abs_file_path = os.path.abspath(file_path)
     actual_drive_path = abs_file_path
 
