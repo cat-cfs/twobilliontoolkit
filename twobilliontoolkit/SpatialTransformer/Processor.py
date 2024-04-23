@@ -356,35 +356,35 @@ class Processor:
         
         # Set starting raw data path and a flag for skipping first iteration because it was added in the process_spatial_files function
         base_raw_data_path = self.data.get_data(formatted_project_spatial_id)['raw_data_path']
-        # first_feature_class_processed = False
+        first_feature_class_processed = False
         
         # Iterate through the feature classes and tables
         feature_tables = arcpy.ListTables()
         feature_classes = arcpy.ListFeatureClasses()
         for feature in feature_classes + feature_tables:
-            # if first_feature_class_processed:
-            # Get data for the current feature and create a new project spatial ID
-            current_feature_data = self.data.get_data(formatted_project_spatial_id)
-            spatial_project_id = self.data.create_project_spatial_id(current_feature_data['project_number'])
+            if first_feature_class_processed:
+                # Get data for the current feature and create a new project spatial ID
+                current_feature_data = self.data.get_data(formatted_project_spatial_id)
+                spatial_project_id = self.data.create_project_spatial_id(current_feature_data['project_number'])
 
-            # Add data for the new project spatial ID
-            self.data.add_data(
-                project_spatial_id=spatial_project_id,
-                project_number=current_feature_data['project_number'],
-                dropped=False,
-                raw_data_path=current_feature_data['raw_data_path'],
-                raw_gdb_path=convert_drive_path(self.params.gdb_path),
-                absolute_file_path=convert_drive_path(file),
-                in_raw_gdb=False,
-                contains_pdf=False,
-                contains_image=False,
-                extracted_attachments_path=None,
-                editor_tracking_enabled=False,
-                processed=False
-            )
-            
-            # Update the formatted project spatial ID
-            formatted_project_spatial_id = spatial_project_id
+                # Add data for the new project spatial ID
+                self.data.add_data(
+                    project_spatial_id=spatial_project_id,
+                    project_number=current_feature_data['project_number'],
+                    dropped=False,
+                    raw_data_path=current_feature_data['raw_data_path'],
+                    raw_gdb_path=convert_drive_path(self.params.gdb_path),
+                    absolute_file_path=convert_drive_path(file),
+                    in_raw_gdb=False,
+                    contains_pdf=False,
+                    contains_image=False,
+                    extracted_attachments_path=None,
+                    editor_tracking_enabled=False,
+                    processed=False
+                )
+                
+                # Update the formatted project spatial ID
+                formatted_project_spatial_id = spatial_project_id
             
             if arcpy.Exists(feature) and arcpy.Describe(feature).dataType == 'FeatureClass':
                 # Create a new name and export feature class
@@ -405,7 +405,7 @@ class Processor:
                 )
             
             # Set the flag to indicate that the first feature class has been processed
-            # first_feature_class_processed = True
+            first_feature_class_processed = True
             
             new_raw_data_path = os.path.join(base_raw_data_path, feature)
             self.call_raw_data_match(formatted_project_spatial_id, new_raw_data_path)
