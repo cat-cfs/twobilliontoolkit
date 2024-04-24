@@ -126,11 +126,11 @@ class Processor:
                 self.data.set_data(project_spatial_id=formatted_project_spatial_id, processed=True)
             
             except (arcpy.ExecuteError, arcgisscripting.ExecuteError) as error:
-                log(self.params.log, Colors.ERROR, f'An error occured when processing the layer for {file}, you can fix or remove it from the datatracker/database, then run the command again with --resume\n{error}')
+                log(self.params.log, Colors.ERROR, f'An error occurred when processing the layer for {file}, you can fix or remove it from the datatracker/database, then run the command again with --resume\n{error}')
                 # Can remove the comment from below when being shipped so the tool stops when a excetption is caught instead of continue on
                 # raise Exception(error) 
             except Exception as error:
-                log(self.params.log, Colors.ERROR, f'An uncaught error occured when processing the layer for {file}')
+                log(self.params.log, Colors.ERROR, f'An uncaught error occurred when processing the layer for {file}')
                 raise Exception(error)
         
     def check_project_numbers(self, file_path: str, master_df: pd.DataFrame) -> str:

@@ -53,8 +53,8 @@ def log(file_path: str = None, type: str = Colors.ERROR, message: str = '', supp
         type (str): Color code for the log message type.
         message (str): The log message.
         suppress (bool, optional): Suppress warnings in the command line.
-        filename (str, optional): The filename where the error occured if known.
-        line_num (int, optional): The line number in the file that the error occured if known.
+        filename (str, optional): The filename where the error occurred if known.
+        line_num (int, optional): The line number in the file that the error occurred if known.
     """
     traceback = ''
     if filename and line_num:

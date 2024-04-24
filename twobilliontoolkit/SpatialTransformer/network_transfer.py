@@ -137,7 +137,7 @@ def transfer(local_path: str, network_path: str, list_files: list[str] = None, l
                 
         log(None, Colors.INFO, f'The transfer of files has been completed')
     except Exception as error:
-        log(log_path, Colors.ERROR, f'An error has been caught while transfering files from {local_path} to {network_path}: {error}')
+        log(log_path, Colors.ERROR, f'An error has been caught while transferring files from {local_path} to {network_path}: {error}')
 
 #========================================================
 # Main
