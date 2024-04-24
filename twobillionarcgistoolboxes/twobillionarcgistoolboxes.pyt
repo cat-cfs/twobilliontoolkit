@@ -223,7 +223,7 @@ class InsertDataTool(object):
         site_id_param = arcpy.Parameter(
             displayName="Site ID",
             name="site_id",
-            datatype="Long",
+            datatype="Variant",
             parameterType="Required",
             direction="Input"
         )
@@ -351,7 +351,7 @@ class UpdateDataTool(object):
         site_id_param = arcpy.Parameter(
             displayName="Site ID",
             name="site_id",
-            datatype="Long",
+            datatype="Variant",
             parameterType="Required",
             direction="Input"
         )

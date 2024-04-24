@@ -81,17 +81,25 @@
 
                 <Label Content="Two Billion Trees Tool List" Grid.Row="0" HorizontalAlignment="Center" FontSize="17" FontWeight="Normal"  Style="{StaticResource LabelStyle}"/>
 
-                <Border Style="{StaticResource SuccessLabelBorder}" Margin="0,3,0,12" Grid.Row="1">
-                    <Label x:Name="ConnectedMessage" Content="You are connected to the database!" HorizontalContentAlignment="Center" Foreground="#FFFFFA"/>
+                <Border Style="{StaticResource SuccessLabelBorder}" Margin="0,3,0,12" Grid.Row="1" Height="Auto">
+                    <Label x:Name="ConnectedMessage" HorizontalContentAlignment="Center" Foreground="#FFFFFA">
+                        <TextBlock TextWrapping="Wrap">
+                            You are connected to the database!
+                        </TextBlock>
+                    </Label>
                 </Border>
 
                 <Border Style="{StaticResource OutlineBorder}" Grid.Row="2">
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" MinWidth="100">
                         <Button x:Name="PreviousWorkingProjectButton" Style="{DynamicResource Esri_ButtonBackSmall}" ToolTip="Go to previous working project"/>
                         
-                        <StackPanel Orientation="Vertical" Margin="40,0,40,0">
+                        <StackPanel Orientation="Vertical" Margin="20,0,20,0" MaxWidth="125">
                             <Label Content="Working Project:" HorizontalAlignment="Center" FontSize="15" FontWeight="Normal" Style="{StaticResource LabelStyle}"/>
-                            <Label Content="None" HorizontalAlignment="Center" FontSize="13" FontWeight="Bold" Style="{StaticResource LabelStyle}"/>
+                            <Label HorizontalAlignment="Center" FontSize="13" FontWeight="Bold" Style="{StaticResource LabelStyle}">
+                                <TextBlock TextWrapping="Wrap">
+                                    proj_2022_CAT_008_01
+                                </TextBlock>
+                            </Label>
                         </StackPanel>
 
                         <Button x:Name="NextWorkingProjectButton" Style="{DynamicResource Esri_ButtonForwardSmall}" ToolTip="Go to next working project"/>
@@ -166,15 +174,16 @@
                 </ComboBox>
             </Grid>
 
-            <Grid x:Name="SelectedFeaturesGrid" Visibility="Visible" DockPanel.Dock="Top" HorizontalAlignment="Center" Margin="0,5,0,0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-
-                <Label x:Name="SelectedFeaturesNumber" Grid.Column="0" Content="NaN" Style="{StaticResource LabelStyle}" Foreground="OrangeRed" FontWeight="Normal"/>
-                <Label Grid.Column="1" Content="feature(s) currently selected" Style="{StaticResource LabelStyle}" Foreground="OrangeRed" FontWeight="Normal" Margin="-5,0,0,0"/>
-            </Grid>
+            <Border DockPanel.Dock="Top" MinWidth="100">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Label x:Name="SelectedFeaturesNumber" Content="NaN" Style="{StaticResource LabelStyle}" Foreground="OrangeRed" FontWeight="Normal"/>
+                    <Label Style="{StaticResource LabelStyle}" Foreground="OrangeRed" FontWeight="Normal" Margin="-5,0,0,0" >
+                        <TextBlock MinWidth="50" TextWrapping="Wrap">
+        feature(s) currently selected
+                        </TextBlock>
+                    </Label>
+                </StackPanel>
+            </Border>
 
             <CheckBox x:Name="OverwriteToggle" Style="{DynamicResource Esri_CheckboxToggleSwitch}" Content="Overwrite data if it already exists?" Foreground="{DynamicResource Esri_TextStyleEmphasisBrush}" Margin="0,10,0,10" DockPanel.Dock="Top" Click="OverwriteSwitchToggled" ToolTip="Toggle On" HorizontalAlignment="Center"/>
 
