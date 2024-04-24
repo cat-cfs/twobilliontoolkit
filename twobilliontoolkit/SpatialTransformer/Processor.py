@@ -127,6 +127,8 @@ class Processor:
             
             except (arcpy.ExecuteError, arcgisscripting.ExecuteError) as error:
                 log(self.params.log, Colors.ERROR, f'An error occured when processing the layer for {file}, you can fix or remove it from the datatracker/database, then run the command again with --resume\n{error}')
+                # Can remove the comment from below when being shipped so the tool stops when a excetption is caught instead of continue on
+                # raise Exception(error) 
             except Exception as error:
                 log(self.params.log, Colors.ERROR, f'An uncaught error occured when processing the layer for {file}')
                 raise Exception(error)
@@ -154,10 +156,10 @@ class Processor:
             # Format the result using the matched groups
             formatted_result = '{} {} - {}'.format(search.group(1), search.group(2), search.group(3))
 
-        # Check if the project number is found in the master datasheet
-        project_found = master_df['Project Number'].str.replace(' ', '').eq(formatted_result.replace(' ', '').upper()).any()
-        if not project_found:
-            log(self.params.log, Colors.WARNING, f'The project number does not match any in the master datasheet', self.params.suppress)
+            # Check if the project number is found in the master datasheet
+            project_found = master_df['Project Number'].str.replace(' ', '').eq(formatted_result.replace(' ', '').upper()).any()
+            if not project_found:
+                log(self.params.log, Colors.WARNING, f'The project number {formatted_result} does not match any know project number in the master datasheet', self.params.suppress)
             
         return formatted_result
         
