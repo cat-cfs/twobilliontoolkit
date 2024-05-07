@@ -153,7 +153,7 @@
             <ComboBox x:Name="ProjectNumber_Dropdown" Background="{DynamicResource Esri_ControlBackgroundBrush}" Foreground="{DynamicResource Esri_TextMenuBrush}" SelectionChanged="SiteMapperFilterChanged" DockPanel.Dock="Top" Height="55" FontWeight="Normal">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding}" Padding="10,0,0,0"/>
+                        <TextBlock Text="{Binding}" Padding="10,0,0,0" Foreground="{DynamicResource Esri_TextStyleEmphasisBrush}"/>
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
@@ -168,7 +168,7 @@
                 <ComboBox x:Name="SiteID_Dropdown" Grid.Row="1" Background="{DynamicResource Esri_ControlBackgroundBrush}" Foreground="{DynamicResource Esri_TextMenuBrush}" SelectionChanged="SiteMapperFilterChanged" DockPanel.Dock="Top" Height="55" FontWeight="Normal">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding}" Padding="10,0,0,0"/>
+                            <TextBlock Text="{Binding}" Padding="10,0,0,0" Foreground="{DynamicResource Esri_TextStyleEmphasisBrush}"/>
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
