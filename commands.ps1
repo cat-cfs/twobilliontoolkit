@@ -17,7 +17,6 @@ $datestamp = Get-Date -Format "yyyy-MM-dd"
 $username = $env:USERNAME
 
 # Define Variables
-$ArcPro_PYENV = "C:\Users\$username\AppData\Local\Programs\ArcGIS\Pro\bin\Python\Scripts\proenv.bat"
 $ArcPro_original = "C:\Users\$username\AppData\Local\Programs\ArcGIS\Pro\bin\Python\envs\arcgispro-py3"
 $ArcPro_clone = "C:\Users\$username\AppData\Local\ESRI\conda\envs\arcgispro-py3-clone"
 $python_exe = "$ArcPro_clone\python.exe"
@@ -58,11 +57,20 @@ do {
     switch ($choice) {
         "1" {
             Write-Host "Cloning the ArcGIS Pro environement..."
-            Write-Host $ArcPro_PYENV 
-            & $ArcPro_PYENV 
-            Write-Host conda create --clone $ArcPro_original -p $ArcPro_clone --insecure
+            Write-Host conda config --set ssl_verify false
             Write-Host
-            conda create --clone $ArcPro_original -p $ArcPro_clone --insecure
+            conda config --set ssl_verify false
+            Write-Host
+            Write-Host conda create --clone $ArcPro_original -p $ArcPro_clone
+            Write-Host
+            conda create --clone $ArcPro_original -p $ArcPro_clone
+            Write-Host conda activate $ArcPro_clone
+            Write-Host
+            conda activate $ArcPro_clone
+            Write-Host
+            Write-Host conda config --set ssl_verify true
+            Write-Host
+            conda config --set ssl_verify true
             Write-Host
             Write-Host "The ArcGIS Pro environement has succefully been cloned!"
             Pause
