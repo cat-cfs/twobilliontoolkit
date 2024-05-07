@@ -187,7 +187,7 @@
 
             <CheckBox x:Name="OverwriteToggle" Style="{DynamicResource Esri_CheckboxToggleSwitch}" Content="Overwrite Data? " Foreground="{DynamicResource Esri_TextStyleEmphasisBrush}" Margin="0,5,0,5" DockPanel.Dock="Top" Click="OverwriteSwitchToggled" ToolTip="Toggle On" HorizontalAlignment="Center"/>
     
-            <Button x:Name="SendDataButton" Content="Send Data" Height="55" Click="SendButtonClicked" ToolTip="Push data to the database" Margin="0,5,0,0" Template="{StaticResource ButtonTemplate}" Style="{StaticResource ButtonStyle}"/>
+            <Button x:Name="SendDataButton" Content="Send Data" Height="55" Click="SendButtonClicked" ToolTip="Push data to the database" Margin="0,5,0,0" Template="{StaticResource ButtonTemplate}" Style="{StaticResource ButtonStyle}" IsEnabled="False"/>
 
             <Border x:Name="SiteMapper_SuccessStatus" Visibility="Collapsed" Style="{StaticResource SuccessLabelBorder}">
                 <Label Content="Data successfully inserted!" HorizontalContentAlignment="Center" Foreground="White"/>

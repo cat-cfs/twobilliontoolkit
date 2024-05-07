@@ -194,7 +194,7 @@ namespace twobillionarcgisaddin
                 // Disable the button (spam prevention)
                 this.SendDataButton.IsEnabled = false;
 
-                //
+                // Hide the status message
                 this.SiteMapper_SuccessStatus.Visibility = Visibility.Collapsed;
                 this.SiteMapper_ErrorStatus.Visibility = Visibility.Collapsed;
 
@@ -220,16 +220,18 @@ namespace twobillionarcgisaddin
 
                     // Get the first layer and its corresponding selected feature OIDs
                     var selectionSet = selectedFeatures.ToDictionary().First();
-
                     FeatureLayer featureLayer = selectionSet.Key as FeatureLayer;
+
+                    // Get the selected Site ID from the logistics dropdown
+                    string selectedSiteID = this.SiteID_Dropdown.SelectedItem.ToString();
 
                     if ((bool)this.OverwriteToggle.IsChecked)
                     {
-                        await ExecuteUpdateDataToolAsync(this.SiteID_Dropdown.SelectedItem.ToString(), featureLayer);
+                        await ExecuteUpdateDataToolAsync(selectedSiteID, featureLayer);
                     }
                     else
                     {
-                        await ExecuteInsertDataToolAsync(this.SiteID_Dropdown.SelectedItem.ToString(), featureLayer);
+                        await ExecuteInsertDataToolAsync(selectedSiteID, featureLayer);
                     }
                 }
             }
@@ -308,6 +310,15 @@ namespace twobillionarcgisaddin
 
                 // Filter map layers based on the selected project number
                 SelectMapLayers(filter["ProjectNumber"]);
+            } 
+                
+            if (this.SiteID_Dropdown.SelectedItem == null || this.SiteID_Dropdown.SelectedItem.ToString() == "")
+            {
+                this.SendDataButton.IsEnabled = false;
+            }
+            else
+            {
+                this.SendDataButton.IsEnabled = true;
             }
 
             // Repopulate the data grid with the filtered data
