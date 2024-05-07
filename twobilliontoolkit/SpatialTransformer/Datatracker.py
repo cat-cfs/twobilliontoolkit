@@ -2,7 +2,6 @@
 #========================================================
 # Imports
 #========================================================
-import json
 import psycopg2
 
 from twobilliontoolkit.SpatialTransformer.common import *
@@ -79,7 +78,7 @@ class Datatracker:
         """
         return self.data_dict[key]
     
-    def find_matching_data(self, **kwargs) -> (str, dict):
+    def find_matching_data(self, **kwargs) -> (str, dict): # type: ignore
         """
         Search for a matching entry in the data based on given parameters.
 
@@ -464,6 +463,8 @@ class Datatracker2BT(Datatracker):
         """
         Save data tracker information to a file.
         """
+        # TODO: Work on getting the save to file exactly like save to database
+        
         # Create a DataFrame and save it to Excel if the data tracker file doesn't exist
         df = pd.DataFrame(list(self.data_dict.values()), columns=['project_number', 'dropped', 'raw_data_path', 'raw_gdb_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled', 'processed'])
 

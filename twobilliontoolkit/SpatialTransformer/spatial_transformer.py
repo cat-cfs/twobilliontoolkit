@@ -100,7 +100,7 @@ def spatial_transformer(input_path: str, output_path: str, load_from: str, save_
         log(None, Colors.INFO, 'The Network Transfer has completed moving the files from local to the network.')
                    
         # Save the data tracker before returning
-        spatial_data.data.save_data()
+        spatial_data.data.save_data(True if resume else False)
         
         # Open the record reviser
         call_record_reviser(spatial_data.data, spatial_data.params.gdb_path)
@@ -123,7 +123,7 @@ def spatial_transformer(input_path: str, output_path: str, load_from: str, save_
         
         # Save the data to the datatracker in case of crashing
         if spatial_data:
-            spatial_data.data.save_data()
+            spatial_data.data.save_data(True if resume else False)
             log(None, Colors.INFO, 'A checkpoint has been made at the point of failure.')
         
         exit(1)

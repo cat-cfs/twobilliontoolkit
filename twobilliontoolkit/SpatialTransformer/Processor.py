@@ -178,7 +178,7 @@ class Processor:
 
     def process_shp(self, file: str, formatted_project_spatial_id: str) -> None:
         """
-        Process shapefile.
+        Process shapefiles.
 
         Args:
             file (str): Path to the shapefile.
