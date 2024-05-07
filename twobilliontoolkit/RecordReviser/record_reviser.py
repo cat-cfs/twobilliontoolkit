@@ -298,7 +298,8 @@ def create_duplicate(data: Datatracker2BT, project_spatial_id: str, new_project_
         contains_image=entry_to_duplicate.get('contains_image'),
         extracted_attachments_path=entry_to_duplicate.get('extracted_attachments_path'),
         editor_tracking_enabled=entry_to_duplicate.get('editor_tracking_enabled'),
-        processed=entry_to_duplicate.get('processed')
+        processed=entry_to_duplicate.get('processed'),
+        entry_type=entry_to_duplicate.get('entry_type'),
     )
 
     # Set the 'dropped' attribute to True for the original project

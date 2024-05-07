@@ -43,6 +43,9 @@ class Processor:
         # Step through unzip output path and keep track of paths
         for root, dirs, files in os.walk(self.params.output):
             for dir in dirs:
+                # Skip over the gdb if tool is running a second time if it is somehow in the folder
+                if dir is self.params.gdb_path:
+                    continue
                 if dir.endswith('.gdb'):
                     self.spatial_files.append(os.path.join(root, dir))
                     dirs.remove(dir)  # Exclude .gdb directory from further recursion
@@ -92,7 +95,8 @@ class Processor:
                 contains_image=False,
                 extracted_attachments_path=None,
                 editor_tracking_enabled=False,
-                processed=False
+                processed=False, 
+                entry_type='Spatial'
             )
             
             # 
@@ -101,16 +105,18 @@ class Processor:
                 lowercase_file = file.lower()
                 if lowercase_file.endswith(LAYOUT_FILE_EXTENSIONS):
                     log(self.params.log, Colors.WARNING, f'Layout file: {file} will be added to data tracker but not resulting gdb.', self.params.suppress)
+                    self.data.set_data(project_spatial_id=formatted_project_spatial_id, entry_type='Aspatial')
                 elif lowercase_file.endswith(DATA_SHEET_EXTENSIONS):
                     log(self.params.log, Colors.WARNING, f'Datasheet: {file} will be added to data tracker but not resulting gdb.', self.params.suppress)
+                    self.data.set_data(project_spatial_id=formatted_project_spatial_id, entry_type='Aspatial')
                 elif lowercase_file.endswith(IMAGE_FILE_EXTENSIONS):
                     log(self.params.log, Colors.WARNING, f'Image/PDF file: {file} will be added to data tracker but not resulting gdb.', self.params.suppress)
                     
                     # Update data tracker based on specific file types
                     if lowercase_file.endswith('.pdf'):
-                        self.data.set_data(project_spatial_id=formatted_project_spatial_id, contains_pdf=True)
+                        self.data.set_data(project_spatial_id=formatted_project_spatial_id, contains_pdf=True, entry_type='Aspatial')
                     else:
-                        self.data.set_data(project_spatial_id=formatted_project_spatial_id, contains_image=True)
+                        self.data.set_data(project_spatial_id=formatted_project_spatial_id, contains_image=True, entry_type='Aspatial')
                         
                 elif lowercase_file.endswith('.shp'):
                     self.process_shp(file, formatted_project_spatial_id)         
@@ -257,7 +263,8 @@ class Processor:
                     contains_image=False,
                     extracted_attachments_path=None,
                     editor_tracking_enabled=False,
-                    processed=False
+                    processed=False, 
+                    entry_type='Spatial'
                 )
                 
                 # Update the formatted project spatial ID
@@ -382,7 +389,8 @@ class Processor:
                     contains_image=False,
                     extracted_attachments_path=None,
                     editor_tracking_enabled=False,
-                    processed=False
+                    processed=False, 
+                    entry_type='Spatial'
                 )
                 
                 # Update the formatted project spatial ID
@@ -403,7 +411,8 @@ class Processor:
                 self.data.set_data(
                     project_spatial_id=formatted_project_spatial_id, 
                     in_raw_gdb=True,
-                    processed=True
+                    processed=True,
+                    entry_type='Spatial'
                 )
             
             # Set the flag to indicate that the first feature class has been processed

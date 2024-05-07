@@ -224,7 +224,7 @@ class Datatracker2BT(Datatracker):
         """
         super().__init__(data_traker_path, load_from, save_to, log_path)
     
-    def add_data(self, project_spatial_id: str, project_number: str, dropped: bool, raw_data_path: str, raw_gdb_path: str, absolute_file_path: str, in_raw_gdb: bool, contains_pdf: bool, contains_image: bool, extracted_attachments_path: str, editor_tracking_enabled: bool, processed: bool) -> None:
+    def add_data(self, project_spatial_id: str, project_number: str, dropped: bool, raw_data_path: str, raw_gdb_path: str, absolute_file_path: str, in_raw_gdb: bool, contains_pdf: bool, contains_image: bool, extracted_attachments_path: str, editor_tracking_enabled: bool, processed: bool, entry_type: str) -> None:
         """
         Adds project data to the data tracker.
 
@@ -241,6 +241,7 @@ class Datatracker2BT(Datatracker):
             extracted_attachments_path (str): The path to the extracted attachments if applicable.
             editor_tracking_enabled (bool): Indicates whether the editor tracking has been enabled for the layer in the gdb.
             processed (bool): Indicates whether data has been processed yet.
+            entry_type (str): Indicates wether the entry contains information for an aspatial or spatial entry.
         """
         self.data_dict[project_spatial_id] = {
             'project_number': project_number,
@@ -253,10 +254,11 @@ class Datatracker2BT(Datatracker):
             'contains_image': contains_image,
             'extracted_attachments_path': extracted_attachments_path,
             'editor_tracking_enabled': editor_tracking_enabled,
-            'processed': processed
+            'processed': processed,
+            'entry_type': entry_type
         }
         
-    def set_data(self, project_spatial_id: str, project_number: str = None, dropped: bool = None, raw_data_path: str = None, absolute_file_path: str = None, in_raw_gdb: bool = None, contains_pdf: bool = None, contains_image: bool = None, extracted_attachments_path: str = None, editor_tracking_enabled: bool = None, processed: bool = None) -> None:
+    def set_data(self, project_spatial_id: str, project_number: str = None, dropped: bool = None, raw_data_path: str = None, absolute_file_path: str = None, in_raw_gdb: bool = None, contains_pdf: bool = None, contains_image: bool = None, extracted_attachments_path: str = None, editor_tracking_enabled: bool = None, processed: bool = None, entry_type: str = None) -> None:
         """
         Updates project data in the data tracker.
 
@@ -271,7 +273,8 @@ class Datatracker2BT(Datatracker):
             contains_image (bool): Indicates whether data contains image files (optional).
             extracted_attachments_path (str): The path to the extracted attachments if applicable (optional).
             editor_tracking_enabled (bool): Indicates whether the editor tracking has been enabled for the layer in the gdb (optional).
-            processed (bool): Indicates whether data has been processed yet (optional).
+            processed (bool): Indicates whether data has been processed yet (optional).            
+            entry_type (str): Indicates wether the entry contains information for an aspatial or spatial entry (optional).
         """
         # Update specified parameters as sets
         project_data = self.data_dict.get(project_spatial_id, {})
@@ -295,6 +298,8 @@ class Datatracker2BT(Datatracker):
             project_data['editor_tracking_enabled'] = editor_tracking_enabled
         if processed is not None:
             project_data['processed'] = processed
+        if entry_type is not None:
+            project_data['entry_type'] = entry_type
             
     def get_data(self, project_spatial_id: str) -> dict:
         """
@@ -351,7 +356,7 @@ class Datatracker2BT(Datatracker):
         """
         self.database_connection.connect(self.database_parameters)
 
-        columns = ['project_spatial_id', 'project_number', 'dropped', 'raw_data_path','raw_gdb_path','absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image','extracted_attachments_path', 'editor_tracking_enabled', 'processed']
+        columns = ['project_spatial_id', 'project_number', 'dropped', 'raw_data_path','raw_gdb_path','absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image','extracted_attachments_path', 'editor_tracking_enabled', 'processed', 'entry_type']
 
         rows = self.database_connection.read(schema=self.database_connection.schema, table=self.database_connection.table, columns=columns)
 
@@ -381,7 +386,8 @@ class Datatracker2BT(Datatracker):
             'contains_image': bool, 
             'extracted_attachments_path': object,
             'editor_tracking_enabled': bool, 
-            'processed': bool
+            'processed': bool, 
+            'entry_type': str
         }, index_col=None)
         
         for index, row in data_df.iterrows():
@@ -397,7 +403,8 @@ class Datatracker2BT(Datatracker):
                 contains_image=row['contains_image'],
                 extracted_attachments_path=row['extracted_attachments_path'],
                 editor_tracking_enabled=row['editor_tracking_enabled'],
-                processed=row['processed']  
+                processed=row['processed'], 
+                entry_type=row['entry_type']
             )
                     
     def save_to_database(self, update: bool = False) -> None:
@@ -428,7 +435,7 @@ class Datatracker2BT(Datatracker):
                             'contains_pdf': value['contains_pdf'], 
                             'contains_image': value['contains_image'],
                             'editor_tracking_enabled': value['editor_tracking_enabled'], 
-                            'processed': value['processed']
+                            'processed': value['processed'], 'entry_type': value['entry_type']
                         },
                         condition=f"project_spatial_id='{key}'"
                     )
@@ -437,7 +444,7 @@ class Datatracker2BT(Datatracker):
                     self.database_connection.create(
                         schema=self.database_connection.schema, 
                         table=self.database_connection.table,
-                        columns=('project_spatial_id', 'project_number', 'dropped', 'raw_data_path', 'raw_gdb_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled', 'processed'),
+                        columns=('project_spatial_id', 'project_number', 'dropped', 'raw_data_path', 'raw_gdb_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled', 'processed', 'entry_type'),
                         values=(
                             key, 
                             value['project_number'], 
@@ -450,7 +457,8 @@ class Datatracker2BT(Datatracker):
                             value['contains_image'],
                             value['extracted_attachments_path'],
                             value['editor_tracking_enabled'],
-                            value['processed']
+                            value['processed'], 
+                            value['entry_type']
                         )
                     ) 
                     
@@ -466,13 +474,13 @@ class Datatracker2BT(Datatracker):
         # TODO: Work on getting the save to file exactly like save to database
         
         # Create a DataFrame and save it to Excel if the data tracker file doesn't exist
-        df = pd.DataFrame(list(self.data_dict.values()), columns=['project_number', 'dropped', 'raw_data_path', 'raw_gdb_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled', 'processed'])
+        df = pd.DataFrame(list(self.data_dict.values()), columns=['project_number', 'dropped', 'raw_data_path', 'raw_gdb_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled', 'processed', 'entry_type'])
 
         # Add 'project_spatial_id' to the DataFrame
         df['project_spatial_id'] = list(self.data_dict.keys())
 
         # Reorder columns to have 'project_spatial_id' as the first column
-        df = df[['project_spatial_id', 'project_number', 'dropped', 'raw_data_path', 'raw_gdb_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled', 'processed']]
+        df = df[['project_spatial_id', 'project_number', 'dropped', 'raw_data_path', 'raw_gdb_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled', 'processed', 'entry_type']]
 
         # Sort the rows by the project_spatial_id column
         df = df.sort_values(by=['project_spatial_id'])
