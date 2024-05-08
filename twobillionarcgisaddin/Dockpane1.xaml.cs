@@ -46,9 +46,9 @@ namespace twobillionarcgisaddin
             _this = this;
 
             // TODO: Remove default values
-            this.ArcPythonToolboxPath.Text = @"\\vic-fas1\projects_a\2BT\02_Tools\twobilliontoolkit\twobillionarcgistoolboxes\twobillionarcgistoolboxes.pyt";
-            this.ArcConnectionFilePath.Text = @"\\vic-fas1\projects_a\2BT\02_Tools\EsriAddIns\database_connection.sde";
-            this.DatabaseSchema.Text = "bt_spatial_test";
+            this.ArcPythonToolboxPath.Text = "";
+            this.ArcConnectionFilePath.Text = "";
+            this.DatabaseSchema.Text = "";
         }
 
         #endregion
