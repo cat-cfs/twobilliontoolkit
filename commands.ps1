@@ -33,6 +33,7 @@ $datatracker = "OutputDatatracker.xlsx"
 $datatracker_path = "...\${datatracker}"
 $local_dir_path = "C:\LocalTwoBillionToolkit"
 $transfer_files = @("${gdb}", "${gdb_name}_Attachments", "${gdb_name}_Log_${datestamp}_ERROR.txt", "${gdb_name}_Log_${datestamp}_WARNING.txt")
+$debug_mode = $false  # or $debug_mode = 0
 
 # Define menu function
 function Show-Menu {
@@ -46,7 +47,8 @@ function Show-Menu {
     Write-Host "6. Run Attachment Seeker Independently"
     Write-Host "7. Run Network Transfer Independently"
     Write-Host "8. Run Record Reviser Independently"
-    Write-Host "9. Exit"
+    Write-Host "9. Remove contents from the temporary local directory"
+    Write-Host "10. Exit"
 }
 
 # Main loop
@@ -86,18 +88,36 @@ do {
         }
         "3" {
             Write-Host "Running Spatial Transformer..."
-            Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --suppress
-            Write-Host
-            & $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --suppress
+            if ($debug_mode) 
+            {
+                Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --suppress --debug
+                Write-Host
+                & $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --suppress --debug
+            }
+            else 
+            {
+                Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --suppress
+                Write-Host
+                & $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --suppress
+            }
             Write-Host
             Write-Host "The SpatialTransformer has completed its processing!"
             Pause
         }
         "4" {
             Write-Host "Resuming Spatial Transformer from failure..."
-            Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --suppress --resume
-            Write-Host
-            & $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --suppress --resume
+            if ($debug_mode)
+            {
+                Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --suppress --debug --resume
+                Write-Host
+                & $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --suppress --debug --resume
+            }
+            else
+            {
+                Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --suppress --resume
+                Write-Host
+                & $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --suppress --resume
+            }
             Write-Host
             Write-Host "The SpatialTransformer has completed its processing!"
             Pause
@@ -139,6 +159,12 @@ do {
             Pause
         }
         "9" {
+            Write-Host "Removing contents from local directory..."
+            & Get-ChildItem -Path $local_dir_path | Remove-Item -Force -Recurse
+            Write-Host "Local directory has been cleared!"
+            Pause
+        }
+        "10" {
             break
         }
         default {
@@ -146,4 +172,4 @@ do {
             Pause
         }
     }
-} while ($choice -ne "9")
+} while ($choice -ne "10")

@@ -99,6 +99,12 @@ def spatial_transformer(input_path: str, output_path: str, load_from: str, save_
         )
         log(None, Colors.INFO, 'The Network Transfer has completed moving the files from local to the network.')
                    
+        if not debug:
+            # Remove the local contents
+            shutil.rmtree(setup_parameters.local_dir)
+            os.mkdir(setup_parameters.local_dir)
+            log(None, Colors.INFO, 'Removing contents from the local directory completed.')
+                   
         # Save the data tracker before returning
         spatial_data.data.save_data(True if resume else False)
         

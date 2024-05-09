@@ -31,6 +31,7 @@ class Datatracker:
         if load_from == 'database,' or save_to == 'database':
             # Create database object
             self.database_connection = Database()
+            
             # Read connection parameters from the configuration file
             self.database_parameters = self.database_connection.get_params()
             self.database_connection.connect(self.database_parameters)

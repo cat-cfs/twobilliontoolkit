@@ -48,7 +48,7 @@ class Processor:
                     continue
                 if dir.endswith('.gdb'):
                     self.spatial_files.append(os.path.join(root, dir))
-                    dirs.remove(dir)  # Exclude .gdb directory from further recursion
+                    dirs.remove(dir) # Exclude .gdb directory from further recursion
             for file in files:
                 file = file.lower()
                 if file.endswith(SPATIAL_FILE_EXTENSIONS) or file.endswith(DATA_SHEET_EXTENSIONS) or file.endswith(LAYOUT_FILE_EXTENSIONS) or file.endswith(IMAGE_FILE_EXTENSIONS):
@@ -196,7 +196,7 @@ class Processor:
             self.params.local_gdb_path + f'\proj_{formatted_project_spatial_id}'
         )
         
-        #
+        # Enable the version control of the layer in the geodatabase
         self.enable_version_control(self.params.local_gdb_path + f'\proj_{formatted_project_spatial_id}')
         
         # Change the flag to indicate it was succefully put into the Geodatabase
@@ -277,7 +277,7 @@ class Processor:
                 os.path.join(self.params.local_gdb_path, new_name)
             )   
             
-            #
+            # Enable the version control of the layer in the geodatabase
             self.enable_version_control(os.path.join(self.params.local_gdb_path, new_name))
             
             # Set the flag to indicate that the first feature class has been processed
@@ -343,7 +343,7 @@ class Processor:
             self.params.local_gdb_path + f'\proj_{formatted_project_spatial_id}'
         )
         
-        #
+        # Enable the version control of the layer in the geodatabase
         self.enable_version_control(self.params.local_gdb_path + f'\proj_{formatted_project_spatial_id}')
         
         # Change the flag to indicate it was succefully put into the Geodatabase
@@ -404,7 +404,7 @@ class Processor:
                     os.path.join(self.params.local_gdb_path, new_name)
                 )
                 
-                #
+                # Enable the version control of the layer in the geodatabase
                 self.enable_version_control(os.path.join(self.params.local_gdb_path, new_name))
                 
                 # Update the entry of the Geodatabase feature class
