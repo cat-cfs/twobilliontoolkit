@@ -73,30 +73,34 @@ def merge_gdbs(src_gdb: str, dest_gdb: str, log_path: str = None) -> None:
     except Exception as error:
         log(log_path, Colors.ERROR, f'An error has been caught while trying to merge the geodatabase to {dest_gdb}: {error}')
 
-def safe_copy(source: str, destination: str):
+def merge_directories(src_dir, dst_dir, log_path):
     """
-    Safely copy the specified directory. If a directory with the 
-    same name already exists, the copied directory name is altered to preserve both.
+    Merge source directory into destination directory.
 
-    Args
-        source (str): Path to the directory to copy.
-        destination (str): Directory to copy.
-        new_name (str): New name for the copied directory. If None, use 
-        the name of the original directory. 
-    """    
-    # If directory doesn't exist in the destination, simply copy it
-    if not os.path.exists(destination):
-        shutil.copytree(source, destination)
-    else:
-        # Destination directory exists, find a unique name with suffix
-        suffix = 1
-        while True:
-            new_destination = f"{destination}_{suffix}"
-            if not os.path.exists(new_destination):
-                shutil.copytree(source, new_destination)
-                break
-            suffix += 1
+    Args:
+        src_dir (str): Path to the source directory.
+        dst_dir (str): Path to the destination directory.
+        log_path (str): path to the log file.
+    """
+    try:
+        if not os.path.exists(dst_dir):
+            shutil.copytree(src_dir, dst_dir)
+        
+        # Iterate over files and subdirectories in the source directory
+        for item in os.listdir(src_dir):
+            src_item = os.path.join(src_dir, item)
+            dst_item = os.path.join(dst_dir, item)
+
+            # If the item is a file, copy it to the destination directory
+            if os.path.isfile(src_item):
+                shutil.copy2(src_item, dst_item)
                 
+            # If the item is a directory, recursively merge it with the corresponding directory in the destination
+            elif os.path.isdir(src_item):
+                merge_directories(src_item, dst_item, log_path)
+    except Exception as error:
+        log(log_path, Colors.ERROR, f'An error has been caught while trying to merge the {src_dir} to {dst_dir}: {error}')
+                        
 def transfer(local_path: str, network_path: str, list_files: list[str] = None, log_path: str = None) -> None:
     """
     Transfer files from local directory to network directory.
@@ -130,10 +134,15 @@ def transfer(local_path: str, network_path: str, list_files: list[str] = None, l
                 if item.endswith(".gdb") and arcpy.Exists(dest_path):
                     merge_gdbs(src_path, dest_path, log_path)
                 else:
-                    # Use safe_copy to copy directories
-                    safe_copy(src_path, dest_path)
+                    merge_directories(src_path, dest_path, log_path)
             else:
-                shutil.copy2(src_path, dest_path)  # preserves metadata              
+                if item.endswith(".txt") and os.path.exists(dest_path):
+                    # Append text files if destination file exists
+                    with open(dest_path, "a") as dest_file:
+                        with open(src_path, "r") as src_file:
+                            shutil.copyfileobj(src_file, dest_file)
+                else:      
+                    shutil.copy2(src_path, dest_path)  # preserves metadata              
                 
         log(None, Colors.INFO, f'The transfer of files has been completed')
     except Exception as error:
