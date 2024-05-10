@@ -30,6 +30,7 @@ Usage:
 #========================================================
 import os
 from datetime import datetime
+from importlib.metadata import version
 
 #========================================================
 # Global Classes
@@ -44,7 +45,7 @@ class Colors:
 #========================================================
 # Logger Functions
 #========================================================   
-def log(file_path: str = None, type: str = Colors.ERROR, message: str = '', suppress: bool = False, filename: str = None, line_num: int = None) -> None:
+def log(file_path: str = '', type: str = Colors.ERROR, message: str = '', suppress: bool = False, ps_script: str = '', project_id: str = '') -> None:
     """
     Log messages with colored tags and timestamps.
 
@@ -53,12 +54,11 @@ def log(file_path: str = None, type: str = Colors.ERROR, message: str = '', supp
         type (str): Color code for the log message type.
         message (str): The log message.
         suppress (bool, optional): Suppress warnings in the command line.
-        filename (str, optional): The filename where the error occurred if known.
-        line_num (int, optional): The line number in the file that the error occurred if known.
-    """
-    traceback = ''
-    if filename and line_num:
-        traceback = filename + ' : line:' + str(line_num) + ' - '
+        ps_script (str, optional): The path location of the script to run spatial transformer. 
+        project_id (str, optional): A 2BT specific variable to include a project id to more easily correlate errors and fix them.
+    """       
+    if project_id:
+        project_id = f'- Project Spatial ID: {project_id} - '    
         
     # Set the tag and print to the console
     if type == Colors.INFO:
@@ -66,14 +66,13 @@ def log(file_path: str = None, type: str = Colors.ERROR, message: str = '', supp
         print(f'{type}[{tag}] {message}{Colors.END}')
     elif type == Colors.WARNING and not suppress:
         tag = 'WARNING'
-        print(f'{type}[{tag}] {message}{Colors.END}')
+        print(f'{type}[{tag}] {project_id}{message}{Colors.END}')
     elif type == Colors.WARNING and suppress:
         tag = 'WARNING'
     elif type == Colors.ERROR:
         tag = 'ERROR'
-        print(f'{type}[{tag}] {traceback}{message}{Colors.END}')
-        
-    
+        print(f'{type}[{tag}] {project_id}{message}{Colors.END}')
+            
     # If a file path is provided
     if file_path is not None:
         # Split the log files into seperate Warning and Error logs
@@ -83,10 +82,34 @@ def log(file_path: str = None, type: str = Colors.ERROR, message: str = '', supp
         directory = os.path.dirname(file_path)
         if not os.path.exists(directory):
             os.makedirs(directory)
+            
+        if not os.path.exists(file_path):
+            generate_header(file_path, ps_script)
         
         try:
             # Open the file in append mode and append a log message
             with open(file_path, 'a') as log_file:
-                log_file.write(f'{datetime.now().strftime("%d/%m/%Y %H:%M:%S")} [{tag}] {traceback}{message}\n\n')
+                log_file.write(f'{datetime.now().strftime("%d/%m/%Y %H:%M:%S")} [{tag}] {project_id}{message}\n\n')
         except PermissionError as e:
             print(f"Permission denied to write to file: {file_path}. Error: {e}")
+
+def generate_header(file_path: str, ps_script: str = None):
+    """
+    _summary_
+
+    Args:
+        file_path (str): _description_
+        ps_script (str, optional): The path location of the script to run spatial transformer.
+    """
+    try:
+        with open(file_path, 'a') as log_file:
+            log_file.write("___________________________________________________________\n")
+            log_file.write(f"{os.path.basename(file_path)} file header\n")
+            log_file.write("___________________________________________________________\n")
+            log_file.write(f"User: {os.getlogin()}\n")
+            log_file.write("Log Header Created: " + datetime.now().strftime("%Y/%m/%d %H:%M:%S" + "\n"))
+            log_file.write(f"Script Path: {ps_script}\n")
+            log_file.write(f"twobilliontoolkit package version: {version('twobilliontoolkit')} \n")
+            log_file.write("___________________________________________________________\n")
+    except Exception as error:
+        print(error)

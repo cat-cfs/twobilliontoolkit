@@ -13,7 +13,7 @@ from twobilliontoolkit.RippleUnzipple.ripple_unzipple import ripple_unzip
 # Classes
 #========================================================
 class Parameters:
-    def __init__(self, input_path: str, output_path: str, gdb_path: str, master_data_path: str, datatracker: str, attachments: str, load_from: str = 'database', save_to: str = 'database', log_path: str = None, debug: bool = False, resume: bool = False, suppress: bool = False) -> None:
+    def __init__(self, input_path: str, output_path: str, gdb_path: str, master_data_path: str, datatracker: str, attachments: str, load_from: str = 'database', save_to: str = 'database', log_path: str = None, debug: bool = False, resume: bool = False, suppress: bool = False, ps_script: str = None) -> None:
         """
         Initializes the Parameters class with input parameters.
 
@@ -30,6 +30,7 @@ class Parameters:
         - debug (bool, optional): Determines if the program is in debug mode.
         - resume (bool, optional): Determines if the program should resume from where a crash happened.
         - suppress (bool, optional): Determines if the program will suppress warnings to the command line.
+        - ps_script (str, optional): The path location of the script to run spatial transformer.
         """
         self.local_dir = r'C:\LocalTwoBillionToolkit'
         
@@ -68,6 +69,7 @@ class Parameters:
         self.debug = debug
         self.resume = resume
         self.suppress = suppress
+        self.ps_script = ps_script
         
         # Extra validation on master data to check it has project number column
         if 'Project Number' not in self.masterdata.columns:
@@ -131,4 +133,4 @@ class Parameters:
                 
                 log(None, Colors.INFO, f'Geodatabase: {file} created successfully')
             except arcpy.ExecuteError:
-                log(self.log, Colors.ERROR, arcpy.GetMessages(2))
+                log(self.log, Colors.ERROR, arcpy.GetMessages(2), ps_script=self.ps_script)

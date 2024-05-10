@@ -98,47 +98,37 @@ class Processor:
                 processed=False, 
                 entry_type='Spatial'
             )
-            
-            # 
-            try:
-                # Check the file type and call the appropriate processing method
-                lowercase_file = file.lower()
-                if lowercase_file.endswith(LAYOUT_FILE_EXTENSIONS):
-                    log(self.params.log, Colors.WARNING, f'Layout file: {file} will be added to data tracker but not resulting gdb.', self.params.suppress)
-                    self.data.set_data(project_spatial_id=formatted_project_spatial_id, entry_type='Aspatial')
-                elif lowercase_file.endswith(DATA_SHEET_EXTENSIONS):
-                    log(self.params.log, Colors.WARNING, f'Datasheet: {file} will be added to data tracker but not resulting gdb.', self.params.suppress)
-                    self.data.set_data(project_spatial_id=formatted_project_spatial_id, entry_type='Aspatial')
-                elif lowercase_file.endswith(IMAGE_FILE_EXTENSIONS):
-                    log(self.params.log, Colors.WARNING, f'Image/PDF file: {file} will be added to data tracker but not resulting gdb.', self.params.suppress)
-                    
-                    # Update data tracker based on specific file types
-                    if lowercase_file.endswith('.pdf'):
-                        self.data.set_data(project_spatial_id=formatted_project_spatial_id, contains_pdf=True, entry_type='Aspatial')
-                    else:
-                        self.data.set_data(project_spatial_id=formatted_project_spatial_id, contains_image=True, entry_type='Aspatial')
-                        
-                elif lowercase_file.endswith('.shp'):
-                    self.process_shp(file, formatted_project_spatial_id)         
-                elif lowercase_file.endswith(('.kml', '.kmz')):
-                    self.process_kml(file, formatted_project_spatial_id)    
-                elif lowercase_file.endswith('.geojson'):
-                    self.process_json(file, formatted_project_spatial_id)
-                elif lowercase_file.endswith('.gdb'):
-                    self.process_gdb(file, formatted_project_spatial_id)
-                elif lowercase_file.endswith(('.gpkg', '.sqlite')):
-                    log(self.params.log, Colors.WARNING, f'GeoPackage/SQLite file: {file} will be added to data tracker but not resulting gdb.', self.params.suppress)
 
-                self.data.set_data(project_spatial_id=formatted_project_spatial_id, processed=True)
-            
-            except (arcpy.ExecuteError, arcgisscripting.ExecuteError) as error:
-                log(self.params.log, Colors.ERROR, f'An error occurred when processing the layer for {file}, you can fix or remove it from the datatracker/database, then run the command again with --resume\n{error}')
-                # Can remove the comment from below when being shipped so the tool stops when a excetption is caught instead of continue on
-                # raise Exception(error) 
-            except Exception as error:
-                log(self.params.log, Colors.ERROR, f'An uncaught error occurred when processing the layer for {file}')
-                raise Exception(error)
-        
+            # Check the file type and call the appropriate processing method
+            lowercase_file = file.lower()
+            if lowercase_file.endswith(LAYOUT_FILE_EXTENSIONS):
+                log(self.params.log, Colors.WARNING, f'Layout file: {file} will be added to data tracker but not resulting gdb.', self.params.suppress, ps_script=self.params.ps_script, project_id=formatted_project_spatial_id)
+                self.data.set_data(project_spatial_id=formatted_project_spatial_id, entry_type='Aspatial')
+            elif lowercase_file.endswith(DATA_SHEET_EXTENSIONS):
+                log(self.params.log, Colors.WARNING, f'Datasheet: {file} will be added to data tracker but not resulting gdb.', self.params.suppress, ps_script=self.params.ps_script, project_id=formatted_project_spatial_id)
+                self.data.set_data(project_spatial_id=formatted_project_spatial_id, entry_type='Aspatial')
+            elif lowercase_file.endswith(IMAGE_FILE_EXTENSIONS):
+                log(self.params.log, Colors.WARNING, f'Image/PDF file: {file} will be added to data tracker but not resulting gdb.', self.params.suppress, ps_script=self.params.ps_script, project_id=formatted_project_spatial_id)
+                
+                # Update data tracker based on specific file types
+                if lowercase_file.endswith('.pdf'):
+                    self.data.set_data(project_spatial_id=formatted_project_spatial_id, contains_pdf=True, entry_type='Aspatial')
+                else:
+                    self.data.set_data(project_spatial_id=formatted_project_spatial_id, contains_image=True, entry_type='Aspatial')
+                    
+            elif lowercase_file.endswith('.shp'):
+                self.process_shp(file, formatted_project_spatial_id)         
+            elif lowercase_file.endswith(('.kml', '.kmz')):
+                self.process_kml(file, formatted_project_spatial_id)    
+            elif lowercase_file.endswith('.geojson'):
+                self.process_json(file, formatted_project_spatial_id)
+            elif lowercase_file.endswith('.gdb'):
+                self.process_gdb(file, formatted_project_spatial_id)
+            elif lowercase_file.endswith(('.gpkg', '.sqlite')):
+                log(self.params.log, Colors.WARNING, f'GeoPackage/SQLite file: {file} will be added to data tracker but not resulting gdb.', self.params.suppress, ps_script=self.params.ps_script, project_id=formatted_project_spatial_id)
+
+            self.data.set_data(project_spatial_id=formatted_project_spatial_id, processed=True)
+                    
     def check_project_numbers(self, file_path: str, master_df: pd.DataFrame) -> str:
         """
         Check project numbers against a master data sheet.
@@ -156,7 +146,7 @@ class Processor:
         
         # If no match is found, log a warning and assign an arbitrary project number
         if not search:
-            log(self.params.log, Colors.WARNING, f'Could not find a project number for: {file_path} - Giving it an arbitrary project number "0000 XXX - 000"', self.params.suppress)
+            log(self.params.log, Colors.WARNING, f'Could not find a project number for: {file_path} - Giving it an arbitrary project number "0000 XXX - 000"', self.params.suppress, ps_script=self.params.ps_script)
             formatted_result = '0000 XXX - 000'
         else:
             # Format the result using the matched groups
@@ -165,7 +155,7 @@ class Processor:
             # Check if the project number is found in the master datasheet
             project_found = master_df['Project Number'].str.replace(' ', '').eq(formatted_result.replace(' ', '').upper()).any()
             if not project_found:
-                log(self.params.log, Colors.WARNING, f'The project number {formatted_result} does not match any know project number in the master datasheet', self.params.suppress)
+                log(self.params.log, Colors.WARNING, f'The project number {formatted_result} does not match any know project number in the master datasheet', self.params.suppress, ps_script=self.params.ps_script)
             
         return formatted_result
         
@@ -180,7 +170,7 @@ class Processor:
         # Find a corresponding project spatial ID in the data dictionary based on the raw data path
         (found_match, _) = self.data.find_matching_data(raw_data_path=raw_data_path)
         if found_match is not None:
-            log(self.params.log, Colors.WARNING, f'Raw path: {raw_data_path} already exists in the data tracker! -  Current Spatial ID: {current_spatial_id} Matching Spatial ID: {found_match}', self.params.suppress)    
+            log(self.params.log, Colors.WARNING, f'Raw path: {raw_data_path} already exists in the data tracker! -  Current Spatial ID: {current_spatial_id} Matching Spatial ID: {found_match}', self.params.suppress, ps_script=self.params.ps_script, project_id=current_spatial_id)    
 
     def process_shp(self, file: str, formatted_project_spatial_id: str) -> None:
         """
@@ -190,20 +180,28 @@ class Processor:
             file (str): Path to the shapefile.
             formatted_project_spatial_id (str): Formatted project spatial ID.
         """
-        # Export features from shapefile to a geodatabase
-        arcpy.conversion.ExportFeatures(
-            file,
-            self.params.local_gdb_path + f'\proj_{formatted_project_spatial_id}'
-        )
-        
-        # Enable the version control of the layer in the geodatabase
-        self.enable_version_control(self.params.local_gdb_path + f'\proj_{formatted_project_spatial_id}')
-        
-        # Change the flag to indicate it was succefully put into the Geodatabase
-        self.data.set_data(
-            project_spatial_id=formatted_project_spatial_id, 
-            in_raw_gdb=True
-        )
+        try:
+            # Export features from shapefile to a geodatabase
+            arcpy.conversion.ExportFeatures(
+                file,
+                self.params.local_gdb_path + f'\proj_{formatted_project_spatial_id}'
+            )
+            
+            # Enable the version control of the layer in the geodatabase
+            self.enable_version_control(self.params.local_gdb_path + f'\proj_{formatted_project_spatial_id}')
+            
+            # Change the flag to indicate it was succefully put into the Geodatabase
+            self.data.set_data(
+                project_spatial_id=formatted_project_spatial_id, 
+                in_raw_gdb=True
+            )
+        except (arcpy.ExecuteError, arcgisscripting.ExecuteError) as error:
+            log(self.params.log, Colors.ERROR, f'An error occurred when processing the layer for {file}, you can fix or remove it from the datatracker/database, then run the command again with --resume\n{error}', ps_script=self.params.ps_script, project_id=formatted_project_spatial_id)
+            # Can remove the comment from below when being shipped so the tool stops when a excetption is caught instead of continue on
+            # raise Exception(error) 
+        except Exception as error:
+            log(self.params.log, Colors.ERROR, f'An uncaught error occurred when processing the layer for {file}', ps_script=self.params.ps_script, project_id=formatted_project_spatial_id)
+            raise Exception(error)
     
     def process_kml(self, file: str, formatted_project_spatial_id: str) -> None: 
         """
@@ -213,86 +211,94 @@ class Processor:
             file (str): Path to the KML/KMZ file.
             formatted_project_spatial_id (str): Formatted project spatial ID.
         """
-        # Create temporary directory if it doesn't exist, otherwise, recreate it
-        if not os.path.exists(self.temp_directory):
-            os.makedirs(self.temp_directory)
-        else:
-            shutil.rmtree(self.temp_directory)
-            os.makedirs(self.temp_directory)
+        try:
+            # Create temporary directory if it doesn't exist, otherwise, recreate it
+            if not os.path.exists(self.temp_directory):
+                os.makedirs(self.temp_directory)
+            else:
+                shutil.rmtree(self.temp_directory)
+                os.makedirs(self.temp_directory)
 
-        # Remove cascading styles from KML content
-        altered_file = file
-        if file.endswith('.kml'):
-            altered_file = self.remove_cascading_style(file)
+            # Remove cascading styles from KML content
+            altered_file = file
+            if file.endswith('.kml'):
+                altered_file = self.remove_cascading_style(file)
 
-        # Convert modified KML to layer and copy to geodatabase
-        arcpy.conversion.KMLToLayer(altered_file, self.temp_directory, "kml_layer", "NO_GROUNDOVERLAY")   
-        
-        # Make the workspace the output gdb in the temp folder
-        arcpy.env.workspace = os.path.join(self.temp_directory, 'kml_layer.gdb/Placemarks')
-        
-        # Set starting raw data path and a flag for skipping first iteration
-        base_raw_data_path = self.data.get_data(formatted_project_spatial_id)['raw_data_path']
-        first_feature_class_processed = False
-        
-        # Iterate through the feature classes and rename them
-        feature_classes = arcpy.ListFeatureClasses()
-        if feature_classes is None:
-            log(self.params.log, Colors.ERROR, f'The kml file {file} does not have any features')
-            self.data.set_data(
-                project_spatial_id=formatted_project_spatial_id,
-                processed=True
-            )
-            return
-        for index, feature_class in enumerate(feature_classes):           
-            if first_feature_class_processed:
-                # Get data for the current feature and create a new project spatial ID
-                current_feature_data = self.data.get_data(formatted_project_spatial_id)
-                spatial_project_id = self.data.create_project_spatial_id(current_feature_data['project_number'])
-                
-                # Add data for the new project spatial ID
-                self.data.add_data(
-                    project_spatial_id=spatial_project_id,
-                    project_number=current_feature_data['project_number'],
-                    dropped=False,
-                    absolute_file_path=convert_drive_path(file),    
-                    raw_data_path=current_feature_data['raw_data_path'],
-                    raw_gdb_path=convert_drive_path(self.params.gdb_path),
-                    in_raw_gdb=False,
-                    contains_pdf=False,
-                    contains_image=False,
-                    extracted_attachments_path=None,
-                    editor_tracking_enabled=False,
-                    processed=False, 
-                    entry_type='Spatial'
+            # Convert modified KML to layer and copy to geodatabase
+            arcpy.conversion.KMLToLayer(altered_file, self.temp_directory, "kml_layer", "NO_GROUNDOVERLAY")   
+            
+            # Make the workspace the output gdb in the temp folder
+            arcpy.env.workspace = os.path.join(self.temp_directory, 'kml_layer.gdb/Placemarks')
+            
+            # Set starting raw data path and a flag for skipping first iteration
+            base_raw_data_path = self.data.get_data(formatted_project_spatial_id)['raw_data_path']
+            first_feature_class_processed = False
+            
+            # Iterate through the feature classes and rename them
+            feature_classes = arcpy.ListFeatureClasses()
+            if feature_classes is None:
+                log(self.params.log, Colors.ERROR, f'The kml file {file} does not have any features', ps_script=self.params.ps_script)
+                self.data.set_data(
+                    project_spatial_id=formatted_project_spatial_id,
+                    processed=True
                 )
+                return
+            for index, feature_class in enumerate(feature_classes):           
+                if first_feature_class_processed:
+                    # Get data for the current feature and create a new project spatial ID
+                    current_feature_data = self.data.get_data(formatted_project_spatial_id)
+                    spatial_project_id = self.data.create_project_spatial_id(current_feature_data['project_number'])
+                    
+                    # Add data for the new project spatial ID
+                    self.data.add_data(
+                        project_spatial_id=spatial_project_id,
+                        project_number=current_feature_data['project_number'],
+                        dropped=False,
+                        absolute_file_path=convert_drive_path(file),    
+                        raw_data_path=current_feature_data['raw_data_path'],
+                        raw_gdb_path=convert_drive_path(self.params.gdb_path),
+                        in_raw_gdb=False,
+                        contains_pdf=False,
+                        contains_image=False,
+                        extracted_attachments_path=None,
+                        editor_tracking_enabled=False,
+                        processed=False, 
+                        entry_type='Spatial'
+                    )
+                    
+                    # Update the formatted project spatial ID
+                    formatted_project_spatial_id = spatial_project_id
                 
-                # Update the formatted project spatial ID
-                formatted_project_spatial_id = spatial_project_id
-            
-            # Create a new name and export feature class
-            new_name = f"proj_{formatted_project_spatial_id}"
-            arcpy.management.Copy(
-                os.path.join(self.temp_directory, f'kml_layer.gdb/Placemarks/{feature_class}'),
-                os.path.join(self.params.local_gdb_path, new_name)
-            )   
-            
-            # Enable the version control of the layer in the geodatabase
-            self.enable_version_control(os.path.join(self.params.local_gdb_path, new_name))
-            
-            # Set the flag to indicate that the first feature class has been processed
-            first_feature_class_processed = True
-            
-            new_raw_data_path = os.path.join(base_raw_data_path, feature_class)
-            self.call_raw_data_match(formatted_project_spatial_id, new_raw_data_path)
-            
-            # Update the entry of the Geodatabase feature class
-            self.data.set_data(
-                project_spatial_id=formatted_project_spatial_id, 
-                raw_data_path=new_raw_data_path, 
-                in_raw_gdb=True,
-                processed=True
-            )
+                # Create a new name and export feature class
+                new_name = f"proj_{formatted_project_spatial_id}"
+                arcpy.management.Copy(
+                    os.path.join(self.temp_directory, f'kml_layer.gdb/Placemarks/{feature_class}'),
+                    os.path.join(self.params.local_gdb_path, new_name)
+                )   
+                
+                # Enable the version control of the layer in the geodatabase
+                self.enable_version_control(os.path.join(self.params.local_gdb_path, new_name))
+                
+                # Set the flag to indicate that the first feature class has been processed
+                first_feature_class_processed = True
+                
+                new_raw_data_path = os.path.join(base_raw_data_path, feature_class)
+                self.call_raw_data_match(formatted_project_spatial_id, new_raw_data_path)
+                
+                # Update the entry of the Geodatabase feature class
+                self.data.set_data(
+                    project_spatial_id=formatted_project_spatial_id, 
+                    raw_data_path=new_raw_data_path, 
+                    in_raw_gdb=True,
+                    processed=True
+                )
+        except (arcpy.ExecuteError, arcgisscripting.ExecuteError) as error:
+            log(self.params.log, Colors.ERROR, f'An error occurred when processing the layer for {file}, you can fix or remove it from the datatracker/database, then run the command again with --resume\n{error}', ps_script=self.params.ps_script, project_id=formatted_project_spatial_id)
+            # Can remove the comment from below when being shipped so the tool stops when a excetption is caught instead of continue on
+            # raise Exception(error) 
+        except Exception as error:
+            log(self.params.log, Colors.ERROR, f'An uncaught error occurred when processing the layer for {file}', ps_script=self.params.ps_script, project_id=formatted_project_spatial_id)
+            raise Exception(error)
             
     def remove_cascading_style(self, file: str) -> str:
         """
@@ -337,20 +343,28 @@ class Processor:
             file (str): Path to the GeoJSON file.
             formatted_project_spatial_id (str): Formatted project spatial ID.
         """
-        # Export features from GeoJSON to a geodatabase
-        arcpy.conversion.JSONToFeatures(
-            file,
-            self.params.local_gdb_path + f'\proj_{formatted_project_spatial_id}'
-        )
-        
-        # Enable the version control of the layer in the geodatabase
-        self.enable_version_control(self.params.local_gdb_path + f'\proj_{formatted_project_spatial_id}')
-        
-        # Change the flag to indicate it was succefully put into the Geodatabase
-        self.data.set_data(
-            project_spatial_id=formatted_project_spatial_id, 
-            in_raw_gdb=True
-        )
+        try:
+            # Export features from GeoJSON to a geodatabase
+            arcpy.conversion.JSONToFeatures(
+                file,
+                self.params.local_gdb_path + f'\proj_{formatted_project_spatial_id}'
+            )
+            
+            # Enable the version control of the layer in the geodatabase
+            self.enable_version_control(self.params.local_gdb_path + f'\proj_{formatted_project_spatial_id}')
+            
+            # Change the flag to indicate it was succefully put into the Geodatabase
+            self.data.set_data(
+                project_spatial_id=formatted_project_spatial_id, 
+                in_raw_gdb=True
+            )
+        except (arcpy.ExecuteError, arcgisscripting.ExecuteError) as error:
+            log(self.params.log, Colors.ERROR, f'An error occurred when processing the layer for {file}, you can fix or remove it from the datatracker/database, then run the command again with --resume\n{error}', ps_script=self.params.ps_script, project_id=formatted_project_spatial_id)
+            # Can remove the comment from below when being shipped so the tool stops when a excetption is caught instead of continue on
+            # raise Exception(error) 
+        except Exception as error:
+            log(self.params.log, Colors.ERROR, f'An uncaught error occurred when processing the layer for {file}', ps_script=self.params.ps_script, project_id=formatted_project_spatial_id)
+            raise Exception(error)
         
     def process_gdb(self, file: str, formatted_project_spatial_id: str) -> None:
         """
@@ -360,72 +374,81 @@ class Processor:
             file (str): Path to the GeoDatabase file.
             formatted_project_spatial_id (str): Formatted project spatial ID.
         """
-        # Set the workspace to the specified .gdb
-        arcpy.env.workspace = file
-        
-        # Set starting raw data path and a flag for skipping first iteration because it was added in the process_spatial_files function
-        base_raw_data_path = self.data.get_data(formatted_project_spatial_id)['raw_data_path']
-        first_feature_class_processed = False
-        
-        # Iterate through the feature classes and tables
-        feature_tables = arcpy.ListTables()
-        feature_classes = arcpy.ListFeatureClasses()
-        for feature in feature_classes + feature_tables:
-            if first_feature_class_processed:
-                # Get data for the current feature and create a new project spatial ID
-                current_feature_data = self.data.get_data(formatted_project_spatial_id)
-                spatial_project_id = self.data.create_project_spatial_id(current_feature_data['project_number'])
-
-                # Add data for the new project spatial ID
-                self.data.add_data(
-                    project_spatial_id=spatial_project_id,
-                    project_number=current_feature_data['project_number'],
-                    dropped=False,
-                    raw_data_path=current_feature_data['raw_data_path'],
-                    raw_gdb_path=convert_drive_path(self.params.gdb_path),
-                    absolute_file_path=convert_drive_path(file),
-                    in_raw_gdb=False,
-                    contains_pdf=False,
-                    contains_image=False,
-                    extracted_attachments_path=None,
-                    editor_tracking_enabled=False,
-                    processed=False, 
-                    entry_type='Spatial'
-                )
-                
-                # Update the formatted project spatial ID
-                formatted_project_spatial_id = spatial_project_id
+        try:
+            # Set the workspace to the specified .gdb
+            arcpy.env.workspace = file
             
-            if arcpy.Exists(feature) and arcpy.Describe(feature).dataType == 'FeatureClass':
-                # Create a new name and export feature class
-                new_name = f"proj_{formatted_project_spatial_id}"
-                arcpy.conversion.ExportFeatures(
-                    os.path.join(file, feature),
-                    os.path.join(self.params.local_gdb_path, new_name)
-                )
+            # Set starting raw data path and a flag for skipping first iteration because it was added in the process_spatial_files function
+            base_raw_data_path = self.data.get_data(formatted_project_spatial_id)['raw_data_path']
+            first_feature_class_processed = False
+            
+            # Iterate through the feature classes and tables
+            feature_tables = arcpy.ListTables()
+            feature_classes = arcpy.ListFeatureClasses()
+            for feature in feature_classes + feature_tables:
+                if first_feature_class_processed:
+                    # Get data for the current feature and create a new project spatial ID
+                    current_feature_data = self.data.get_data(formatted_project_spatial_id)
+                    spatial_project_id = self.data.create_project_spatial_id(current_feature_data['project_number'])
+
+                    # Add data for the new project spatial ID
+                    self.data.add_data(
+                        project_spatial_id=spatial_project_id,
+                        project_number=current_feature_data['project_number'],
+                        dropped=False,
+                        raw_data_path=current_feature_data['raw_data_path'],
+                        raw_gdb_path=convert_drive_path(self.params.gdb_path),
+                        absolute_file_path=convert_drive_path(file),
+                        in_raw_gdb=False,
+                        contains_pdf=False,
+                        contains_image=False,
+                        extracted_attachments_path=None,
+                        editor_tracking_enabled=False,
+                        processed=False, 
+                        entry_type='Spatial'
+                    )
+                    
+                    # Update the formatted project spatial ID
+                    formatted_project_spatial_id = spatial_project_id
                 
-                # Enable the version control of the layer in the geodatabase
-                self.enable_version_control(os.path.join(self.params.local_gdb_path, new_name))
+                if arcpy.Exists(feature) and arcpy.Describe(feature).dataType == 'FeatureClass':
+                    # Create a new name and export feature class
+                    new_name = f"proj_{formatted_project_spatial_id}"
+                    arcpy.conversion.ExportFeatures(
+                        os.path.join(file, feature),
+                        os.path.join(self.params.local_gdb_path, new_name)
+                    )
+                    
+                    # Enable the version control of the layer in the geodatabase
+                    self.enable_version_control(os.path.join(self.params.local_gdb_path, new_name))
+                    
+                    # Update the entry of the Geodatabase feature class
+                    self.data.set_data(
+                        project_spatial_id=formatted_project_spatial_id, 
+                        in_raw_gdb=True,
+                        processed=True,
+                        entry_type='Spatial'
+                    )
+                
+                # Set the flag to indicate that the first feature class has been processed
+                first_feature_class_processed = True
+                
+                new_raw_data_path = os.path.join(base_raw_data_path, feature)
+                self.call_raw_data_match(formatted_project_spatial_id, new_raw_data_path)
                 
                 # Update the entry of the Geodatabase feature class
                 self.data.set_data(
                     project_spatial_id=formatted_project_spatial_id, 
-                    in_raw_gdb=True,
-                    processed=True,
-                    entry_type='Spatial'
+                    raw_data_path=new_raw_data_path
                 )
-            
-            # Set the flag to indicate that the first feature class has been processed
-            first_feature_class_processed = True
-            
-            new_raw_data_path = os.path.join(base_raw_data_path, feature)
-            self.call_raw_data_match(formatted_project_spatial_id, new_raw_data_path)
-            
-            # Update the entry of the Geodatabase feature class
-            self.data.set_data(
-                project_spatial_id=formatted_project_spatial_id, 
-                raw_data_path=new_raw_data_path
-            )
+                
+        except (arcpy.ExecuteError, arcgisscripting.ExecuteError) as error:
+            log(self.params.log, Colors.ERROR, f'An error occurred when processing the layer for {file}, you can fix or remove it from the datatracker/database, then run the command again with --resume\n{error}', ps_script=self.params.ps_script, project_id=formatted_project_spatial_id)
+            # Can remove the comment from below when being shipped so the tool stops when a excetption is caught instead of continue on
+            # raise Exception(error) 
+        except Exception as error:
+            log(self.params.log, Colors.ERROR, f'An uncaught error occurred when processing the layer for {file}', ps_script=self.params.ps_script, project_id=formatted_project_spatial_id)
+            raise Exception(error)
 
     def extract_attachments(self) -> None:
         """
@@ -475,7 +498,7 @@ class Processor:
             )
         
         except Exception as error:
-            log(self.params.log, Colors.ERROR, f'An error has been caught while trying to enable editor tracking for {feature_class} in resulting gdb, {error}')
+            log(self.params.log, Colors.ERROR, f'An error has been caught while trying to enable editor tracking for {feature_class} in resulting gdb, {error}', ps_script=self.params.ps_script)
 
         
 def convert_drive_path(file_path):

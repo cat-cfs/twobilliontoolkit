@@ -42,7 +42,7 @@ from twobilliontoolkit.SpatialTransformer.network_transfer import transfer
 #========================================================
 # Entry Function
 #========================================================  
-def spatial_transformer(input_path: str, output_path: str, load_from: str, save_to: str, gdb_path: str, datatracker: str, attachments: str, master_data_path: str, debug: bool = False, resume: bool = False, suppress: bool = False) -> None:
+def spatial_transformer(input_path: str, output_path: str, load_from: str, save_to: str, gdb_path: str, datatracker: str, attachments: str, master_data_path: str, debug: bool = False, resume: bool = False, suppress: bool = False, ps_script: str = None) -> None:
     """
     The spatial_transformer function serves as the main entry point for the spatial transformation script. Its primary purpose is to handle various tasks related to spatial data processing, such as starting the ripple_unzipple tool and geodatabase creation.
 
@@ -58,6 +58,7 @@ def spatial_transformer(input_path: str, output_path: str, load_from: str, save_
         debug (bool, optional): Determines if the program is in debug mode. Defaults False.
         resume (bool, optional): Determines if the program should resume from where a crash happened. Defaults False.
         suppress (bool, optional): Determines if the program will suppress Warning Messages to the command line while running.
+        ps_script (str, optional): The path location of the script to run spatial transformer.
     """
     # Create the logfile path
     log_file = os.path.basename(gdb_path).replace('.gdb', f"_Log_{datetime.datetime.now().strftime('%Y-%m-%d')}.txt")
@@ -67,7 +68,7 @@ def spatial_transformer(input_path: str, output_path: str, load_from: str, save_
     
     try:       
         # Initialize Parameters class
-        setup_parameters = Parameters(input_path, output_path, gdb_path, master_data_path, datatracker, attachments, load_from, save_to, log_file, debug, resume, suppress)
+        setup_parameters = Parameters(input_path, output_path, gdb_path, master_data_path, datatracker, attachments, load_from, save_to, log_file, debug, resume, suppress, ps_script)
                 
         # Start the unzip tool 
         setup_parameters.handle_unzip()
@@ -84,11 +85,11 @@ def spatial_transformer(input_path: str, output_path: str, load_from: str, save_
                 
         # Start the processing
         spatial_data.process_spatial_files()
-        log(None, Colors.INFO, 'The Processor has completed processing the files into the Geodatabase.')
+        log(None, Colors.INFO, 'The Processor has completed processing the files into the Geodatabase. Now starting to extract attachments from the Geodatabase.')
         
         # Extract attachments from the Geodatabase
         spatial_data.extract_attachments()
-        log(None, Colors.INFO, 'The Attachments Seeker has completed extracting the attachments from the geodatabase.')
+        log(None, Colors.INFO, 'The Attachments Seeker has completed extracting the attachments from the geodatabase. Now starting to transfer over the files from the local directory to the specified output.')
         
         # Move the local files to the specified output
         transfer(
@@ -97,35 +98,25 @@ def spatial_transformer(input_path: str, output_path: str, load_from: str, save_
             [os.path.basename(spatial_data.params.gdb_path), os.path.basename(spatial_data.params.datatracker), os.path.basename(spatial_data.params.attachments), spatial_data.params.log[:-4] + '_WARNING.txt', spatial_data.params.log[:-4] + '_ERROR.txt'],
             spatial_data.params.log
         )
-        log(None, Colors.INFO, 'The Network Transfer has completed moving the files from local to the network.')
+        log(None, Colors.INFO, 'The Network Transfer has completed moving the files from local to the network. Now removing contents from the local directory.')
                    
         if not debug:
             # Remove the local contents
             shutil.rmtree(setup_parameters.local_dir)
             os.mkdir(setup_parameters.local_dir)
-            log(None, Colors.INFO, 'Removing contents from the local directory completed.')
+            log(None, Colors.INFO, 'Removing contents from the local directory completed. Now saving the changes to the specified data tracker.')
                    
         # Save the data tracker before returning
         spatial_data.data.save_data(True if resume else False)
+        log(None, Colors.INFO, 'The changes have successfully been saved to the specified datatracker. Now opening Record Reviser.')
         
         # Open the record reviser
         call_record_reviser(spatial_data.data, spatial_data.params.gdb_path)
         log(None, Colors.INFO, 'The Record Reviser has completed editing any entries and is closing.')
             
-    except (ValueError, Exception) as error:
-        # Print the traceback
-        traceback.print_exc()
-
-        # Get the traceback information
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-
-        # Extract the filename and line number where the exception was raised
-        trace = traceback.extract_tb(exc_traceback)[-1]
-        filename = trace[0]
-        line_number = trace[1]
-        
+    except (ValueError, Exception) as error:        
         # Log the error
-        log(log_file, Colors.ERROR, error, filename, line_number)
+        log(log_file, Colors.ERROR, traceback.format_exc(), ps_script=ps_script)
         
         # Save the data to the datatracker in case of crashing
         if spatial_data:
@@ -158,12 +149,13 @@ def main():
     parser.add_argument('--debug', action='store_true', default=False, help='Enable debug mode')
     parser.add_argument('--resume', action='store_true', default=False, help='Resume from where a crash happened')
     parser.add_argument('--suppress', action='store_true', default=False, help='Suppress Warnings in the command-line and only show Errors')
+    parser.add_argument('--ps_script', default='', help='The location of the script to run commands if used.')
     
     # Parse the command-line arguments
     args = parser.parse_args()
         
     # Call the entry function
-    spatial_transformer(args.input_path, args.output_path, args.load, args.save, args.gdb_path, args.datatracker, args.attachments, args.master, args.debug, args.resume, args.suppress)
+    spatial_transformer(args.input_path, args.output_path, args.load, args.save, args.gdb_path, args.datatracker, args.attachments, args.master, args.debug, args.resume, args.suppress, args.ps_script)
                         
     # Get the end time of the script and calculate the elapsed time
     end_time = time.time()
