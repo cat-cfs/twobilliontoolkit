@@ -1,4 +1,5 @@
-﻿using ArcGIS.Core.Geometry;
+﻿using ArcGIS.Core.Data;
+using ArcGIS.Core.Geometry;
 using ArcGIS.Desktop.Core.Geoprocessing;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
@@ -203,36 +204,59 @@ namespace twobillionarcgisaddin
                 if (mapView != null)
                 {
                     SelectionSet selectedFeatures = null;
+                    FeatureLayer featureLayer = null;
+                    GeometryType geometryType = GeometryType.Unknown;
                     await QueuedTask.Run(() =>
                     {
                         // Get the currently selected features in the map
                         selectedFeatures = mapView.Map.GetSelection();
+
+                        // Check if any features are selected in any layer
+                        if (selectedFeatures.Count == 0)
+                        {
+                            ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("No features on the map are selected, please select a feature you want to process and try again!");
+                            this.SendDataButton.IsEnabled = true;
+                            this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
+                            return;
+                        }
+
+                        // Get the first layer and its corresponding selected feature OIDs
+                        var selectionSet = selectedFeatures.ToDictionary().First();
+                        featureLayer = selectionSet.Key as FeatureLayer;
+
+                        // Check if the feature layer is not null
+                        if (featureLayer != null)
+                        {
+                            // Access the feature class of the feature layer
+                            FeatureClass featureClass = featureLayer.GetFeatureClass();
+
+                            // Get the geometry type of the feature class
+                            geometryType = featureClass.GetDefinition().GetShapeType();
+                        }
                     });
 
-                    // Check if any features are selected in any layer
-                    if (selectedFeatures.Count == 0)
+                    // Check if the selected layer is a polygon or not
+                    if (geometryType != GeometryType.Polygon)
                     {
-                        ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("No features on the map are selected, please select a feature you want to process and try again!");
+                        ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("You currently have a " + geometryType.ToString() + " geometry selected. The tool does not currently accept anything other than Polygons.");
+
+                        // Disable the button (spam prevention)
                         this.SendDataButton.IsEnabled = true;
-                        this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
-                        return;
-                    }
-
-                    // Get the first layer and its corresponding selected feature OIDs
-                    var selectionSet = selectedFeatures.ToDictionary().First();
-                    FeatureLayer featureLayer = selectionSet.Key as FeatureLayer;
-
-                    // Get the selected Site ID from the logistics dropdown
-                    string selectedSiteID = this.SiteID_Dropdown.SelectedItem.ToString();
-
-                    if ((bool)this.OverwriteToggle.IsChecked)
-                    {
-                        await ExecuteUpdateDataToolAsync(selectedSiteID, featureLayer);
                     }
                     else
                     {
-                        await ExecuteInsertDataToolAsync(selectedSiteID, featureLayer);
-                    }
+                        // Get the selected Site ID from the logistics dropdown
+                        string selectedSiteID = this.SiteID_Dropdown.SelectedItem.ToString();
+
+                        if ((bool)this.OverwriteToggle.IsChecked)
+                        {
+                            await ExecuteUpdateDataToolAsync(selectedSiteID, featureLayer);
+                        }
+                        else
+                        {
+                            await ExecuteInsertDataToolAsync(selectedSiteID, featureLayer);
+                        }
+                    }                
                 }
             }
             catch (Exception ex)
