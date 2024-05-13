@@ -58,7 +58,7 @@ class Processor:
         """Process all of the found spatial files."""
         for file in self.spatial_files:
             # Check project numbers and format the result
-            formatted_result = self.check_project_numbers(file, self.params.masterdata)
+            formatted_result = self.check_project_numbers(file)
             formatted_result = formatted_result.upper()
 
             # Create a unique identifier for the project spatial ID
@@ -129,13 +129,12 @@ class Processor:
 
             self.data.set_data(project_spatial_id=formatted_project_spatial_id, processed=True)
                     
-    def check_project_numbers(self, file_path: str, master_df: pd.DataFrame) -> str:
+    def check_project_numbers(self, file_path: str) -> str:
         """
         Check project numbers against a master data sheet.
 
         Args:
-            file_path (str): Filepath to check.
-            master_df (pd.Dataframe): Master data sheet as a pandas DataFrame.
+            file_path (str): Filepath to check.            
 
         Returns:
             str: the formatted result for the project number of the spatial file path.
@@ -152,8 +151,14 @@ class Processor:
             # Format the result using the matched groups
             formatted_result = '{} {} - {}'.format(search.group(1), search.group(2), search.group(3))
 
-            # Check if the project number is found in the master datasheet
-            project_found = master_df['Project Number'].str.replace(' ', '').eq(formatted_result.replace(' ', '').upper()).any()
+            # Check if the project number is in the project numbers list
+            project_found = None
+            for project_number in self.params.project_numbers:
+                if project_number.lower().replace(' ', '') == formatted_result.lower().replace(' ', ''):
+                    # Exit the loop as soon as the first occurrence is found
+                    project_found = project_number
+                    break
+
             if not project_found:
                 log(self.params.log, Colors.WARNING, f'The project number {formatted_result} does not match any know project number in the master datasheet', self.params.suppress, ps_script=self.params.ps_script)
             

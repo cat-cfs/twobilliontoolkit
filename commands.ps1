@@ -98,9 +98,9 @@ do {
             }
             else 
             {
-                Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --suppress --ps_script "$script_location"
+                Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker_path" --master "$master_data" --suppress --ps_script "$script_location"
                 Write-Host
-                & $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --suppress --ps_script "$script_location"
+                & $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker_path" --master "$master_data" --suppress --ps_script "$script_location"
             }
             Write-Host
             Write-Host "The SpatialTransformer has completed its processing!"

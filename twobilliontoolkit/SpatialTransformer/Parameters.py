@@ -7,6 +7,7 @@ import argparse
 
 from twobilliontoolkit.SpatialTransformer.common import *
 from twobilliontoolkit.Logger.logger import log, Colors
+from twobilliontoolkit.SpatialTransformer.Database import Database
 from twobilliontoolkit.RippleUnzipple.ripple_unzipple import ripple_unzip
 
 #========================================================
@@ -37,30 +38,33 @@ class Parameters:
         # If nothing was specified for the attachments path, set it to the same place as the output of the ripple unzipple tool.
         if attachments == '':
             attachments = os.path.basename(gdb_path).replace('.gdb', '_Attachments')
-        
-        # Build the paths
-        datatracker = os.path.join(self.local_dir, datatracker)
-        attachments = os.path.join(self.local_dir, attachments)
-    
+            
         # Ensure that if a datatracker is specified for loading or saving, then a path must be passed
-        if (load_from == 'datatracker' or save_to == 'datatracker') and datatracker == '':
-            raise argparse.ArgumentTypeError("If --load or --save is 'datatracker', --datatracker must be specified.")
-        elif (load_from == 'datatracker' or save_to == 'datatracker') and datatracker != '':
-            self.validate_path('datatracker', datatracker, must_ends_with=DATA_SHEET_EXTENSIONS)
-            if resume:
-                self.validate_path('datatracker', datatracker, must_exists=True)
+        if load_from == 'datatracker' or save_to == 'datatracker':
+            if not datatracker:
+                raise argparse.ArgumentTypeError("If --load or --save is 'datatracker', --datatracker must be specified.")
+            else:
+                self.validate_path('datatracker', datatracker, must_ends_with='.xlsx') 
+                    
+        if load_from == 'datatracker':
+            if not master_data_path:
+                raise argparse.ArgumentTypeError("If --load is 'datatracker', --master_data_path must be specified.")
+            else:
+                self.validate_path('master_data_path', master_data_path, must_exists=True, must_ends_with='.xlsx') 
 
         # Validate and set paths
         self.validate_path('input_path', input_path, must_exists=True)
         self.validate_path('output_network_path', output_path)
         self.validate_path('gdb_path', gdb_path, must_ends_with='.gdb')
-        self.validate_path('master_data_path', master_data_path, must_exists=True, must_ends_with='.xlsx')
-                
+              
+        # Build the paths
+        datatracker = os.path.join(self.local_dir, datatracker)
+        attachments = os.path.join(self.local_dir, attachments)
+                                
         self.input = input_path
         self.output = output_path
         self.gdb_path = gdb_path
         self.local_gdb_path = os.path.join(self.local_dir, os.path.basename(self.gdb_path))
-        self.masterdata = pd.read_excel(master_data_path)
         self.load_from = load_from
         self.save_to = save_to
         self.datatracker = datatracker
@@ -71,9 +75,7 @@ class Parameters:
         self.suppress = suppress
         self.ps_script = ps_script
         
-        # Extra validation on master data to check it has project number column
-        if 'Project Number' not in self.masterdata.columns:
-            raise ValueError(f"The column 'Project Number' does not exist in the master data.")
+        self.project_numbers = self.get_project_numbers(master_data_path)
 
     def validate_path(self, argument: str, param: str, must_exists: bool = False, must_ends_with: bool = None) -> None:
         """
@@ -134,3 +136,36 @@ class Parameters:
                 log(None, Colors.INFO, f'Geodatabase: {file} created successfully')
             except arcpy.ExecuteError:
                 log(self.log, Colors.ERROR, arcpy.GetMessages(2), ps_script=self.ps_script)
+                
+    def get_project_numbers(self, master_datasheet: str = None) -> list[str]:
+        """
+        Get a list of project numbers from either the database or the master datasheet
+
+        Returns:
+            list[str]: A list of project numbers
+        """
+        if self.load_from == 'datatracker':                      
+            masterdata = pd.read_excel(master_datasheet)
+            
+            # Extra validation on master data to check it has project number column
+            if 'Project Number' not in masterdata.columns:
+                raise ValueError(f"The column 'Project Number' does not exist in the master data.")
+            
+            # Convert masterdata to a list of strings
+            return masterdata['Project Number'].unique().tolist()
+        
+        # Create database object
+        database_connection = Database()
+        
+        # Read connection parameters from the configuration file
+        database_parameters = database_connection.get_params()
+        database_connection.connect(database_parameters)
+        self.project_numbers = database_connection.read(
+            database_connection.schema,
+            table='project_number'
+        )
+        database_connection.disconnect()
+        
+        return [str(num[0]) for num in self.project_numbers]
+        
+        

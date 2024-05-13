@@ -69,7 +69,7 @@ def spatial_transformer(input_path: str, output_path: str, load_from: str, save_
     try:       
         # Initialize Parameters class
         setup_parameters = Parameters(input_path, output_path, gdb_path, master_data_path, datatracker, attachments, load_from, save_to, log_file, debug, resume, suppress, ps_script)
-                
+        
         # Start the unzip tool 
         setup_parameters.handle_unzip()
         log(None, Colors.INFO, 'Ripple Unzipple has completed extracted the files.')
@@ -82,11 +82,12 @@ def spatial_transformer(input_path: str, output_path: str, load_from: str, save_
         
         # Search for any spatial data and data sheets in the output directory
         spatial_data.search_for_spatial_data()
+        log(None, Colors.INFO, 'All spatial and aspatial files have been found when searching the output directory. Now starting to process those found spatial files.')
                 
         # Start the processing
         spatial_data.process_spatial_files()
         log(None, Colors.INFO, 'The Processor has completed processing the files into the Geodatabase. Now starting to extract attachments from the Geodatabase.')
-        
+
         # Extract attachments from the Geodatabase
         spatial_data.extract_attachments()
         log(None, Colors.INFO, 'The Attachments Seeker has completed extracting the attachments from the geodatabase. Now starting to transfer over the files from the local directory to the specified output.')
@@ -145,7 +146,7 @@ def main():
     parser.add_argument('--gdb_path', required=True, default='', help='Path of where the geodatabase will be saved, if it does not already exist, it will be created.')
     parser.add_argument('--datatracker', default='', help='Name of the datatracker file that will be saved adjacent to the geodatabase if provided')
     parser.add_argument('--attachments', default='', help='Name of the attachments folder that will be saved adjacent to the geodatabase')
-    parser.add_argument('--master', required=True, default='', help='The location of the master aspatial datasheet')
+    parser.add_argument('--master', default='', help='The location of the master aspatial datasheet')
     parser.add_argument('--debug', action='store_true', default=False, help='Enable debug mode')
     parser.add_argument('--resume', action='store_true', default=False, help='Resume from where a crash happened')
     parser.add_argument('--suppress', action='store_true', default=False, help='Suppress Warnings in the command-line and only show Errors')

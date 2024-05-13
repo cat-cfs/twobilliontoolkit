@@ -28,7 +28,7 @@ class Datatracker:
         self.save_to = save_to
         self.log_path = log_path
         
-        if load_from == 'database,' or save_to == 'database':
+        if load_from == 'database' or save_to == 'database':
             # Create database object
             self.database_connection = Database()
             
