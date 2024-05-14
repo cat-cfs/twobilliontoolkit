@@ -513,13 +513,14 @@ def convert_drive_path(file_path):
     abs_file_path = os.path.abspath(file_path)
     actual_drive_path = abs_file_path
 
-    # If the path is already an actual drive path, use it directly
-    if os.path.exists(abs_file_path) and os.path.splitdrive(abs_file_path)[0]:
-        return abs_file_path
-
     try:
-        # Convert mapped drive path to UNC path
-        actual_drive_path = win32wnet.WNetGetUniversalName(abs_file_path, 1)
+        # Extract drive letter from absolute file path
+        drive_letter, _ = os.path.splitdrive(abs_file_path)
+
+        # Check if the path contains a drive letter
+        if re.match(r"[A-Za-z]{1}:{1}", drive_letter):
+            # Convert mapped drive path to UNC path
+            actual_drive_path = win32wnet.WNetGetUniversalName(actual_drive_path, 1)
     except Exception as e:
         print(f"Error: {e}")
 
