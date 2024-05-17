@@ -1,17 +1,21 @@
 ﻿using ArcGIS.Core.Data;
 using ArcGIS.Core.Geometry;
 using ArcGIS.Desktop.Core.Geoprocessing;
+using ArcGIS.Desktop.Framework.Dialogs;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
+using ArcGIS.Desktop.Internal.Mapping.CommonControls;
 using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Markup;
 
 
 namespace twobillionarcgisaddin
@@ -31,6 +35,9 @@ namespace twobillionarcgisaddin
 
         // Access to the data container object of the SiteMapper tool
         public DataContainer dataContainer { get; private set; }
+
+        // Global variable flag to bypass double triggering events
+        private bool _noise = false;
 
         #endregion
         // ******************************************************
@@ -123,22 +130,28 @@ namespace twobillionarcgisaddin
             {
                 this.ButtonToolist.Visibility = Visibility.Visible;
                 this.SiteMapper.Visibility = Visibility.Collapsed;
+                this.BatchSiteMapperSection.Visibility = Visibility.Collapsed;
             }
         }
 
-        private async void FeatureSelectionChanged(MapSelectionChangedEventArgs args)
+        private void FeatureSelectionChanged(MapSelectionChangedEventArgs args)
         {
             MapView mapView = MapView.Active;
             if (mapView != null)
             {
-                SelectedFeaturesNumber.Content = mapView.Map.SelectionCount.ToString();
+                FeatureLayer featureLayer = mapView.GetSelectedLayers().OfType<FeatureLayer>().FirstOrDefault();
+                if (featureLayer != null) 
+                { 
+                    SelectedFeaturesNumber.Content = featureLayer.SelectionCount.ToString();
+                }       
+                
             }
         }
 
         // Method to handle the click event of the SiteMapper button
         private async void SiteMapperButtonClicked(object sender, RoutedEventArgs e)
         {
-           MapSelectionChangedEvent.Subscribe(FeatureSelectionChanged);
+            MapSelectionChangedEvent.Subscribe(FeatureSelectionChanged);
 
             try
             {
@@ -162,6 +175,11 @@ namespace twobillionarcgisaddin
                 {
                     this.ButtonToolist.Visibility = Visibility.Collapsed;
                     this.SiteMapper.Visibility = Visibility.Visible;
+                }
+
+                if (sender == this.BatchSiteMapperButton)
+                {
+                    this.BatchSiteMapperSection.Visibility = Visibility.Visible;
                 }
             }
             catch (Exception ex)
@@ -310,44 +328,58 @@ namespace twobillionarcgisaddin
         }
 
         // Method to handle the change event of the filters
-        private void SiteMapperFilterChanged(object sender, SelectionChangedEventArgs e)
+        private void SiteMapperProjectNumberFilterChanged(object sender, SelectionChangedEventArgs e)
         {
+            this.SiteID_Dropdown.SelectedIndex = 0;
             Dictionary<string, string> filter = GetSiteMapperFilter();
 
-            if (sender == this.ProjectNumber_Dropdown)
+            // Create a DataContainer instance to process the JSON string
+            dataContainer = new DataContainer(siteMapperToolOutput);
+
+            // 
+            PopulateFilters(dataContainer, true);
+
+            if (string.IsNullOrEmpty(this.ProjectNumber_Dropdown.SelectedItem as string))
             {
-                // Create a DataContainer instance to process the JSON string
-                dataContainer = new DataContainer(siteMapperToolOutput);
-
-                // 
-                PopulateFilters(dataContainer, true);
-
-                if (string.IsNullOrEmpty(this.ProjectNumber_Dropdown.SelectedItem as string))
-                {
-                    this.SiteID_Dropdown.SelectedItem = "";
-                    this.Secondary_Filter.Visibility = Visibility.Collapsed;
-                }
-                else
-                {
-                    this.Secondary_Filter.Visibility = Visibility.Visible;
-                }
-
-                // Filter map layers based on the selected project number
-                SelectMapLayers(filter["ProjectNumber"]);
-            } 
+                this.Secondary_Filter.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                this.Secondary_Filter.Visibility = Visibility.Visible;
+            }
+                       
+            // Filter map layers based on the selected project number
+            SelectMapLayers(filter["ProjectNumber"]);
                 
+            // Repopulate the data grid with the filtered data
+            SiteMapperDataGridView dockpane2 = SiteMapperDataGridView.MySiteMapperDataGridView;
+            dockpane2.PopulateDataGrid(dataContainer, filter);   
+        }
+
+        // Method to handle the change event of the filters
+        private void SiteMapperSiteIDFilterChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_noise)
+            {
+                _noise = false;
+            }
+
+            Dictionary<string, string> filter = GetSiteMapperFilter();
+
             if (this.SiteID_Dropdown.SelectedItem == null || this.SiteID_Dropdown.SelectedItem.ToString() == "")
             {
                 this.SendDataButton.IsEnabled = false;
+                this.MatchButton.IsEnabled = false;
             }
             else
             {
                 this.SendDataButton.IsEnabled = true;
+                this.MatchButton.IsEnabled = true;
             }
 
             // Repopulate the data grid with the filtered data
             SiteMapperDataGridView dockpane2 = SiteMapperDataGridView.MySiteMapperDataGridView;
-            dockpane2.PopulateDataGrid(dataContainer, filter);   
+            dockpane2.PopulateDataGrid(dataContainer, filter);
         }
 
         private async void ShowHiddenCat()
@@ -355,6 +387,111 @@ namespace twobillionarcgisaddin
             this.HiddenCat.Visibility = Visibility.Visible;
             await Task.Delay(500); // 500 milliseconds = .5 seconds
             this.HiddenCat.Visibility = Visibility.Hidden;
+        }
+
+        // Method to handle the click event of the Match Button
+        private async void MatchButtonClicked(object sender, RoutedEventArgs e)
+        {
+            //
+            this.MatchButton.IsEnabled = false;
+
+            try
+            {
+                // Access the current map in ArcGIS Pro
+                MapView mapView = MapView.Active;
+
+                // Null check for MapView.Active
+                if (mapView == null)
+                {
+                    ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("No active map view found.");
+                    this.MatchButton.IsEnabled = true;
+                    return;
+                }
+
+                // Getting the first selected feature layer
+                FeatureLayer featureLayer = mapView.GetSelectedLayers().OfType<FeatureLayer>().FirstOrDefault();
+                if (featureLayer == null)
+                {
+                    ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Please select a feature layer in the Drawing Order and try again.");
+                    this.MatchButton.IsEnabled = true;
+                    return;
+                }
+
+                // Get site name from the selected site ID
+                DataEntry entry = dataContainer.GetDataEntryBySiteID(this.SiteID_Dropdown.SelectedItem.ToString());
+                string siteName = entry.SiteName;
+                string siteNameFormatted = $"%{siteName.Replace(" ", "%")}%";
+                string matchField = this.MatchField_Dropdown.SelectedItem.ToString();
+
+                string matchesFound = "";
+                await QueuedTask.Run(() =>
+                {
+                    QueryFilter queryFilter = new QueryFilter()
+                    {
+                        WhereClause = $"UPPER({matchField}) LIKE '%{siteNameFormatted.ToUpper()}%'"
+                    };
+                               
+                    featureLayer.Select(queryFilter);
+                    using (RowCursor rowCursor = featureLayer.Search(queryFilter)) //execute
+                    {
+                        //Looping through to count
+                        int i = 0;
+                        while (rowCursor.MoveNext()) i++;
+
+                       matchesFound = $"{i} features were found";
+
+                        return;
+                    }
+                });
+
+                this.MatchedFeaturesLabel.Content = matchesFound;
+                this.MatchButton.IsEnabled = true;
+                
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions that occur during tool execution
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
+            }
+        }
+
+        // Method to handle the click event of the SiteMapper button
+        private async void RefreshButtonClicked(object sender, RoutedEventArgs e)
+        {
+            this.BatchSiteMapperRefreshButton.Content = "Working...";
+            this.BatchSiteMapperRefreshButton.IsEnabled = false;
+
+            MapView mapView = MapView.Active;
+            // Getting the first selected feature layer
+            FeatureLayer featureLayer = mapView.GetSelectedLayers().OfType<FeatureLayer>().FirstOrDefault();
+            if (featureLayer == null)
+            {
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Please select a feature layer in the Drawing Order and try again.");
+                this.MatchButton.IsEnabled = false;
+                this.BatchSiteMapperRefreshButton.Content = "Refresh";
+                this.BatchSiteMapperRefreshButton.IsEnabled = true;
+                return;
+            }
+
+            List<FieldDescription> fieldDescriptions = null;
+            await QueuedTask.Run(() =>
+            {
+                // Retrieving field descriptions
+                fieldDescriptions = featureLayer.GetFieldDescriptions();
+                if (fieldDescriptions.Count == 0)
+                {
+                    ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("The selected layer has no fields.");
+                }
+                return;
+            });
+            this.MatchField_Dropdown.Items.Clear();
+            foreach (var item in fieldDescriptions)
+            {
+                this.MatchField_Dropdown.Items.Add(item.Name);
+            }
+
+            this.BatchSiteMapperRefreshButton.Content = "Refresh";
+            this.BatchSiteMapperRefreshButton.IsEnabled = true;
         }
 
         #endregion
@@ -415,10 +552,13 @@ namespace twobillionarcgisaddin
             // Set ItemSource based on the filter type
             if (!updateSecondaryFilter)
             {
-                ProjectNumber_Dropdown.ItemsSource = filterProjNumberList;
+                filterProjNumberList.Sort(StringComparer.OrdinalIgnoreCase);
+                this.ProjectNumber_Dropdown.ItemsSource = filterProjNumberList;
             }
 
-            SiteID_Dropdown.ItemsSource = filterSiteIDList;
+            filterSiteIDList.Sort(StringComparer.OrdinalIgnoreCase);
+            _noise = true;
+            this.SiteID_Dropdown.ItemsSource = filterSiteIDList;
         }
 
         // Method to select map layers based on the selected project number

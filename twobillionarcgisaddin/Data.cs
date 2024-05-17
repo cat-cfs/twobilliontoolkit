@@ -96,5 +96,11 @@ namespace twobillionarcgisaddin
                 Data.Add(entry);
             }
         }
+
+        public DataEntry GetDataEntryBySiteID(string siteID)
+        {
+            // Find the DataEntry with the given SiteID
+            return Data.Find(entry => entry.SiteID == siteID);
+        }
     }
 }
