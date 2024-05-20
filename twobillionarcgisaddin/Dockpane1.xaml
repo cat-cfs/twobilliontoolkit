@@ -203,7 +203,7 @@
 
                 <Button x:Name="MatchButton" Content="Match" Height="55" Click="MatchButtonClicked" ToolTip="Select any features in the currently selected layer that match the field and site name" Margin="0,5,0,0" Template="{StaticResource ButtonTemplate}" Style="{StaticResource ButtonStyle}" IsEnabled="False"/>
 
-                <Label x:Name="MatchedFeaturesLabel" Content="a" Style="{StaticResource LabelStyle}" Foreground="RoyalBlue" FontWeight="Normal" HorizontalAlignment="Center"/>
+                <Label x:Name="MatchedFeaturesLabel" Content="" Style="{StaticResource LabelStyle}" Foreground="RoyalBlue" FontWeight="Normal" HorizontalAlignment="Center"/>
 
             </StackPanel>
 

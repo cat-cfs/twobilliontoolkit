@@ -392,15 +392,13 @@ namespace twobillionarcgisaddin
         // Method to handle the click event of the Match Button
         private async void MatchButtonClicked(object sender, RoutedEventArgs e)
         {
-            //
+            // Disable the Match button to prevent multiple clicks while processing
             this.MatchButton.IsEnabled = false;
 
             try
             {
                 // Access the current map in ArcGIS Pro
                 MapView mapView = MapView.Active;
-
-                // Null check for MapView.Active
                 if (mapView == null)
                 {
                     ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("No active map view found.");
@@ -408,7 +406,7 @@ namespace twobillionarcgisaddin
                     return;
                 }
 
-                // Getting the first selected feature layer
+                // Get the first selected feature layer from the active map view
                 FeatureLayer featureLayer = mapView.GetSelectedLayers().OfType<FeatureLayer>().FirstOrDefault();
                 if (featureLayer == null)
                 {
@@ -417,41 +415,110 @@ namespace twobillionarcgisaddin
                     return;
                 }
 
-                // Get site name from the selected site ID
+                // Retrieve the site name from the selected site ID in the dropdown
                 DataEntry entry = dataContainer.GetDataEntryBySiteID(this.SiteID_Dropdown.SelectedItem.ToString());
                 string siteName = entry.SiteName;
                 string siteNameFormatted = $"%{siteName.Replace(" ", "%")}%";
                 string matchField = this.MatchField_Dropdown.SelectedItem.ToString();
 
-                string matchesFound = "";
+                // Asynchronously retrieve all unique values from the specified field in the feature layer
+                List<string> columnValues = await QueuedTask.Run(() =>
+                {
+                    List<string> values = new List<string>();
+                    using (Table table = featureLayer.GetTable())
+                    using (RowCursor cursor = table.Search(null, false))
+                    {
+                        while (cursor.MoveNext())
+                        {
+                            using (Row row = cursor.Current)
+                            {
+                                // Retrieve the value from the specified match field
+                                object value = row[matchField];
+                                if (value != DBNull.Value && value != null && !values.Contains(value))
+                                {
+                                    values.Add(value.ToString());
+                                }
+                            }
+                        }
+                    }
+                    return values;
+                });
+
+                // Split the site name into significant parts for matching
+                string[] parts = siteName.Split(new[] { ' ', ':', '#' }, StringSplitOptions.RemoveEmptyEntries);
+
+                // Escape special characters in each part for regex matching
+                string[] escapedParts = parts.Select(Regex.Escape).ToArray();
+
+                // Custom function to check if most parts of the site name are present in the input
+                bool ContainsMostParts(string input, string[] parts)
+                {
+                    int matchCount = parts.Count(part => Regex.IsMatch(input, part, RegexOptions.IgnoreCase));
+                    return matchCount >= (parts.Length / 2);  // threshold
+                }
+
+                // Find all strings in columnValues that match most parts of the site name
+                List<string> matchingStrings = columnValues.FindAll(str => ContainsMostParts(str, escapedParts));
+
+                // Build the SQL query to select features matching the identified strings
+                string query = "";
+                foreach (string match in matchingStrings)
+                {
+                    if (query != "")
+                    {
+                        query += " Or ";
+                    }
+                    query += $"{matchField} LIKE '%{match}%'";
+                }
+
+                // Initialize the message for the number of matching features found
+                string matchesFound = "0 features were found";
+
+                // Asynchronously execute the query and count the matching features
                 await QueuedTask.Run(() =>
                 {
+                    // Clear previous selections on the map
+                    mapView.Map.ClearSelection();
+
+                    // If no matches were found, return early
+                    if (query == "")
+                    {
+                        return;
+                    }
+
+                    // Create a query filter with the built query
                     QueryFilter queryFilter = new QueryFilter()
                     {
-                        WhereClause = $"UPPER({matchField}) LIKE '%{siteNameFormatted.ToUpper()}%'"
+                        WhereClause = query
                     };
-                               
+
+
+                    // Select features matching the query filter
                     featureLayer.Select(queryFilter);
-                    using (RowCursor rowCursor = featureLayer.Search(queryFilter)) //execute
+
+                    // Count the number of matching features
+                    using (RowCursor rowCursor = featureLayer.Search(queryFilter))
                     {
-                        //Looping through to count
                         int i = 0;
                         while (rowCursor.MoveNext()) i++;
-
-                       matchesFound = $"{i} features were found";
-
-                        return;
+                        matchesFound = $"{i} features were found";
                     }
                 });
 
+                // Update the label with the number of matched features
                 this.MatchedFeaturesLabel.Content = matchesFound;
+
+                // Re-enable the Match button after processing
                 this.MatchButton.IsEnabled = true;
                 
             }
             catch (Exception ex)
             {
-                // Handle any exceptions that occur during tool execution
+                // Show an error message if an exception occurs
                 ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
+
+                // Re-enable the Match button in case of an error
+                this.MatchButton.IsEnabled = true;
             }
         }
 
