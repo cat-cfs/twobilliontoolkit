@@ -6,6 +6,7 @@ import arcpy
 import re
 import tempfile
 import xml.etree.ElementTree as ET
+import arcpy.management
 import win32wnet
 import arcgisscripting
 
@@ -33,7 +34,265 @@ class Processor:
         
         self.spatial_files = []
         self.temp_directory = tempfile.gettempdir() + '\spatial_trans'
-              
+       
+    def create_datatracker_entries(self) -> None:
+        """
+        Creates data tracker entries by processing files and directories within the output path.
+
+        This function walks through the specified output directory, processes different file types, and creates entries in the data tracker. It handles geodatabases, shapefiles, KML/KMZ files,
+        GeoJSON files, GeoPackages, and other file types, ensuring that they are correctly added to the data tracker.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """  
+        # Step through unzip output path
+        for root, dirs, files in os.walk(self.params.output):
+            for dir in dirs:
+                # Built full directory path
+                directory_path = f"{root}\{dir}"
+                
+                # Skip over the gdb if tool is running a second time if it is somehow in the folder
+                if dir is self.params.gdb_path:
+                    continue
+                
+                if dir.endswith('.gdb'):
+                    # Set the workspace to the specified .gdb
+                    arcpy.env.workspace = directory_path
+                                        
+                    # Iterate through the feature classes and tables
+                    feature_tables = arcpy.ListTables()
+                    feature_classes = arcpy.ListFeatureClasses()
+                    for feature in feature_classes + feature_tables:
+                        if arcpy.Exists(feature) and arcpy.Describe(feature).dataType == 'FeatureClass':
+                            project_spatial_id = self.create_entry(directory_path, f"{directory_path}\{feature}")
+                        
+                    # Remove the gdb from the dirs list so it doesnt walk through    
+                    dirs.remove(dir)
+                
+            for file in files:
+                # Built full file path
+                file_path = f"{root}\{file}"
+                
+                lowercase_file = file.lower()
+                if lowercase_file.endswith(IGNORE_EXTENSIONS):
+                    continue
+                
+                elif lowercase_file.endswith(LAYOUT_FILE_EXTENSIONS):
+                    project_spatial_id = self.create_entry(file_path, file_path, entry_type='Aspatial', processed=True)
+                    
+                    # Log it
+                    log(self.params.log, Colors.WARNING, f'Layout file: {file_path} will be added to data tracker but not resulting gdb.', self.params.suppress, ps_script=self.params.ps_script, project_id=project_spatial_id)    
+                
+                elif lowercase_file.endswith(DATA_SHEET_EXTENSIONS):
+                    project_spatial_id = self.create_entry(file_path, file_path, entry_type='Aspatial', processed=True)
+                                        
+                    # Log it
+                    log(self.params.log, Colors.WARNING, f'Datasheet: {file_path} will be added to data tracker but not resulting gdb.', self.params.suppress, ps_script=self.params.ps_script, project_id=project_spatial_id)
+                                                            
+                elif lowercase_file.endswith(IMAGE_FILE_EXTENSIONS):
+                    if lowercase_file.endswith('.pdf'):
+                        project_spatial_id = self.create_entry(file_path, file_path, contains_pdf=True, entry_type='Aspatial', processed=True)                
+                    else:
+                        project_spatial_id = self.create_entry(file_path, file_path, contains_image=True, entry_type='Aspatial', processed=True)
+                                           
+                    # Log it
+                    log(self.params.log, Colors.WARNING, f'Image/PDF file: {file_path} will be added to data tracker but not resulting gdb.', self.params.suppress, ps_script=self.params.ps_script, project_id=project_spatial_id)
+                     
+                elif lowercase_file.endswith('.shp'):
+                    project_spatial_id = self.create_entry(file_path, file_path)
+                      
+                elif lowercase_file.endswith(('.kml', '.kmz')):
+                    # Remove cascading styles from KML content
+                    altered_file = file_path
+                    if file.endswith('.kml'):
+                        altered_file = self.remove_cascading_style(file_path)
+
+                    # Check if the geodatabase exists
+                    output_gdb = os.path.join(self.params.local_dir, "kml_layer.gdb")
+                    if arcpy.Exists(output_gdb):
+                        arcpy.management.Delete(output_gdb)
+                        arcpy.management.Delete(output_gdb.replace('.gdb', '.lyrx'))
+
+                    # Convert modified KML to layer and copy to geodatabase
+                    arcpy.conversion.KMLToLayer(altered_file, self.params.local_dir, "kml_layer", "NO_GROUNDOVERLAY")   
+                    
+                    # Make the workspace the output gdb in the temp folder
+                    arcpy.env.workspace = os.path.join(self.params.local_dir, "kml_layer.gdb", 'Placemarks')
+                    
+                    # Iterate through the feature classes and rename them
+                    feature_classes = arcpy.ListFeatureClasses()
+                    if feature_classes is None:
+                        project_spatial_id = self.create_entry(file_path, file_path, processed=True)
+                        
+                        log(self.params.log, Colors.ERROR, f'The kml file {file_path} does not have any features', ps_script=self.params.ps_script)
+                        
+                        continue
+                    
+                    #
+                    kml_gdb_path = os.path.join(self.params.local_dir, "KMLVault.gdb")
+                    if not arcpy.Exists(kml_gdb_path):
+                        arcpy.management.CreateFileGDB(self.params.local_dir, "KMLVault.gdb")
+
+                    #                    
+                    for feature in feature_classes:
+                        project_spatial_id = self.create_entry(file_path, f"{file_path}\{feature}")
+                        
+                        arcpy.conversion.ExportFeatures(
+                            os.path.join(arcpy.env.workspace, feature),
+                            f"{kml_gdb_path}\proj_{project_spatial_id}"
+                        )
+                        
+                elif lowercase_file.endswith('.geojson'):
+                    project_spatial_id = self.create_entry(file_path, file_path)
+                    
+                elif lowercase_file.endswith(('.gpkg', '.sqlite')):
+                    project_spatial_id = self.create_entry(file_path, file_path, processed=True)
+                                        
+                    # Log it
+                    log(self.params.log, Colors.WARNING, f'GeoPackage/SQLite file: {file_path} will be added to data tracker but not resulting gdb.', self.params.suppress, ps_script=self.params.ps_script, project_id=project_spatial_id)
+                    
+                else:                    
+                    # Log it
+                    log(self.params.log, Colors.WARNING, f'Unsupported Filetype: {file_path} has been found and logged but not added to the datatracker or the geodatabase because it is not implemented or supported.', self.params.suppress, ps_script=self.params.ps_script)
+    
+    def create_entry(self, absolute_path: str, feature_path: str, in_raw_gdb: bool = False, contains_pdf: bool = False, contains_image: bool = False, entry_type: str = 'Spatial', processed: bool = False) -> str:
+        """
+        Creates a new entry in the data dictionary for spatial data processing.
+
+        This function generates a unique project spatial ID, formats the paths, processes raw data matching, and adds the entry to the data dictionary with the given attributes.
+
+        Args:
+            absolute_path (str): The absolute path of the input file.
+            feature_path (str): The path to the feature data.
+            in_raw_gdb (bool): Indicates if the data is in the raw geodatabase format. Default is False.
+            contains_pdf (bool): Indicates if the entry contains a PDF. Default is False.
+            contains_image (bool): Indicates if the entry contains an image. Default is False.
+            entry_type (str): The type of entry (e.g., 'Spatial'). Default is 'Spatial'.
+            processed (bool): Indicates if the entry has been processed. Default is False.
+
+        Returns:
+            str: The formatted project spatial ID.
+        """
+        # Check project numbers and format the result
+        formatted_result = self.check_project_numbers(feature_path)
+        formatted_result = formatted_result.upper()
+
+        # Create a unique identifier for the project spatial ID
+        formatted_project_spatial_id = self.data.create_project_spatial_id(formatted_result)
+
+        # Print file information if debugging is enabled
+        if self.params.debug:
+            log(None, Colors.INFO, feature_path)
+            log(None, Colors.INFO, formatted_project_spatial_id)
+
+        # Convert the raw data path to a relative path           
+        raw_data_path = os.path.relpath(feature_path, self.params.output)
+        
+        # Convert the absolute path to the correct drive path format
+        absolute_file_path = convert_drive_path(absolute_path)
+
+        # Call a method to process raw data matching
+        self.call_raw_data_match(formatted_project_spatial_id, raw_data_path)
+                
+        # Add data to the data class 
+        self.data.add_data(
+            project_spatial_id=formatted_project_spatial_id,
+            project_number=formatted_result, 
+            dropped=False,
+            raw_data_path=raw_data_path, 
+            raw_gdb_path=convert_drive_path(self.params.gdb_path),
+            absolute_file_path=absolute_file_path,
+            in_raw_gdb=in_raw_gdb, 
+            contains_pdf=contains_pdf, 
+            contains_image=contains_image,
+            extracted_attachments_path=None,
+            editor_tracking_enabled=False,
+            processed=processed, 
+            entry_type=entry_type
+        )
+        
+        return formatted_project_spatial_id
+      
+    def process_entries(self) -> None:
+        """
+        Processes spatial data entries from a dictionary, converts them into a geodatabase format, and enables version control and editor tracking.
+
+        The function iterates over the entries in the data dictionary, checks their file types, converts them to a geodatabase feature class, and updates their processing status.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        # Iterate over each entry in the data dictionary
+        for index, entry in enumerate(self.data.data_dict):
+            # Get the absolute path of the entry file
+            entry_absolute_path:str = self.data.data_dict[entry].get('absolute_file_path')
+            try:
+                # Check if the current entry has already been processed
+                if self.data.data_dict[entry].get('processed'):
+                    continue
+                
+                # Define the name of the geodatabase entry and build path for the feature class in the local geodatabase 
+                gdb_entry_name = f"proj_{entry}"
+                feature_gdb_path = os.path.join(self.params.local_gdb_path, gdb_entry_name)
+                
+                # Check the file type and export features accordingly
+                if entry_absolute_path.endswith('.gdb'):
+                    # Export features from one geodatabase to the output geodatabase
+                    arcpy.conversion.ExportFeatures(
+                        self.params.output + self.data.data_dict[entry].get('raw_data_path'),
+                        feature_gdb_path
+                    )
+
+                elif entry_absolute_path.endswith('.shp'):
+                    # Export features from shapefile to the output geodatabase
+                    arcpy.conversion.ExportFeatures(
+                        entry_absolute_path,
+                        feature_gdb_path
+                    )
+                                    
+                elif entry_absolute_path.endswith(('.kml', '.kmz')):
+                    # Export features from the KML/KMZ Vault geodatabase to the output geodatabase
+                    arcpy.conversion.ExportFeatures(
+                        os.path.join(self.params.local_dir, "KMLVault.gdb", gdb_entry_name),
+                        feature_gdb_path
+                    )
+                
+                elif entry_absolute_path.endswith('.geojson'):
+                    # Export features from GeoJSON to the output geodatabase
+                    arcpy.conversion.JSONToFeatures(
+                        entry_absolute_path,
+                        feature_gdb_path
+                    )
+                    
+                # Update the entry status to indicate it has been processed and exists in raw geodatabase format
+                self.data.set_data(
+                    project_spatial_id=entry, 
+                    in_raw_gdb=True,
+                    processed=True
+                )
+                
+                # Enable the version control of the layer in the geodatabase
+                self.enable_version_control(feature_gdb_path)
+                
+                # Update the entry status to indicate that editor tracking is enabled
+                self.data.set_data(
+                    project_spatial_id=entry, 
+                    editor_tracking_enabled=True
+                )
+            except (arcpy.ExecuteError, arcgisscripting.ExecuteError) as error:
+                log(self.params.log, Colors.ERROR, f'An error occurred when processing the layer for {entry_absolute_path}, you can fix or remove it from the datatracker/database, then run the command again with --resume\n{error}', ps_script=self.params.ps_script, project_id=entry)
+                # Can remove the comment from below when being shipped so the tool stops when a excetption is caught instead of continue on
+                # raise Exception(error) 
+            except Exception as error:
+                log(self.params.log, Colors.ERROR, f'An uncaught error occurred when processing the layer for {entry_absolute_path}', ps_script=self.params.ps_script, project_id=entry)
+                raise Exception(error)
+      
     def search_for_spatial_data(self) -> None:
         """
         Walk through the directory structure and extract any spatial or data sheet file paths.
