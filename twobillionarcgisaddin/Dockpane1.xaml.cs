@@ -16,6 +16,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Markup;
+using static ArcGIS.Desktop.Editing.Templates.EditingGroupTemplate;
 
 
 namespace twobillionarcgisaddin
@@ -421,6 +422,15 @@ namespace twobillionarcgisaddin
                 string siteNameFormatted = $"%{siteName.Replace(" ", "%")}%";
                 string matchField = this.MatchField_Dropdown.SelectedItem.ToString();
 
+                bool isStringField = true;
+                await QueuedTask.Run(() =>
+                {
+                    // Check the data type of the match field
+                    Field matchFieldType = featureLayer.GetTable().GetDefinition().GetFields().FirstOrDefault(f => f.Name == matchField);
+                    isStringField = matchFieldType.FieldType == FieldType.String;
+                });
+
+
                 // Asynchronously retrieve all unique values from the specified field in the feature layer
                 List<string> columnValues = await QueuedTask.Run(() =>
                 {
@@ -445,7 +455,7 @@ namespace twobillionarcgisaddin
                 });
 
                 // Split the site name into significant parts for matching
-                string[] parts = siteName.Split(new[] { ' ', ':', '#' }, StringSplitOptions.RemoveEmptyEntries);
+                string[] parts = siteName.Split(new[] { ' ', ':', '#', '-', '_' }, StringSplitOptions.RemoveEmptyEntries);
 
                 // Escape special characters in each part for regex matching
                 string[] escapedParts = parts.Select(Regex.Escape).ToArray();
@@ -453,8 +463,8 @@ namespace twobillionarcgisaddin
                 // Custom function to check if most parts of the site name are present in the input
                 bool ContainsMostParts(string input, string[] parts)
                 {
-                    int matchCount = parts.Count(part => Regex.IsMatch(input, part, RegexOptions.IgnoreCase));
-                    return matchCount >= (parts.Length / 2);  // threshold
+                    int matchCount = parts.Count(part => Regex.IsMatch(input, $@"\b{part}\b", RegexOptions.IgnoreCase));
+                    return matchCount >= (parts.Length * 0.75); // Adjust threshold as needed
                 }
 
                 // Find all strings in columnValues that match most parts of the site name
@@ -462,13 +472,14 @@ namespace twobillionarcgisaddin
 
                 // Build the SQL query to select features matching the identified strings
                 string query = "";
-                foreach (string match in matchingStrings)
+                if (isStringField)
                 {
-                    if (query != "")
-                    {
-                        query += " Or ";
-                    }
-                    query += $"{matchField} LIKE '%{match}%'";
+                    query = string.Join(" OR ", matchingStrings.Select(match => $"{matchField} LIKE '%{match}%'"));
+                }
+                else
+                {
+                    // Handle non-string fields differently, here we assume exact matches for simplicity
+                    query = string.Join(" OR ", matchingStrings.Select(match => $"{matchField} = {match}"));
                 }
 
                 // Initialize the message for the number of matching features found
@@ -491,7 +502,6 @@ namespace twobillionarcgisaddin
                     {
                         WhereClause = query
                     };
-
 
                     // Select features matching the query filter
                     featureLayer.Select(queryFilter);
