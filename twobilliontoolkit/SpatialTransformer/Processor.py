@@ -4,17 +4,22 @@
 #========================================================
 import arcpy
 import re
+import fiona 
 import tempfile
-import xml.etree.ElementTree as ET
-import arcpy.management
 import win32wnet
 import arcgisscripting
+import arcpy.management
+import geopandas as gpd
+import xml.etree.ElementTree as ET
 
 from twobilliontoolkit.SpatialTransformer.common import *
 from twobilliontoolkit.Logger.logger import log, Colors
 from twobilliontoolkit.GeoAttachmentSeeker.geo_attachment_seeker import find_attachments
 from twobilliontoolkit.SpatialTransformer.Datatracker import Datatracker2BT
 from twobilliontoolkit.SpatialTransformer.Parameters import Parameters
+
+fiona.drvsupport.supported_drivers['LIBKML'] = 'rw'
+fiona.drvsupport.supported_drivers['OpenFileGDB'] = 'raw'
 
 #========================================================
 # Helper Class
@@ -105,46 +110,73 @@ class Processor:
                     project_spatial_id = self.create_entry(file_path, file_path)
                       
                 elif lowercase_file.endswith(('.kml', '.kmz')):
-                    # Remove cascading styles from KML content
-                    altered_file = file_path
-                    if file.endswith('.kml'):
-                        altered_file = self.remove_cascading_style(file_path)
+                    # # Remove cascading styles from KML content
+                    # altered_file = file_path
+                    # if file.endswith('.kml'):
+                    #     altered_file = self.remove_cascading_style(file_path)
 
-                    # Check if the geodatabase exists
-                    output_gdb = os.path.join(self.params.local_dir, "kml_layer.gdb")
-                    if arcpy.Exists(output_gdb):
-                        arcpy.management.Delete(output_gdb)
-                        arcpy.management.Delete(output_gdb.replace('.gdb', '.lyrx'))
+                    # # Check if the geodatabase exists
+                    # output_gdb = os.path.join(self.params.local_dir, "kml_layer.gdb")
+                    # if arcpy.Exists(output_gdb):
+                    #     arcpy.management.Delete(output_gdb)
+                    #     arcpy.management.Delete(output_gdb.replace('.gdb', '.lyrx'))
 
-                    # Convert modified KML to layer and copy to geodatabase
-                    arcpy.conversion.KMLToLayer(altered_file, self.params.local_dir, "kml_layer", "NO_GROUNDOVERLAY")   
+                    # # Convert modified KML to layer and copy to geodatabase
+                    # arcpy.conversion.KMLToLayer(altered_file, self.params.local_dir, "kml_layer", "NO_GROUNDOVERLAY")   
                     
-                    # Make the workspace the output gdb in the temp folder
-                    arcpy.env.workspace = os.path.join(self.params.local_dir, "kml_layer.gdb", 'Placemarks')
+                    # # Make the workspace the output gdb in the temp folder
+                    # arcpy.env.workspace = os.path.join(self.params.local_dir, "kml_layer.gdb", 'Placemarks')
                     
-                    # Iterate through the feature classes and rename them
-                    feature_classes = arcpy.ListFeatureClasses()
-                    if feature_classes is None:
-                        project_spatial_id = self.create_entry(file_path, file_path, processed=True)
+                    # # Iterate through the feature classes and rename them
+                    # feature_classes = arcpy.ListFeatureClasses()
+                    # if feature_classes is None:
+                    #     project_spatial_id = self.create_entry(file_path, file_path, processed=True)
                         
-                        log(self.params.log, Colors.ERROR, f'The kml file {file_path} does not have any features', ps_script=self.params.ps_script)
+                    #     log(self.params.log, Colors.ERROR, f'The kml file {file_path} does not have any features', ps_script=self.params.ps_script)
                         
-                        continue
+                    #     continue
                     
-                    #
-                    kml_gdb_path = os.path.join(self.params.local_dir, "KMLVault.gdb")
-                    if not arcpy.Exists(kml_gdb_path):
-                        arcpy.management.CreateFileGDB(self.params.local_dir, "KMLVault.gdb")
+                    # #
+                    # kml_gdb_path = os.path.join(self.params.local_dir, "KMLVault.gdb")
+                    # if not arcpy.Exists(kml_gdb_path):
+                    #     arcpy.management.CreateFileGDB(self.params.local_dir, "KMLVault.gdb")
 
-                    #                    
-                    for feature in feature_classes:
-                        project_spatial_id = self.create_entry(file_path, f"{file_path}\{feature}")
+                    # #                    
+                    # for feature in feature_classes:
+                    #     project_spatial_id = self.create_entry(file_path, f"{file_path}\{feature}")
                         
-                        arcpy.conversion.ExportFeatures(
-                            os.path.join(arcpy.env.workspace, feature),
-                            f"{kml_gdb_path}\proj_{project_spatial_id}"
-                        )
-                        
+                    #     arcpy.conversion.ExportFeatures(
+                    #         os.path.join(arcpy.env.workspace, feature),
+                    #         f"{kml_gdb_path}\proj_{project_spatial_id}"
+                    #     )
+                    
+                    contain_point = False
+                    contain_polygon = False
+                    contain_linestring = False
+                    layers = fiona.listlayers(file_path) 
+
+                    # Iterate through layers and check their geometry type
+                    for layer in layers:
+                        with fiona.open(file_path, 'r', driver='LIBKML', layer=layer) as src:
+                            for feat in src:
+                                if contain_point and contain_polygon and contain_linestring:
+                                    break
+                                            
+                                geom_type = feat.geometry.type
+                                if geom_type == 'Point':
+                                    contain_point = True
+                                elif geom_type == 'Polygon':
+                                    contain_polygon = True
+                                elif geom_type == 'LineString':
+                                    contain_linestring = True
+                                    
+                    if contain_point:
+                        project_spatial_id = self.create_entry(file_path, f"{file_path}\Points")
+                    if contain_polygon:
+                        project_spatial_id = self.create_entry(file_path, f"{file_path}\Polygons")
+                    if contain_linestring:
+                        project_spatial_id = self.create_entry(file_path, f"{file_path}\Lines")
+                                            
                 elif lowercase_file.endswith('.geojson'):
                     project_spatial_id = self.create_entry(file_path, file_path)
                     
@@ -257,11 +289,49 @@ class Processor:
                     )
                                     
                 elif entry_absolute_path.endswith(('.kml', '.kmz')):
-                    # Export features from the KML/KMZ Vault geodatabase to the output geodatabase
-                    arcpy.conversion.ExportFeatures(
-                        os.path.join(self.params.local_dir, "KMLVault.gdb", gdb_entry_name),
-                        feature_gdb_path
-                    )
+                    # # Export features from the KML/KMZ Vault geodatabase to the output geodatabase
+                    # arcpy.conversion.ExportFeatures(
+                    #     os.path.join(self.params.local_dir, "KMLVault.gdb", gdb_entry_name),
+                    #     feature_gdb_path
+                    # )
+                    
+                    # Initialize an empty GeoDataFrame
+                    data = gpd.GeoDataFrame()
+
+                    # List all layers in the KML/KMZ file
+                    layers = fiona.listlayers(entry_absolute_path)
+                    for layer in layers:
+                        # Read each layer into a temporary GeoDataFrame
+                        temp = gpd.read_file(entry_absolute_path, driver='LIBKML', layer=layer)
+                        # Concatenate the temporary GeoDataFrame to the main GeoDataFrame
+                        data = pd.concat([data, temp], ignore_index=True)
+
+                    # Rename the 'OBJECTID' column if it exists
+                    if 'OBJECTID' in data.columns:
+                        data.rename(columns={'OBJECTID': 'OBJECTID_STRING'}, inplace=True)
+
+                    # Convert all datetime64[ns] columns to string
+                    for col in data.select_dtypes(include=['datetime64[ns]']).columns:
+                        data[col] = data[col].dt.strftime('%Y-%m-%d')
+
+                    # Determine the path for raw data and entry basename
+                    raw_data_path = self.data.data_dict[entry].get('raw_data_path')
+                    entry_data_basename = os.path.basename(raw_data_path)
+
+                    # Export the GeoDataFrame to the appropriate feature class based on geometry type
+                    if entry_data_basename == 'Points':
+                        points_gdf = data[data.geometry.type == 'Point']
+                        points_gdf.to_file(self.params.local_gdb_path, driver='OpenFileGDB', layer=gdb_entry_name)
+                    elif entry_data_basename == 'Polygons':
+                        polygons_gdf = data[data.geometry.type == 'Polygon']
+                        polygons_gdf.to_file(self.params.local_gdb_path, driver='OpenFileGDB', layer=gdb_entry_name)
+                    elif entry_data_basename == 'Lines':
+                        lines_gdf = data[data.geometry.type == 'LineString']
+                        lines_gdf.to_file(self.params.local_gdb_path, driver='OpenFileGDB', layer=gdb_entry_name)
+
+                    # Explicitly delete variables to release file handles
+                    del data
+                    del temp            
                 
                 elif entry_absolute_path.endswith('.geojson'):
                     # Export features from GeoJSON to the output geodatabase

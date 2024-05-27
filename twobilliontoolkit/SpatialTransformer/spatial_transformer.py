@@ -72,7 +72,7 @@ def spatial_transformer(input_path: str, output_path: str, load_from: str, save_
         
         # Start the unzip tool 
         setup_parameters.handle_unzip()
-        log(None, Colors.INFO, f'Ripple Unzipple has completed extracted the files. Now starting to create the datatracker entries from the files. Time: {datetime.now().strftime("%H:%M:%S")}')
+        log(None, Colors.INFO, f'Ripple Unzipple has completed extracted the files. Now starting to create the datatracker entries from the files. Time: {datetime.datetime.now().strftime("%H:%M:%S")}')
 
         # Create the GDB
         setup_parameters.create_gdb()
@@ -82,11 +82,11 @@ def spatial_transformer(input_path: str, output_path: str, load_from: str, save_
         
         # Search for any spatial data and create an entry in the datatracker for each one
         spatial_data.create_datatracker_entries()
-        log(None, Colors.INFO, f'All entries have been created in the datatracker for the aspatial and spatial files. Now starting to process those found spatial files. Time: {datetime.now().strftime("%H:%M:%S")}')
+        log(None, Colors.INFO, f'All entries have been created in the datatracker for the aspatial and spatial files. Now starting to process those found spatial files. Time: {datetime.datetime.now().strftime("%H:%M:%S")}')
         
         # Go through the dictionary of entries and process them into the output geodatabase
         spatial_data.process_entries()
-        log(None, Colors.INFO, f'The Processor has completed processing the files into the Geodatabase. Now starting to extract attachments from the Geodatabase. Time: {datetime.now().strftime("%H:%M:%S")}')
+        log(None, Colors.INFO, f'The Processor has completed processing the files into the Geodatabase. Now starting to extract attachments from the Geodatabase. Time: {datetime.datetime.now().strftime("%H:%M:%S")}')
 
         # # Search for any spatial data and data sheets in the output directory
         # spatial_data.search_for_spatial_data()
@@ -98,7 +98,7 @@ def spatial_transformer(input_path: str, output_path: str, load_from: str, save_
 
         # Extract attachments from the Geodatabase
         spatial_data.extract_attachments()
-        log(None, Colors.INFO, f'The Attachments Seeker has completed extracting the attachments from the geodatabase. Now starting to transfer over the files from the local directory to the specified output. Time: {datetime.now().strftime("%H:%M:%S")}')
+        log(None, Colors.INFO, f'The Attachments Seeker has completed extracting the attachments from the geodatabase. Now starting to transfer over the files from the local directory to the specified output. Time: {datetime.datetime.now().strftime("%H:%M:%S")}')
         
         # Move the local files to the specified output
         transfer(
@@ -107,21 +107,21 @@ def spatial_transformer(input_path: str, output_path: str, load_from: str, save_
             [os.path.basename(spatial_data.params.gdb_path), os.path.basename(spatial_data.params.datatracker), os.path.basename(spatial_data.params.attachments), spatial_data.params.log[:-4] + '_WARNING.txt', spatial_data.params.log[:-4] + '_ERROR.txt'],
             spatial_data.params.log
         )
-        log(None, Colors.INFO, f'The Network Transfer has completed moving the files from local to the network. Now removing contents from the local directory. Time: {datetime.now().strftime("%H:%M:%S")}')
-                   
-        if not debug:
-            # Remove the local contents
-            shutil.rmtree(setup_parameters.local_dir)
-            os.mkdir(setup_parameters.local_dir)
-            log(None, Colors.INFO, f'Removing contents from the local directory completed. Now saving the changes to the specified data tracker. Time: {datetime.now().strftime("%H:%M:%S")}')
-                   
+        log(None, Colors.INFO, f'The Network Transfer has completed moving the files from local to the network. Now saving the data. Time: {datetime.datetime.now().strftime("%H:%M:%S")}')
+                                      
         # Save the data tracker before returning
         spatial_data.data.save_data(True if resume else False)
-        log(None, Colors.INFO, f'The changes have successfully been saved to the specified datatracker. Now opening Record Reviser. Time: {datetime.now().strftime("%H:%M:%S")}')
+        log(None, Colors.INFO, f'The changes have successfully been saved to the specified datatracker. Now opening Record Reviser. Time: {datetime.datetime.now().strftime("%H:%M:%S")}')
         
         # Open the record reviser
         call_record_reviser(spatial_data.data, spatial_data.params.gdb_path)
         log(None, Colors.INFO, 'The Record Reviser has completed editing any entries and is closing.')
+        
+        if not debug:
+            # Remove the local contents
+            shutil.rmtree(setup_parameters.local_dir)
+            os.mkdir(setup_parameters.local_dir)
+            log(None, Colors.INFO, f'Removing contents from the local directory completed. Time: {datetime.datetime.now().strftime("%H:%M:%S")}')
             
     except (ValueError, Exception) as error:        
         # Log the error
