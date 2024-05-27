@@ -333,6 +333,23 @@ class Datatracker2BT(Datatracker):
             None
         )
         
+    def get_highest_suffix(self, project_number: str) -> int:
+        """
+        Get the highest suffix for the given project number in the spatial_project_id field.
+
+        Args:
+            project_number (str): The project number to find the highest suffix for.
+
+        Returns:
+            int: The highest suffix found, or 0 if none are found.
+        """
+        suffixes = [
+            int(key.split('_')[-1])
+            for key in self.data_dict.keys()
+            if self.data_dict[key].get('project_number') == project_number
+        ]
+        return max(suffixes, default=0)
+        
     def create_project_spatial_id(self, project_number: str) -> str:
         """
         Create the next project spatial id for the file
@@ -343,37 +360,13 @@ class Datatracker2BT(Datatracker):
         Returns:
             str: The project spatial id next in line.
         """
-        # # Get the number of entries with the specified project number, add one because this is for the next entry
-        # result_occurrences = self.count_occurances('project_number', project_number) + 1
+        # Get the next suffix from the project spatial ids from the data entries
+        results_next_id = self.get_highest_suffix(project_number) + 1
         
-        # # Clean the project number and format to the correct project_spatial_id format
-        # clean_project_number = project_number.replace('- ', '').replace(' ', '_')
-
-        # return clean_project_number + '_' + str(result_occurrences).zfill(2)
         # Clean the project number and format to the correct project_spatial_id format
         clean_project_number = project_number.replace('- ', '').replace(' ', '_')
-        
-        # Initialize the highest suffix found
-        highest_suffix = 0
-        
-        # Iterate over data_dict to find the highest suffix for the given project number
-        for data in self.data_dict.values():
-            if data.get('project_number') == project_number:
-                project_spatial_id = data.get('project_spatial_id', '')
-                # Extract the suffix number assuming the format is "clean_project_number_suffix"
-                if project_spatial_id.startswith(clean_project_number):
-                    try:
-                        suffix = int(project_spatial_id.split('_')[-1])
-                        if suffix > highest_suffix:
-                            highest_suffix = suffix
-                    except ValueError:
-                        # Handle case where the suffix is not an integer
-                        continue
-        
-        # Increment the highest suffix to get the next project spatial id
-        next_suffix = highest_suffix + 1
 
-        return f"{clean_project_number}_{str(next_suffix).zfill(2)}"
+        return clean_project_number + '_' + str(results_next_id).zfill(2)
     
     def load_from_database(self) -> None:
         """
