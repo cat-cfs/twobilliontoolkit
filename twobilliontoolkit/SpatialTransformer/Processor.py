@@ -8,6 +8,8 @@ import fiona
 import win32wnet
 import arcgisscripting
 import geopandas as gpd
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 from twobilliontoolkit.SpatialTransformer.common import *
 from twobilliontoolkit.Logger.logger import log, Colors
@@ -60,6 +62,12 @@ class Processor:
                 # Built full directory path
                 directory_path = f"{root}\{dir}"
                 
+                # Skip over entiries if in resume mode
+                if self.params.resume:
+                    (_, data_entry) = self.data.find_matching_data(absolute_file_path=convert_drive_path(directory_path))
+                    if data_entry:
+                        continue
+                
                 # Skip over the gdb if tool is running a second time if it is somehow in the folder
                 if dir is self.params.gdb_path:
                     continue
@@ -81,12 +89,19 @@ class Processor:
             for file in files:
                 # Built full file path
                 file_path = f"{root}\{file}"
-                
+
+                # Ignore specified file extensions
                 lowercase_file = file.lower()
                 if lowercase_file.endswith(IGNORE_EXTENSIONS):
                     continue
-                
-                elif lowercase_file.endswith(LAYOUT_FILE_EXTENSIONS):
+                     
+                # Skip over entiries if in resume mode
+                if self.params.resume:
+                    (_, data_entry) = self.data.find_matching_data(absolute_file_path=convert_drive_path(file_path))
+                    if data_entry:
+                        continue
+                     
+                if lowercase_file.endswith(LAYOUT_FILE_EXTENSIONS):
                     project_spatial_id = self.create_entry(file_path, file_path, entry_type='Aspatial', processed=True)
                     
                     # Log it
@@ -257,17 +272,19 @@ class Processor:
                     layers = fiona.listlayers(entry_absolute_path)
                     for layer in layers:
                         # Read each layer into a temporary GeoDataFrame
-                        temp = gpd.read_file(entry_absolute_path, driver='LIBKML', layer=layer)
-                        # Concatenate the temporary GeoDataFrame to the main GeoDataFrame
-                        data = pd.concat([data, temp], ignore_index=True)
+                        layer_gdb = gpd.read_file(entry_absolute_path, driver='LIBKML', layer=layer)
+                                                                        
+                        # Check if the temporary GeoDataFrame is empty before concatenating
+                        if not layer_gdb.empty:
+                            data = pd.concat([data, layer_gdb], ignore_index=True)
 
                     # Rename the 'OBJECTID' column if it exists
                     if 'OBJECTID' in data.columns:
                         data.rename(columns={'OBJECTID': 'OBJECTID_STRING'}, inplace=True)
 
-                    # Convert all datetime64[ns] columns to string
-                    for col in data.select_dtypes(include=['datetime64[ns]']).columns:
-                        data[col] = data[col].dt.strftime('%Y-%m-%d')
+                    # Convert all datetime columns to string with specified utc=True
+                    for col in data.select_dtypes(include=['datetime64[ns]', 'datetime64[ns, UTC]']).columns:
+                        data[col] = pd.to_datetime(data[col], utc=True, errors='coerce').dt.strftime('%Y-%m-%d')
 
                     # Determine the path for raw data and entry basename
                     raw_data_path = self.data.data_dict[entry].get('raw_data_path')
@@ -277,18 +294,12 @@ class Processor:
                     if entry_data_basename == 'Points':
                         points_gdf = data[data.geometry.type == 'Point']
                         points_gdf.to_file(self.params.local_gdb_path, driver='OpenFileGDB', layer=gdb_entry_name)
-                        del points_gdf
                     elif entry_data_basename == 'Polygons':
                         polygons_gdf = data[data.geometry.type == 'Polygon']
                         polygons_gdf.to_file(self.params.local_gdb_path, driver='OpenFileGDB', layer=gdb_entry_name)
-                        del polygons_gdf
                     elif entry_data_basename == 'Lines':
                         lines_gdf = data[data.geometry.type == 'LineString']
-                        lines_gdf.to_file(self.params.local_gdb_path, driver='OpenFileGDB', layer=gdb_entry_name)  
-                        del lines_gdf   
-                        
-                    del temp
-                    del data      
+                        lines_gdf.to_file(self.params.local_gdb_path, driver='OpenFileGDB', layer=gdb_entry_name)     
                 
                 elif entry_absolute_path.endswith('.geojson'):
                     # Export features from GeoJSON to the output geodatabase
@@ -313,12 +324,10 @@ class Processor:
                     editor_tracking_enabled=True
                 )
                 
-                return
-                
             except (arcpy.ExecuteError, arcgisscripting.ExecuteError) as error:
                 log(self.params.log, Colors.ERROR, f'An error occurred when processing the layer for {entry_absolute_path}, you can fix or remove it from the datatracker/database, then run the command again with --resume\n{error}', ps_script=self.params.ps_script, project_id=entry)
                 # Can remove the comment from below when being shipped so the tool stops when a excetption is caught instead of continue on
-                # raise Exception(error) 
+                raise Exception(error) 
             except Exception as error:
                 log(self.params.log, Colors.ERROR, f'An uncaught error occurred when processing the layer for {entry_absolute_path}', ps_script=self.params.ps_script, project_id=entry)
                 raise Exception(error)
