@@ -327,7 +327,7 @@ class Processor:
             except (arcpy.ExecuteError, arcgisscripting.ExecuteError) as error:
                 log(self.params.log, Colors.ERROR, f'An error occurred when processing the layer for {entry_absolute_path}, you can fix or remove it from the datatracker/database, then run the command again with --resume\n{error}', ps_script=self.params.ps_script, project_id=entry)
                 # Can remove the comment from below when being shipped so the tool stops when a excetption is caught instead of continue on
-                raise Exception(error) 
+                # raise Exception(error) 
             except Exception as error:
                 log(self.params.log, Colors.ERROR, f'An uncaught error occurred when processing the layer for {entry_absolute_path}', ps_script=self.params.ps_script, project_id=entry)
                 raise Exception(error)

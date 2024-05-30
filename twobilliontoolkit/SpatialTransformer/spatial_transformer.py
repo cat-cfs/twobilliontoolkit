@@ -133,7 +133,7 @@ def main():
     """ The main function of the spatial_transformer.py script """
     # Get the start time of the script
     start_time = time.time()
-    log(None, Colors.INFO, 'Tool is starting...')
+    log(None, Colors.INFO, f'Tool is starting... Time: {datetime.datetime.now().strftime("%H:%M:%S")}')
     
     # Initialize the argument parse
     parser = argparse.ArgumentParser(description='Spatial Transformer Tool')
@@ -160,7 +160,7 @@ def main():
                         
     # Get the end time of the script and calculate the elapsed time
     end_time = time.time()
-    log(None, Colors.INFO, 'Tool has completed')
+    log(None, Colors.INFO, f'Tool has completed. Time: {datetime.datetime.now().strftime("%H:%M:%S")}')
     log(None, Colors.INFO, f'Elapsed time: {end_time - start_time:.2f} seconds')
 
 #========================================================
