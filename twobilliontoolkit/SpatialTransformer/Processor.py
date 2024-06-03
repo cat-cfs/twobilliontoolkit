@@ -245,6 +245,13 @@ class Processor:
                 if self.data.data_dict[entry].get('processed'):
                     continue
                 
+                # Check if the created_by date of the entry is within the same day as now            
+                created_at = self.data.data_dict[entry].get('created_at')
+                if self.params.load_from == 'database' and created_at:
+                    now = datetime.datetime.now()
+                    if created_at.date() != now.date():
+                        continue
+                
                 # Define the name of the geodatabase entry and build path for the feature class in the local geodatabase 
                 gdb_entry_name = f"proj_{entry}"
                 feature_gdb_path = os.path.join(self.params.local_gdb_path, gdb_entry_name)
@@ -253,7 +260,7 @@ class Processor:
                 if entry_absolute_path.endswith('.gdb'):
                     # Export features from one geodatabase to the output geodatabase
                     arcpy.conversion.ExportFeatures(
-                        self.params.output + self.data.data_dict[entry].get('raw_data_path'),
+                        os.path.join(self.params.output, self.data.data_dict[entry].get('raw_data_path')),
                         feature_gdb_path
                     )
 
