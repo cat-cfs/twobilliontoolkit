@@ -20,7 +20,7 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
-    
+
     <Grid>
         <!-- DockPanel for database connection -->
         <DockPanel x:Name="UserForm" LastChildFill="true" KeyboardNavigation.TabNavigation="Local" Margin="20,12,20,12" Visibility="Visible">
@@ -92,7 +92,7 @@
                 <Border Style="{StaticResource OutlineBorder}" Grid.Row="2">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" MinWidth="100">
                         <Button x:Name="PreviousWorkingProjectButton" Style="{DynamicResource Esri_ButtonBackSmall}" ToolTip="Go to previous working project"/>
-                        
+
                         <StackPanel Orientation="Vertical" Margin="20,0,20,0" MaxWidth="125">
                             <Label Content="Working Project:" HorizontalAlignment="Center" FontSize="15" FontWeight="Normal" Style="{StaticResource LabelStyle}"/>
                             <Label HorizontalAlignment="Center" FontSize="13" FontWeight="Bold" Style="{StaticResource LabelStyle}">
@@ -190,10 +190,18 @@
 
             <StackPanel x:Name="BatchSiteMapperSection"  Orientation="Vertical" DockPanel.Dock="Top" Visibility="Collapsed">
                 <Grid DockPanel.Dock="Top">
-                    <Label Content="Field to match" Style="{StaticResource LabelStyle}"/>
-                    <Button x:Name="BatchSiteMapperRefreshButton" Content="Refresh" Click="RefreshButtonClicked" ToolTip="Refresh the list of items in the dropdown" Style="{StaticResource ButtonStyle2}" Template="{StaticResource ButtonTemplate2}"  Width="55"  HorizontalAlignment="Right" IsEnabled="True"/>
+                    <Button x:Name="BatchSiteMapperCleanButton" Click="BatchSiteMapperCleanButtonClicked" ToolTip="Set all mapped site id values to null in selected features" Style="{StaticResource ButtonStyle}" Template="{StaticResource ButtonTemplate}" IsEnabled="True">
+                        <TextBlock TextWrapping="Wrap">
+                            Remove bt_site_id values from selected features
+                        </TextBlock>
+                    </Button>
                 </Grid>
-                <ComboBox x:Name="MatchField_Dropdown" Background="{DynamicResource Esri_ControlBackgroundBrush}" Foreground="{DynamicResource Esri_TextMenuBrush}" DockPanel.Dock="Top" Height="55" FontWeight="Normal">
+
+                <Grid DockPanel.Dock="Top">
+                    <Label Content="Field to match" Style="{StaticResource LabelStyle}"/>
+                    <Button x:Name="BatchSiteMapperRefreshButton" Content="Refresh" Click="BatchSiteMapperRefreshButtonClicked" ToolTip="Refresh the list of items in the dropdown" Style="{StaticResource ButtonStyle2}" Template="{StaticResource ButtonTemplate2}"  Width="55"  HorizontalAlignment="Right" IsEnabled="True"/>
+                </Grid>
+                <ComboBox x:Name="MatchField_Dropdown" Background="{DynamicResource Esri_ControlBackgroundBrush}" Foreground="{DynamicResource Esri_TextMenuBrush}" DockPanel.Dock="Top" Height="55" FontWeight="Normal" SelectionChanged="SiteMapperMatchFilterChanged">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding}" Padding="10,0,0,0" Foreground="{DynamicResource Esri_TextStyleEmphasisBrush}"/>
