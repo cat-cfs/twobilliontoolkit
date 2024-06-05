@@ -153,7 +153,10 @@
                     <Label Content="Site Mapper" Grid.Row="0" HorizontalAlignment="Center" FontSize="17" FontWeight="Normal" Style="{StaticResource LabelStyle}"/>
                 </Grid>
 
-                <Label Content="Filter Project Number" Style="{StaticResource LabelStyle}"/>
+                <Grid DockPanel.Dock="Top">
+                    <Label Content="Filter Project Number" Style="{StaticResource LabelStyle}"/>
+                    <Button x:Name="SiteMapperProjectNumberClearButton" Content="Clear" Click="SiteMapperClearButtonClicked" ToolTip="Clear the below dropdown" Style="{StaticResource ButtonStyle2}" Template="{StaticResource ButtonTemplate2}"  Width="55" HorizontalAlignment="Right" IsEnabled="True"/>
+                </Grid>
                 <ComboBox x:Name="ProjectNumber_Dropdown" Background="{DynamicResource Esri_ControlBackgroundBrush}" Foreground="{DynamicResource Esri_TextMenuBrush}" SelectionChanged="SiteMapperProjectNumberFilterChanged" DockPanel.Dock="Top" Height="55" FontWeight="Normal">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
@@ -168,7 +171,10 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <Label Grid.Row="0" Content="Filter Site ID" Style="{StaticResource LabelStyle}"/>
+                    <Grid DockPanel.Dock="Top">
+                        <Label Grid.Row="0" Content="Filter Site ID" Style="{StaticResource LabelStyle}"/>
+                        <Button x:Name="SiteMapperSiteIDClearButton" Content="Clear" Click="SiteMapperClearButtonClicked" ToolTip="Clear the below dropdown" Style="{StaticResource ButtonStyle2}" Template="{StaticResource ButtonTemplate2}"  Width="55" HorizontalAlignment="Right" IsEnabled="True"/>
+                    </Grid>
                     <ComboBox x:Name="SiteID_Dropdown" Grid.Row="1" Background="{DynamicResource Esri_ControlBackgroundBrush}" Foreground="{DynamicResource Esri_TextMenuBrush}" SelectionChanged="SiteMapperSiteIDFilterChanged" DockPanel.Dock="Top" Height="55" FontWeight="Normal">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
