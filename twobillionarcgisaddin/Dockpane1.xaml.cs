@@ -1,16 +1,24 @@
-﻿using ArcGIS.Core.Data;
+﻿using ArcGIS.Core.CIM;
+using ArcGIS.Core.Data;
+using ArcGIS.Core.Data.UtilityNetwork.Trace;
 using ArcGIS.Core.Geometry;
 using ArcGIS.Desktop.Core;
 using ArcGIS.Desktop.Core.Geoprocessing;
 using ArcGIS.Desktop.Framework.Dialogs;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
+using ArcGIS.Desktop.Internal.Mapping;
 using ArcGIS.Desktop.Internal.Mapping.CommonControls;
 using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Security.Policy;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
@@ -48,6 +56,119 @@ namespace twobillionarcgisaddin
         //
         private List<DataEntry> dataEntries = null;
 
+        //
+        private DataLayerOptionsPopup _dataLayerOptionsPopup = null;
+
+        //
+        public class DataLayer : INotifyPropertyChanged
+        {
+            private string _table;
+            private string _name;
+            private esriGeometryType _geomType;
+            private string _objectIDColumn;
+            private string? _year;
+            private string? _projectNum;
+            private bool _disabled;
+
+            public string Table
+            {
+                get { return _table; }
+                set
+                {
+                    if (_table != value)
+                    {
+                        _table = value;
+                        OnPropertyChanged(nameof(Table));
+                    }
+                }
+            }
+
+            public string Name
+            {
+                get { return _name; }
+                set
+                {
+                    if (_name != value)
+                    {
+                        _name = value;
+                        OnPropertyChanged(nameof(Name));
+                    }
+                }
+            }
+
+            public esriGeometryType GeomType
+            {
+                get { return _geomType; }
+                set
+                {
+                    if (_geomType != value)
+                    {
+                        _geomType = value;
+                        OnPropertyChanged(nameof(GeomType));
+                    }
+                }
+            }
+
+            public string ObjectIDColumn
+            {
+                get { return _objectIDColumn; }
+                set
+                {
+                    if (_objectIDColumn != value)
+                    {
+                        _objectIDColumn = value;
+                        OnPropertyChanged(nameof(ObjectIDColumn));
+                    }
+                }
+            }
+
+            public string? Year
+            {
+                get { return _year; }
+                set
+                {
+                    if (_year != value)
+                    {
+                        _year = value;
+                        OnPropertyChanged(nameof(Year));
+                    }
+                }
+            }
+
+            public string? ProjectNum
+            {
+                get { return _projectNum; }
+                set
+                {
+                    if (_projectNum != value)
+                    {
+                        _projectNum = value;
+                        OnPropertyChanged(nameof(ProjectNum));
+                    }
+                }
+            }
+
+            public bool Disabled
+            {
+                get { return _disabled; }
+                set
+                {
+                    if (_disabled != value)
+                    {
+                        _disabled = value;
+                        OnPropertyChanged(nameof(Disabled));
+                    }
+                }
+            }
+
+            public event PropertyChangedEventHandler PropertyChanged;
+
+            protected void OnPropertyChanged(string propertyName)
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+
         #endregion
         // ******************************************************
         // Constructor
@@ -62,11 +183,14 @@ namespace twobillionarcgisaddin
 
             _this = this;
 
-            // TODO: Remove default values
             this.ArcPythonToolboxPath.Text = "";
             this.ArcConnectionFilePath.Text = "";
             this.DatabaseSchema.Text = "";
+
+            AddStaticDataLayers();
         }
+
+        private ObservableCollection<DataLayer> dataLayersToAdd = new ObservableCollection<DataLayer>();
 
         #endregion
         // ******************************************************
@@ -113,7 +237,14 @@ namespace twobillionarcgisaddin
             Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog();
 
             // Set filter for file extension and default file extension
-            openFileDialog.Filter = "All files (*.*)|*.*";
+            if (sender == this.ArcPythonToolboxButton)
+            {
+                openFileDialog.Filter = "Python Toolbox Files|*.pyt";
+            }
+            else if (sender == this.ArcConnectionFileButton)
+            {
+                openFileDialog.Filter = "Database Connection Files|*.sde";
+            }
 
             // Display OpenFileDialog by calling ShowDialog method
             bool? result = openFileDialog.ShowDialog();
@@ -139,6 +270,7 @@ namespace twobillionarcgisaddin
             {
                 this.ButtonToolist.Visibility = Visibility.Visible;
                 this.SiteMapper.Visibility = Visibility.Collapsed;
+                this.Import2BTData.Visibility = Visibility.Collapsed;
                 this.BatchSiteMapperSection.Visibility = Visibility.Collapsed;
                 SiteMapper_IsBatch = false;
             }
@@ -153,9 +285,172 @@ namespace twobillionarcgisaddin
                 if (featureLayer != null) 
                 { 
                     SelectedFeaturesNumber.Content = featureLayer.SelectionCount.ToString();
-                }       
-                
+                }     
             }
+        }
+
+        // Method to handle the click event of the Import2BTData button
+        private void Import2BTDataButtonClicked(object sender, RoutedEventArgs e)
+        {
+            // Toggle visibility of UI elements
+            if (this.ButtonToolist.Visibility == Visibility.Visible)
+            {
+                this.ButtonToolist.Visibility = Visibility.Collapsed;
+                this.Import2BTData.Visibility = Visibility.Visible;
+            }
+
+            try
+            {
+                // Disable the button (spam prevention)
+                this.Import2BTDataButton.IsEnabled = false;
+
+                this.DataLayers.ItemsSource = dataLayersToAdd;
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions that occur during tool execution
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
+            }
+
+            this.Import2BTDataButton.IsEnabled = true;
+        }
+
+        // Method to handle the click event of the Import Data Options button
+        private void ImportDataOptionsButtonClicked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Disable the button (spam prevention)
+                this.ImportDataOptionsButton.IsEnabled = false;
+
+                // Get the selected item from the ListBox
+                DataLayer selectedDataLayer = (DataLayer)DataLayers.SelectedItem;
+                if (selectedDataLayer == null)
+                {
+                    // Show an error message if no item is selected
+                    ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Please select a data layer to edit.", "Error");
+                    return;
+                }
+
+                // Pass the selected item to the DataLayerOptionsPopup
+                if (_dataLayerOptionsPopup == null || !_dataLayerOptionsPopup.IsVisible)
+                {
+                    _dataLayerOptionsPopup = new DataLayerOptionsPopup(selectedDataLayer);
+                    _dataLayerOptionsPopup.Title = $"{selectedDataLayer.Table} Options";
+                    _dataLayerOptionsPopup.Show();
+                }
+
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions that occur during tool execution
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
+            }
+
+            this.ImportDataOptionsButton.IsEnabled = true;
+        }
+
+        // Method to handle the click event of the Import Data Toggle button
+        private void ImportDataToggleButtonClicked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Disable the button (spam prevention)
+                this.ImportDataToggleButton.IsEnabled = false;
+
+
+                // Cast the selected item to the DataLayer type
+                DataLayer selectedDataLayer = this.DataLayers.SelectedItem as DataLayer;
+
+                // Check if the casting was successful
+                if (selectedDataLayer != null)
+                {
+                    selectedDataLayer.Disabled = !selectedDataLayer.Disabled; // Toggle the disabled state
+                }
+
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions that occur during tool execution
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
+            }
+
+            this.ImportDataToggleButton.IsEnabled = true;
+        }
+
+        // Method to handle the click event of the Send Data button
+        private async void ImportDataButtonClicked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Disable the button (spam prevention)
+                this.ImportDataButton.IsEnabled = false;
+
+                // Store the active map and connection file path in variables
+                Map map = MapView.Active.Map;
+                Uri uri = new Uri(this.ArcConnectionFilePath.Text);
+
+                // loop through each entry in the dictionary
+                foreach (DataLayer entry in dataLayersToAdd)
+                {
+                    if (entry.Disabled)
+                    {
+                        continue;
+                    }
+
+                    // Build the database query based on parameters
+                    string databaseSchema = $"bt_testcase1.{this.DatabaseSchema.Text}";
+                    string dataset = $"{databaseSchema}.{entry.Table}";
+                    var sqlQueryBuilder = new StringBuilder($@"SELECT si.*, sii.site_name, sii.project_number, sii.year FROM {dataset} si INNER JOIN {databaseSchema}.site_id sii ON si.site_id = sii.site_id"
+                    );
+
+                    List<string> conditions = new List<string>();
+
+                    if (!string.IsNullOrEmpty(entry.Year))
+                    {
+                        conditions.Add($"year = '{int.Parse(entry.Year)}'");
+                    }
+                    if (!string.IsNullOrEmpty(entry.ProjectNum))
+                    {
+                        conditions.Add($"project_number = '{entry.ProjectNum}'");
+                    }
+
+                    if (conditions.Count > 0)
+                    {
+                        sqlQueryBuilder.Append(" WHERE " + string.Join(" AND ", conditions));
+                    } 
+
+                    string sqlQuery = sqlQueryBuilder.ToString();
+
+                    await QueuedTask.Run(() =>
+                    {
+                        Geodatabase geodatabase = new Geodatabase(new DatabaseConnectionFile(uri));
+                        CIMSqlQueryDataConnection sqlDataConnection = new CIMSqlQueryDataConnection()
+                        {
+                            WorkspaceConnectionString = geodatabase.GetConnectionString(),
+                            GeometryType = entry.GeomType,
+                            OIDFields = entry.ObjectIDColumn,
+                            Srid = "102001",
+                            SqlQuery = sqlQuery,
+                            Dataset = dataset
+                        };
+
+                        var layerParameters = new LayerCreationParams(sqlDataConnection)
+                        {
+                            Name = entry.Name
+                        };
+
+                        FeatureLayer featureLayer = LayerFactory.Instance.CreateLayer<FeatureLayer>(layerParameters, map);
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions that occur during tool execution
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
+            }
+
+            this.ImportDataButton.IsEnabled = true;
         }
 
         // Method to handle the click event of the SiteMapper button
@@ -806,6 +1101,76 @@ namespace twobillionarcgisaddin
         {
             int matchCount = parts.Count(part => Regex.IsMatch(input, $@"\b{part}\b", RegexOptions.IgnoreCase));
             return matchCount >= (parts.Length * 0.75); // Adjust threshold as needed
+        }
+
+        // 
+        void AddStaticDataLayers()
+        {
+            /*// Add static layers to the global dictionary
+            DataLayer sitePointsLayer = new DataLayer()
+            {
+                Name = "2BT Site Points",
+                GeomType = esriGeometryType.esriGeometryPoint,
+                ObjectIDColumn = "id",
+                Year = null,
+                ProjectNum = null
+            };
+            dataLayersToAdd["site_points"] = sitePointsLayer;
+
+            DataLayer siteBufferedPointsLayer = new DataLayer()
+            {
+                Name = "2BT Site Buffered Points",
+                GeomType = esriGeometryType.esriGeometryPolygon,
+                ObjectIDColumn = "id",
+                Year = null,
+                ProjectNum = null
+            };
+            dataLayersToAdd["site_buffered_points"] = siteBufferedPointsLayer;
+
+            DataLayer sitePolygonsLayer = new DataLayer()
+            {
+                Name = "2BT Site Polygons",
+                GeomType = esriGeometryType.esriGeometryPolygon,
+                ObjectIDColumn = "id",
+                Year = null,
+                ProjectNum = null
+            };
+            dataLayersToAdd["valid_geometry"] = sitePolygonsLayer;*/
+
+            // Add static layers to the ObservableCollection
+            dataLayersToAdd.Clear(); // Clear the ObservableCollection first
+            dataLayersToAdd.Add(new DataLayer()
+            {
+                Table = "site_points",
+                Name = "2BT Site Points",
+                GeomType = esriGeometryType.esriGeometryPoint,
+                ObjectIDColumn = "id",
+                Year = null,
+                ProjectNum = null,
+                Disabled = false
+            });
+
+            dataLayersToAdd.Add(new DataLayer()
+            {
+                Table = "site_buffered_points",
+                Name = "2BT Site Buffered Points",
+                GeomType = esriGeometryType.esriGeometryPolygon,
+                ObjectIDColumn = "id",
+                Year = null,
+                ProjectNum = null,
+                Disabled = false
+            });
+
+            dataLayersToAdd.Add(new DataLayer()
+            {
+                Table = "valid_geometry",
+                Name = "2BT Site Polygons",
+                GeomType = esriGeometryType.esriGeometryPolygon,
+                ObjectIDColumn = "id",
+                Year = null,
+                ProjectNum = null,
+                Disabled = false
+            });
         }
 
         #endregion
