@@ -619,7 +619,7 @@ namespace twobillionarcgisaddin
 
             if (SiteMapper_IsBatch)
             {
-                this.Secondary_Filter.Visibility = Visibility.Collapsed;
+                this.Secondary_Filter.Visibility = Visibility.Collapsed; 
             }
 
             // Refresh the list of data entries for other functionalities
