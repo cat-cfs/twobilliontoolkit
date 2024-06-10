@@ -59,8 +59,7 @@ class DataTableApp(QWidget):
         super().__init__()
 
         # Columns that are not editable and the key
-        self.columns_noedit = ['project_spatial_id']
-        self.columns_to_add = ['project_spatial_id', 'project_number', 'dropped', 'in_raw_gdb', 'absolute_file_path', 'entry_type']
+        self.columns_noedit = ['project_spatial_id', 'dropped', 'raw_data_path']
         self.key = 'project_spatial_id'
 
         # Store the original and current dataframes
@@ -120,7 +119,6 @@ class DataTableApp(QWidget):
         self.data = data
         formatted_data = self.format_data(data)
         self.original_dataframe = formatted_data[formatted_data['dropped'] != True]
-        self.original_dataframe = self.original_dataframe.drop(columns=['dropped'])
         self.dataframe = self.original_dataframe.copy()
 
     def format_data(self, data: Datatracker2BT) -> pd.DataFrame:
@@ -135,8 +133,7 @@ class DataTableApp(QWidget):
         """
         # Convert raw data to a DataFrame and rename index column
         dataframe = pd.DataFrame.from_dict(data.data_dict, orient='index').reset_index()
-        dataframe.rename(columns={'index': self.key}, inplace=True)        
-        dataframe = dataframe[self.columns_to_add]
+        dataframe.rename(columns={'index': self.key}, inplace=True)
         
         # Sort the DataFrame by the 'self.key' column alphabetically
         dataframe_sorted = dataframe.sort_values(by=self.key)
@@ -146,7 +143,7 @@ class DataTableApp(QWidget):
     def populate_table(self) -> None:
         """
         Populate the table with data from the dataframe.
-        """    
+        """
         # Set the number of columns and rows in the table
         self.table.setColumnCount(len(self.dataframe.columns))
         self.table.setRowCount(len(self.dataframe))
@@ -157,15 +154,15 @@ class DataTableApp(QWidget):
 
         # Populate each cell in the table with corresponding data
         for i in range(len(self.dataframe.index)):
-            for j, column in enumerate(self.dataframe.columns):
+            for j in range(len(self.dataframe.columns)):
                 item = QTableWidgetItem(str(self.dataframe.iloc[i, j]))
 
                 # Set flags for non-editable columns
-                if column in self.columns_noedit:
+                if self.dataframe.columns[j] in self.columns_noedit:
                     item.setFlags(item.flags() & ~Qt.ItemIsEditable | Qt.ItemIsSelectable)
 
-                self.table.setItem(i, j, item)       
-        
+                self.table.setItem(i, j, item) 
+                
         # Resize columns to fit the content
         self.table.resizeColumnsToContents()   
 
