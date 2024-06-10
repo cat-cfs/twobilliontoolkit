@@ -1,17 +1,24 @@
 ﻿using ArcGIS.Core.Data;
 using ArcGIS.Core.Geometry;
+using ArcGIS.Desktop.Core;
 using ArcGIS.Desktop.Core.Geoprocessing;
+using ArcGIS.Desktop.Framework.Dialogs;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
+using ArcGIS.Desktop.Internal.Mapping.CommonControls;
 using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Markup;
+using System.Windows.Threading;
+using static ArcGIS.Desktop.Editing.Templates.EditingGroupTemplate;
 
 
 namespace twobillionarcgisaddin
@@ -31,6 +38,15 @@ namespace twobillionarcgisaddin
 
         // Access to the data container object of the SiteMapper tool
         public DataContainer dataContainer { get; private set; }
+
+        // Global variable flag to bypass double triggering events
+        private bool _noise = false;
+
+        //
+        private bool SiteMapper_IsBatch = false;
+
+        //
+        private List<DataEntry> dataEntries = null;
 
         #endregion
         // ******************************************************
@@ -123,22 +139,29 @@ namespace twobillionarcgisaddin
             {
                 this.ButtonToolist.Visibility = Visibility.Visible;
                 this.SiteMapper.Visibility = Visibility.Collapsed;
+                this.BatchSiteMapperSection.Visibility = Visibility.Collapsed;
+                SiteMapper_IsBatch = false;
             }
         }
 
-        private async void FeatureSelectionChanged(MapSelectionChangedEventArgs args)
+        private void FeatureSelectionChanged(MapSelectionChangedEventArgs args)
         {
             MapView mapView = MapView.Active;
             if (mapView != null)
             {
-                SelectedFeaturesNumber.Content = mapView.Map.SelectionCount.ToString();
+                FeatureLayer featureLayer = mapView.GetSelectedLayers().OfType<FeatureLayer>().FirstOrDefault();
+                if (featureLayer != null) 
+                { 
+                    SelectedFeaturesNumber.Content = featureLayer.SelectionCount.ToString();
+                }       
+                
             }
         }
 
         // Method to handle the click event of the SiteMapper button
         private async void SiteMapperButtonClicked(object sender, RoutedEventArgs e)
         {
-           MapSelectionChangedEvent.Subscribe(FeatureSelectionChanged);
+            MapSelectionChangedEvent.Subscribe(FeatureSelectionChanged);
 
             try
             {
@@ -162,6 +185,12 @@ namespace twobillionarcgisaddin
                 {
                     this.ButtonToolist.Visibility = Visibility.Collapsed;
                     this.SiteMapper.Visibility = Visibility.Visible;
+                }
+
+                if (sender == this.BatchSiteMapperButton)
+                {
+                    this.BatchSiteMapperSection.Visibility = Visibility.Visible;
+                    SiteMapper_IsBatch = true;
                 }
             }
             catch (Exception ex)
@@ -188,7 +217,7 @@ namespace twobillionarcgisaddin
         }
 
         // Method to handle the click event of the Send Data button
-        private async void SendButtonClicked(object sender, RoutedEventArgs e)
+        private void SendButtonClicked(object sender, RoutedEventArgs e)
         {
             try
             {
@@ -201,63 +230,22 @@ namespace twobillionarcgisaddin
 
                 // Access the current map in ArcGIS Pro
                 MapView mapView = MapView.Active;
-                if (mapView != null)
+                if (mapView == null)
                 {
-                    SelectionSet selectedFeatures = null;
-                    FeatureLayer featureLayer = null;
-                    GeometryType geometryType = GeometryType.Unknown;
-                    await QueuedTask.Run(() =>
-                    {
-                        // Get the currently selected features in the map
-                        selectedFeatures = mapView.Map.GetSelection();
-
-                        // Check if any features are selected in any layer
-                        if (selectedFeatures.Count == 0)
-                        {
-                            ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("No features on the map are selected, please select a feature you want to process and try again!");
-                            this.SendDataButton.IsEnabled = true;
-                            this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
-                            return;
-                        }
-
-                        // Get the first layer and its corresponding selected feature OIDs
-                        var selectionSet = selectedFeatures.ToDictionary().First();
-                        featureLayer = selectionSet.Key as FeatureLayer;
-
-                        // Check if the feature layer is not null
-                        if (featureLayer != null)
-                        {
-                            // Access the feature class of the feature layer
-                            FeatureClass featureClass = featureLayer.GetFeatureClass();
-
-                            // Get the geometry type of the feature class
-                            geometryType = featureClass.GetDefinition().GetShapeType();
-                        }
-                    });
-
-                    // Check if the selected layer is a polygon or not
-                    if (geometryType != GeometryType.Polygon)
-                    {
-                        ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("You currently have a " + geometryType.ToString() + " geometry selected. The tool does not currently accept anything other than Polygons.");
-
-                        // Disable the button (spam prevention)
-                        this.SendDataButton.IsEnabled = true;
-                    }
-                    else
-                    {
-                        // Get the selected Site ID from the logistics dropdown
-                        string selectedSiteID = this.SiteID_Dropdown.SelectedItem.ToString();
-
-                        if ((bool)this.OverwriteToggle.IsChecked)
-                        {
-                            await ExecuteUpdateDataToolAsync(selectedSiteID, featureLayer);
-                        }
-                        else
-                        {
-                            await ExecuteInsertDataToolAsync(selectedSiteID, featureLayer);
-                        }
-                    }                
+                    ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("No active map view found.");
+                    return;
                 }
+
+                if (SiteMapper_IsBatch)
+                {
+                    SiteMapperSendDataBatch(mapView);
+                }
+                else
+                {
+                    SiteMapperSendData(mapView);
+                }
+
+
             }
             catch (Exception ex)
             {
@@ -275,31 +263,34 @@ namespace twobillionarcgisaddin
             {
                 // Access the current map in ArcGIS Pro
                 MapView mapView = MapView.Active;
-                if (mapView != null)
+                if (mapView == null)
                 {
-                    string selectedLayer = null;
-                    await QueuedTask.Run(() =>
-                    {
-                        // Get the currently selected features in the map
-                        var selectedFeatures = mapView.GetSelectedLayers();
-                        if (selectedFeatures.Count == 0)
-                        {
-                            ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Please select a project on the left and try again.");
-                            return;
-                        }
-                        else if (selectedFeatures.Count > 1) 
-                        {
-                            ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Please select only one project on the left and try again.");
-                            return;
-                        }
+                    ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("No active map view found.");
+                    return;
+                }
 
-                        selectedLayer = selectedFeatures[0].Name;
-                    });
-
-                    if (selectedLayer != null)
+                string selectedLayer = null;
+                await QueuedTask.Run(() =>
+                {
+                    // Get the currently selected features in the map
+                    var selectedFeatures = mapView.GetSelectedLayers();
+                    if (selectedFeatures.Count == 0)
                     {
-                        await ExecuteCompleteProjectToolAsync(selectedLayer);
+                        ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Please select a project on the left and try again.");
+                        return;
                     }
+                    else if (selectedFeatures.Count > 1) 
+                    {
+                        ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Please select only one project on the left and try again.");
+                        return;
+                    }
+
+                    selectedLayer = selectedFeatures[0].Name;
+                });
+
+                if (selectedLayer != null)
+                {
+                    await ExecuteCompleteProjectToolAsync(selectedLayer);
                 }
             }
             catch (Exception ex)
@@ -310,44 +301,117 @@ namespace twobillionarcgisaddin
         }
 
         // Method to handle the change event of the filters
-        private void SiteMapperFilterChanged(object sender, SelectionChangedEventArgs e)
+        private void SiteMapperClearButtonClicked(object sender, RoutedEventArgs e)
         {
-            Dictionary<string, string> filter = GetSiteMapperFilter();
-
-            if (sender == this.ProjectNumber_Dropdown)
+            try
             {
+                if (sender == this.SiteMapperProjectNumberClearButton)
+                {
+                    this.ProjectNumber_Dropdown.SelectedItem = "";
+                }
+                else if (sender == this.SiteMapperSiteIDClearButton)
+                {
+                    this.SiteID_Dropdown.SelectedItem = "";
+                }
+            }
+            catch (Exception ex)
+            {
+                // Show an error message if an exception occurs
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
+            }
+        }
+
+        // Method to handle the change event of the filters
+        private void SiteMapperProjectNumberFilterChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            { 
+                this.SiteID_Dropdown.SelectedIndex = 0;
+                Dictionary<string, string> filter = GetSiteMapperFilter();
+
                 // Create a DataContainer instance to process the JSON string
                 dataContainer = new DataContainer(siteMapperToolOutput);
 
                 // 
                 PopulateFilters(dataContainer, true);
 
-                if (string.IsNullOrEmpty(this.ProjectNumber_Dropdown.SelectedItem as string))
+                if (this.ProjectNumber_Dropdown.SelectedItem == null || this.ProjectNumber_Dropdown.SelectedItem.ToString() == "")
                 {
-                    this.SiteID_Dropdown.SelectedItem = "";
                     this.Secondary_Filter.Visibility = Visibility.Collapsed;
+                    this.SendDataButton.IsEnabled = false;
                 }
                 else
                 {
                     this.Secondary_Filter.Visibility = Visibility.Visible;
                 }
 
+                if (SiteMapper_IsBatch)
+                {
+                    this.Secondary_Filter.Visibility = Visibility.Collapsed;
+                }
+
+                // Refresh the list of data entries for other functionalities
+                dataEntries = dataContainer.GetDataEntriesByProjectNumber(this.ProjectNumber_Dropdown.SelectedItem.ToString());
+
                 // Filter map layers based on the selected project number
                 SelectMapLayers(filter["ProjectNumber"]);
-            } 
-                
-            if (this.SiteID_Dropdown.SelectedItem == null || this.SiteID_Dropdown.SelectedItem.ToString() == "")
+
+                // Repopulate the data grid with the filtered data
+                SiteMapperDataGridView dockpane2 = SiteMapperDataGridView.MySiteMapperDataGridView;
+                dockpane2.PopulateDataGrid(dataContainer, filter);
+            }
+            catch (Exception ex)
+            {
+                // Show an error message if an exception occurs
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
+            }
+        }
+
+        // Method to handle the change event of the filters
+        private void SiteMapperSiteIDFilterChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                if (_noise)
+                {
+                    _noise = false;
+                }
+
+                Dictionary<string, string> filter = GetSiteMapperFilter();
+
+                if (this.SiteID_Dropdown.SelectedItem == null || this.SiteID_Dropdown.SelectedItem.ToString() == "")
+                {
+                    this.SendDataButton.IsEnabled = false;
+                }
+                else
+                {
+                    this.SendDataButton.IsEnabled = true;
+                }
+
+                // Repopulate the data grid with the filtered data
+                SiteMapperDataGridView dockpane2 = SiteMapperDataGridView.MySiteMapperDataGridView;
+                dockpane2.PopulateDataGrid(dataContainer, filter);
+            }
+            catch (Exception ex)
+            {
+                // Show an error message if an exception occurs
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
+            }
+        }
+
+        // Method to handle the change event of the filters
+        private void SiteMapperMatchFilterChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (this.MatchField_Dropdown.SelectedItem == null || this.MatchField_Dropdown.SelectedItem.ToString() == "" || this.ProjectNumber_Dropdown.SelectedItem == null || this.ProjectNumber_Dropdown.SelectedItem.ToString() == "")
             {
                 this.SendDataButton.IsEnabled = false;
+                this.MatchButton.IsEnabled = false;
             }
             else
             {
                 this.SendDataButton.IsEnabled = true;
+                this.MatchButton.IsEnabled = true;
             }
-
-            // Repopulate the data grid with the filtered data
-            SiteMapperDataGridView dockpane2 = SiteMapperDataGridView.MySiteMapperDataGridView;
-            dockpane2.PopulateDataGrid(dataContainer, filter);   
         }
 
         private async void ShowHiddenCat()
@@ -355,6 +419,201 @@ namespace twobillionarcgisaddin
             this.HiddenCat.Visibility = Visibility.Visible;
             await Task.Delay(500); // 500 milliseconds = .5 seconds
             this.HiddenCat.Visibility = Visibility.Hidden;
+        }
+
+        // Method to handle the click event of the Match Button
+        private async void MatchButtonClicked(object sender, RoutedEventArgs e)
+        {
+            // Disable the Match button to prevent multiple clicks while processing
+            this.MatchButton.IsEnabled = false;
+
+            try
+            {
+                // Access the current map in ArcGIS Pro
+                MapView mapView = MapView.Active;
+                if (mapView == null)
+                {
+                    ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("No active map view found.");
+                    this.MatchButton.IsEnabled = true;
+                    return;
+                }
+
+                // Get the first selected feature layer from the active map view
+                FeatureLayer featureLayer = mapView.GetSelectedLayers().OfType<FeatureLayer>().FirstOrDefault();
+                if (featureLayer == null)
+                {
+                    ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Please select a feature layer in the Drawing Order and try again.");
+                    this.MatchButton.IsEnabled = true;
+                    return;
+                }
+
+                // Query the rows of the table and print out a specific column
+                string columnName = (string)this.MatchField_Dropdown.SelectedItem;
+
+                Table table = null;
+                await QueuedTask.Run(() =>
+                {
+                    // Access the table associated with the feature layer
+                    table = featureLayer.GetTable();
+                    if (table == null)
+                    {
+                        ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("No attribute table found for the selected feature layer.");
+                        this.MatchButton.IsEnabled = true;
+                        return;
+                    }
+
+                    using (RowCursor rowCursor = table.Search())
+                    {
+                        while (rowCursor.MoveNext())
+                        {
+                            using (Row row = rowCursor.Current)
+                            {
+                                MatchSiteToEntry(row, columnName);
+                            }
+                        }
+                    }
+
+                    // Get the TableView for the table
+                    var tablePane = TableView.Active;
+                    if (tablePane == null)
+                        return;
+
+                    // refresh
+                    if (tablePane.CanRefresh)
+                        tablePane.Refresh();
+                });
+
+                // Re-enable the Match button after processing
+                this.MatchButton.IsEnabled = true;
+
+            }
+            catch (Exception ex)
+            {
+                // Show an error message if an exception occurs
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
+
+                // Re-enable the Match button in case of an error
+                this.MatchButton.IsEnabled = true;
+            }
+        }
+
+        // Method to handle the click event of the SiteMapper button
+        private async void BatchSiteMapperRefreshButtonClicked(object sender, RoutedEventArgs e)
+        {
+            this.BatchSiteMapperRefreshButton.Content = "Working...";
+            this.BatchSiteMapperRefreshButton.IsEnabled = false;
+
+            MapView mapView = MapView.Active;
+            // Getting the first selected feature layer
+            FeatureLayer featureLayer = mapView.GetSelectedLayers().OfType<FeatureLayer>().FirstOrDefault();
+            if (featureLayer == null)
+            {
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Please select a feature layer in the Drawing Order and try again.");
+                this.MatchButton.IsEnabled = false;
+                this.BatchSiteMapperRefreshButton.Content = "Refresh";
+                this.BatchSiteMapperRefreshButton.IsEnabled = true;
+                return;
+            }
+
+            List<FieldDescription> fieldDescriptions = null;
+            await QueuedTask.Run(() =>
+            {
+                // Retrieving field descriptions
+                fieldDescriptions = featureLayer.GetFieldDescriptions();
+                if (fieldDescriptions.Count == 0)
+                {
+                    ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("The selected layer has no fields.");
+                }
+                return;
+            });
+            this.MatchField_Dropdown.Items.Clear();
+            foreach (var item in fieldDescriptions)
+            {
+                this.MatchField_Dropdown.Items.Add(item.Name);
+            }
+
+            this.BatchSiteMapperRefreshButton.Content = "Refresh";
+            this.BatchSiteMapperRefreshButton.IsEnabled = true;
+        }
+
+        // Method to handle the click event of the SiteMapper button
+        private async void BatchSiteMapperCleanButtonClicked(object sender, RoutedEventArgs e)
+        {
+            this.BatchSiteMapperCleanButton.IsEnabled = false;
+
+            try
+            {
+                // Access the current map in ArcGIS Pro
+                MapView mapView = MapView.Active;
+                if (mapView == null)
+                {
+                    throw new Exception("No active map view found.");
+                }
+
+                // Get the first selected feature layer from the active map view
+                FeatureLayer featureLayer = mapView.GetSelectedLayers().OfType<FeatureLayer>().FirstOrDefault();
+                if (featureLayer == null)
+                {
+                    throw new Exception("Please select a feature layer in the Drawing Order and try again.");
+                }
+
+                Table table = null;
+                await QueuedTask.Run(() =>
+                {
+                    // Access the table associated with the feature layer
+                    table = featureLayer.GetTable();
+                    if (table == null)
+                    {
+                        throw new Exception("No attribute table found for the selected feature layer.");
+                    }
+
+                    var selection = featureLayer.GetSelection();
+                    var selectedOids = selection.GetObjectIDs();
+                    if (selectedOids == null || selectedOids.Count == 0)
+                    {
+                        throw new Exception("No features selected.");
+                    }
+
+                    // Iterate through the selected rows and update the "bt_site_id" field
+                    QueryFilter queryFilter = new QueryFilter()
+                    {
+                        ObjectIDs = selectedOids
+                    };
+
+                    using (RowCursor rowCursor = table.Search(queryFilter))
+                    {
+                        while (rowCursor.MoveNext())
+                        {
+                            using (Row row = rowCursor.Current)
+                            {
+                                row["bt_site_id"] = null;
+                                row.Store();
+                            }
+                        }
+                    }
+
+                    // Get the TableView for the table
+                    var tablePane = TableView.Active;
+                    if (tablePane == null)
+                        return;
+
+                    // refresh
+                    if (tablePane.CanRefresh)
+                        tablePane.Refresh();
+                });
+
+                // Re-enable the Cleanup button after processing
+                this.BatchSiteMapperCleanButton.IsEnabled = true;
+
+            }
+            catch (Exception ex)
+            {
+                // Show an error message if an exception occurs
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
+
+                // Re-enable the Cleanup button in case of an error
+                this.BatchSiteMapperCleanButton.IsEnabled = true;
+            }
         }
 
         #endregion
@@ -415,10 +674,13 @@ namespace twobillionarcgisaddin
             // Set ItemSource based on the filter type
             if (!updateSecondaryFilter)
             {
-                ProjectNumber_Dropdown.ItemsSource = filterProjNumberList;
+                filterProjNumberList.Sort(StringComparer.OrdinalIgnoreCase);
+                this.ProjectNumber_Dropdown.ItemsSource = filterProjNumberList;
             }
 
-            SiteID_Dropdown.ItemsSource = filterSiteIDList;
+            filterSiteIDList.Sort(StringComparer.OrdinalIgnoreCase);
+            _noise = true;
+            this.SiteID_Dropdown.ItemsSource = filterSiteIDList;
         }
 
         // Method to select map layers based on the selected project number
@@ -455,6 +717,132 @@ namespace twobillionarcgisaddin
 
                 });
             }
+        }
+
+        //
+        private async void SiteMapperSendData(MapView mapView)
+        {
+            SelectionSet selectedFeatures = null;
+            FeatureLayer featureLayer = null;
+            GeometryType geometryType = GeometryType.Unknown;
+            await QueuedTask.Run(() =>
+            {
+                // Get the currently selected features in the map
+                selectedFeatures = mapView.Map.GetSelection();
+
+                // Check if any features are selected in any layer
+                if (selectedFeatures.Count == 0)
+                {
+                    ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("No features on the map are selected, please select a feature you want to process and try again!");
+                    this.SendDataButton.IsEnabled = true;
+                    this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
+                    return;
+                }
+
+                // Get the first layer and its corresponding selected feature OIDs
+                var selectionSet = selectedFeatures.ToDictionary().First();
+                featureLayer = selectionSet.Key as FeatureLayer;
+
+                // Check if the feature layer is not null
+                if (featureLayer != null)
+                {
+                    // Access the feature class of the feature layer
+                    FeatureClass featureClass = featureLayer.GetFeatureClass();
+
+                    // Get the geometry type of the feature class
+                    geometryType = featureClass.GetDefinition().GetShapeType();
+                }
+            });
+
+            // Check if the selected layer is a polygon or not
+            if (geometryType != GeometryType.Polygon)
+            {
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("You currently have a " + geometryType.ToString() + " geometry selected. The tool does not currently accept anything other than Polygons.");
+
+                // Disable the button (spam prevention)
+                this.SendDataButton.IsEnabled = true;
+            }
+            else
+            {
+                // Get the selected Site ID from the logistics dropdown
+                string selectedSiteID = this.SiteID_Dropdown.SelectedItem.ToString();
+
+                if ((bool)this.OverwriteToggle.IsChecked)
+                {
+                    await ExecuteUpdateDataToolAsync(selectedSiteID, featureLayer);
+                }
+                else
+                {
+                    await ExecuteInsertDataToolAsync(selectedSiteID, featureLayer);
+                }
+            }
+        }
+
+        //
+        private async void SiteMapperSendDataBatch(MapView mapView)
+        {
+            // Get the first selected feature layer from the active map view
+            FeatureLayer featureLayer = mapView.GetSelectedLayers().OfType<FeatureLayer>().FirstOrDefault();
+            if (featureLayer == null)
+            {
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Please select a feature layer in the Drawing Order and try again.");
+                this.MatchButton.IsEnabled = true;
+                return;
+            }
+
+            if ((bool)this.OverwriteToggle.IsChecked)
+            {
+                await ExecuteBatchUpdateDataToolAsync(featureLayer);
+            }
+            else
+            {
+                await ExecuteBatchInsertDataToolAsync(featureLayer);
+            }
+        }
+
+        //
+        private async void MatchSiteToEntry(Row row, string columnName)
+        {
+            string value = (string)row[columnName];
+
+            foreach (DataEntry entry in dataEntries)
+            {
+                // Split the site name into significant parts for matching
+                string[] parts = entry.SiteName.Split(new[] { ' ', ':', '#', '-', '_' }, StringSplitOptions.RemoveEmptyEntries);
+
+                // Escape special characters in each part for regex matching
+                string[] escapedParts = parts.Select(Regex.Escape).ToArray();
+
+                // 
+                bool matched = ContainsMostParts(value, escapedParts);
+                if (matched)
+                {
+                    await QueuedTask.Run(() =>
+                    {
+                        try
+                        {
+                            // Update the row with the matched SiteID
+                            row["bt_site_id"] = entry.SiteID;
+
+                            // Store the changes to the table
+                            row.Store();
+                        }
+                        catch (Exception ex)
+                        {
+                            // Handle any exceptions that occur during the row update
+                            ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error updating row: {ex.Message}", "Error");
+                        }
+                    });
+                }
+            }
+                        
+        }
+
+        // Custom function to check if most parts of the site name are present in the input
+        bool ContainsMostParts(string input, string[] parts)
+        {
+            int matchCount = parts.Count(part => Regex.IsMatch(input, $@"\b{part}\b", RegexOptions.IgnoreCase));
+            return matchCount >= (parts.Length * 0.75); // Adjust threshold as needed
         }
 
         #endregion
@@ -561,10 +949,44 @@ namespace twobillionarcgisaddin
 
             this.SiteMapper_SuccessStatus.Visibility = Visibility.Collapsed;
             this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
+
             return false;
         }
 
         // Method to execute the Insert Data tool asynchronously
+        private async Task<bool> ExecuteBatchInsertDataToolAsync(FeatureLayer featureLayer)
+        {
+            try
+            {
+                // Set the parameters
+                string toolboxPath = this.ArcPythonToolboxPath.Text + "\\BatchInsertDataTool";
+                string connectionFile = this.ArcConnectionFilePath.Text;
+                string tableName = this.DatabaseSchema.Text + ".site_geometry";
+
+                // Execute the Python tool and get the result
+                var parameters = Geoprocessing.MakeValueArray(connectionFile, tableName, featureLayer);
+                var returnValue = await Geoprocessing.ExecuteToolAsync(toolboxPath, parameters);
+
+                if (!returnValue.IsFailed)
+                {
+                    this.SiteMapper_ErrorStatus.Visibility = Visibility.Collapsed;
+                    this.SiteMapper_SuccessStatus.Visibility = Visibility.Visible;
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions that occur during tool execution
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
+            }
+
+            this.SiteMapper_SuccessStatus.Visibility = Visibility.Collapsed;
+            this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
+
+            return false;
+        }
+
+        // Method to execute the Update Data tool asynchronously
         private async Task<bool> ExecuteUpdateDataToolAsync(string siteID, FeatureLayer featureLayer)
         {
             try
@@ -576,6 +998,38 @@ namespace twobillionarcgisaddin
 
                 // Execute the Python tool and get the result
                 var parameters = Geoprocessing.MakeValueArray(connectionFile, tableName, siteID, featureLayer);
+                var returnValue = await Geoprocessing.ExecuteToolAsync(toolboxPath, parameters);
+
+                if (!returnValue.IsFailed)
+                {
+                    this.SiteMapper_ErrorStatus.Visibility = Visibility.Collapsed;
+                    this.SiteMapper_SuccessStatus.Visibility = Visibility.Visible;
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions that occur during tool execution
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
+            }
+
+            this.SiteMapper_SuccessStatus.Visibility = Visibility.Collapsed;
+            this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
+            return false;
+        }
+
+        // Method to execute the  Batch Update Data tool asynchronously
+        private async Task<bool> ExecuteBatchUpdateDataToolAsync(FeatureLayer featureLayer)
+        {
+            try
+            {
+                // Set the parameters
+                string toolboxPath = this.ArcPythonToolboxPath.Text + "\\BatchUpdateDataTool";
+                string connectionFile = this.ArcConnectionFilePath.Text;
+                string tableName = this.DatabaseSchema.Text + ".site_geometry";
+
+                // Execute the Python tool and get the result
+                var parameters = Geoprocessing.MakeValueArray(connectionFile, tableName, featureLayer);
                 var returnValue = await Geoprocessing.ExecuteToolAsync(toolboxPath, parameters);
 
                 if (!returnValue.IsFailed)
@@ -624,6 +1078,154 @@ namespace twobillionarcgisaddin
 
             return false;
         }
+
+        #endregion
+        // ******************************************************
+        // Old Functions that can be pieced out or used later
+        // ******************************************************
+        #region Old Functions
+
+        /*// Method to handle the click event of the Match Button
+        private async void OLDMatchButtonClicked(object sender, RoutedEventArgs e)
+        {
+            // Disable the Match button to prevent multiple clicks while processing
+            this.MatchButton.IsEnabled = false;
+
+            try
+            {
+                // Access the current map in ArcGIS Pro
+                MapView mapView = MapView.Active;
+                if (mapView == null)
+                {
+                    ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("No active map view found.");
+                    this.MatchButton.IsEnabled = true;
+                    return;
+                }
+
+                // Get the first selected feature layer from the active map view
+                FeatureLayer featureLayer = mapView.GetSelectedLayers().OfType<FeatureLayer>().FirstOrDefault();
+                if (featureLayer == null)
+                {
+                    ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Please select a feature layer in the Drawing Order and try again.");
+                    this.MatchButton.IsEnabled = true;
+                    return;
+                }
+
+                // Retrieve the site name from the selected site ID in the dropdown
+                DataEntry entry = dataContainer.GetDataEntryBySiteID(this.SiteID_Dropdown.SelectedItem.ToString());
+                string siteName = entry.SiteName;
+                string siteNameFormatted = $"%{siteName.Replace(" ", "%")}%";
+                string matchField = this.MatchField_Dropdown.SelectedItem.ToString();
+
+                bool isStringField = true;
+                await QueuedTask.Run(() =>
+                {
+                    // Check the data type of the match field
+                    Field matchFieldType = featureLayer.GetTable().GetDefinition().GetFields().FirstOrDefault(f => f.Name == matchField);
+                    isStringField = matchFieldType.FieldType == FieldType.String;
+                });
+
+
+                // Asynchronously retrieve all unique values from the specified field in the feature layer
+                List<string> columnValues = await QueuedTask.Run(() =>
+                {
+                    List<string> values = new List<string>();
+                    using (Table table = featureLayer.GetTable())
+                    using (RowCursor cursor = table.Search(null, false))
+                    {
+                        while (cursor.MoveNext())
+                        {
+                            using (Row row = cursor.Current)
+                            {
+                                // Retrieve the value from the specified match field
+                                object value = row[matchField];
+                                if (value != DBNull.Value && value != null && !values.Contains(value))
+                                {
+                                    values.Add(value.ToString());
+                                }
+                            }
+                        }
+                    }
+                    return values;
+                });
+
+                // Split the site name into significant parts for matching
+                string[] parts = siteName.Split(new[] { ' ', ':', '#', '-', '_' }, StringSplitOptions.RemoveEmptyEntries);
+
+                // Escape special characters in each part for regex matching
+                string[] escapedParts = parts.Select(Regex.Escape).ToArray();
+
+                // Custom function to check if most parts of the site name are present in the input
+                bool ContainsMostParts(string input, string[] parts)
+                {
+                    int matchCount = parts.Count(part => Regex.IsMatch(input, $@"\b{part}\b", RegexOptions.IgnoreCase));
+                    return matchCount >= (parts.Length * 0.75); // Adjust threshold as needed
+                }
+
+                // Find all strings in columnValues that match most parts of the site name
+                List<string> matchingStrings = columnValues.FindAll(str => ContainsMostParts(str, escapedParts));
+
+                // Build the SQL query to select features matching the identified strings
+                string query = "";
+                if (isStringField)
+                {
+                    query = string.Join(" OR ", matchingStrings.Select(match => $"{matchField} LIKE '%{match}%'"));
+                }
+                else
+                {
+                    // Handle non-string fields differently, here we assume exact matches for simplicity
+                    query = string.Join(" OR ", matchingStrings.Select(match => $"{matchField} = {match}"));
+                }
+
+                // Initialize the message for the number of matching features found
+                string matchesFound = "0 features were found";
+
+                // Asynchronously execute the query and count the matching features
+                await QueuedTask.Run(() =>
+                {
+                    // Clear previous selections on the map
+                    mapView.Map.ClearSelection();
+
+                    // If no matches were found, return early
+                    if (query == "")
+                    {
+                        return;
+                    }
+
+                    // Create a query filter with the built query
+                    QueryFilter queryFilter = new QueryFilter()
+                    {
+                        WhereClause = query
+                    };
+
+                    // Select features matching the query filter
+                    featureLayer.Select(queryFilter);
+
+                    // Count the number of matching features
+                    using (RowCursor rowCursor = featureLayer.Search(queryFilter))
+                    {
+                        int i = 0;
+                        while (rowCursor.MoveNext()) i++;
+                        matchesFound = $"{i} features were found";
+                    }
+                });
+
+                // Update the label with the number of matched features
+                this.MatchedFeaturesLabel.Content = matchesFound;
+
+                // Re-enable the Match button after processing
+                this.MatchButton.IsEnabled = true;
+                
+            }
+            catch (Exception ex)
+            {
+                // Show an error message if an exception occurs
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
+
+                // Re-enable the Match button in case of an error
+                this.MatchButton.IsEnabled = true;
+            }
+        }*/
 
         #endregion
     }
