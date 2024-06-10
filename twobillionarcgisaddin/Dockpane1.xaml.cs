@@ -596,65 +596,102 @@ namespace twobillionarcgisaddin
         }
 
         // Method to handle the change event of the filters
+        private void SiteMapperClearButtonClicked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (sender == this.SiteMapperProjectNumberClearButton)
+                {
+                    this.ProjectNumber_Dropdown.SelectedItem = "";
+                }
+                else if (sender == this.SiteMapperSiteIDClearButton)
+                {
+                    this.SiteID_Dropdown.SelectedItem = "";
+                }
+            }
+            catch (Exception ex)
+            {
+                // Show an error message if an exception occurs
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
+            }
+        }
+
+        // Method to handle the change event of the filters
         private void SiteMapperProjectNumberFilterChanged(object sender, SelectionChangedEventArgs e)
         {
-            this.SiteID_Dropdown.SelectedIndex = 0;
-            Dictionary<string, string> filter = GetSiteMapperFilter();
+            try
+            { 
+                this.SiteID_Dropdown.SelectedIndex = 0;
+                Dictionary<string, string> filter = GetSiteMapperFilter();
 
-            // Create a DataContainer instance to process the JSON string
-            dataContainer = new DataContainer(siteMapperToolOutput);
+                // Create a DataContainer instance to process the JSON string
+                dataContainer = new DataContainer(siteMapperToolOutput);
 
-            // 
-            PopulateFilters(dataContainer, true);
+                // 
+                PopulateFilters(dataContainer, true);
 
-            if (this.ProjectNumber_Dropdown.SelectedItem == null || this.ProjectNumber_Dropdown.SelectedItem.ToString() == "")
-            {
-                this.Secondary_Filter.Visibility = Visibility.Collapsed;
-                this.SendDataButton.IsEnabled = false;
-            }
-            else
-            {
-                this.Secondary_Filter.Visibility = Visibility.Visible;                
-            }
+                if (this.ProjectNumber_Dropdown.SelectedItem == null || this.ProjectNumber_Dropdown.SelectedItem.ToString() == "")
+                {
+                    this.Secondary_Filter.Visibility = Visibility.Collapsed;
+                    this.SendDataButton.IsEnabled = false;
+                }
+                else
+                {
+                    this.Secondary_Filter.Visibility = Visibility.Visible;
+                }
 
             if (SiteMapper_IsBatch)
             {
                 this.Secondary_Filter.Visibility = Visibility.Collapsed; 
             }
 
-            // Refresh the list of data entries for other functionalities
-            dataEntries = dataContainer.GetDataEntriesByProjectNumber(this.ProjectNumber_Dropdown.SelectedItem.ToString());
+                // Refresh the list of data entries for other functionalities
+                dataEntries = dataContainer.GetDataEntriesByProjectNumber(this.ProjectNumber_Dropdown.SelectedItem.ToString());
 
-            // Filter map layers based on the selected project number
-            SelectMapLayers(filter["ProjectNumber"]);
-                
-            // Repopulate the data grid with the filtered data
-            SiteMapperDataGridView dockpane2 = SiteMapperDataGridView.MySiteMapperDataGridView;
-            dockpane2.PopulateDataGrid(dataContainer, filter);            
+                // Filter map layers based on the selected project number
+                SelectMapLayers(filter["ProjectNumber"]);
+
+                // Repopulate the data grid with the filtered data
+                SiteMapperDataGridView dockpane2 = SiteMapperDataGridView.MySiteMapperDataGridView;
+                dockpane2.PopulateDataGrid(dataContainer, filter);
+            }
+            catch (Exception ex)
+            {
+                // Show an error message if an exception occurs
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
+            }
         }
 
         // Method to handle the change event of the filters
         private void SiteMapperSiteIDFilterChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_noise)
+            try
             {
-                _noise = false;
+                if (_noise)
+                {
+                    _noise = false;
+                }
+
+                Dictionary<string, string> filter = GetSiteMapperFilter();
+
+                if (this.SiteID_Dropdown.SelectedItem == null || this.SiteID_Dropdown.SelectedItem.ToString() == "")
+                {
+                    this.SendDataButton.IsEnabled = false;
+                }
+                else
+                {
+                    this.SendDataButton.IsEnabled = true;
+                }
+
+                // Repopulate the data grid with the filtered data
+                SiteMapperDataGridView dockpane2 = SiteMapperDataGridView.MySiteMapperDataGridView;
+                dockpane2.PopulateDataGrid(dataContainer, filter);
             }
-
-            Dictionary<string, string> filter = GetSiteMapperFilter();
-
-            if (this.SiteID_Dropdown.SelectedItem == null || this.SiteID_Dropdown.SelectedItem.ToString() == "")
+            catch (Exception ex)
             {
-                this.SendDataButton.IsEnabled = false;
+                // Show an error message if an exception occurs
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
             }
-            else
-            {
-                this.SendDataButton.IsEnabled = true;
-            }
-
-            // Repopulate the data grid with the filtered data
-            SiteMapperDataGridView dockpane2 = SiteMapperDataGridView.MySiteMapperDataGridView;
-            dockpane2.PopulateDataGrid(dataContainer, filter);
         }
 
         // Method to handle the change event of the filters
@@ -1106,37 +1143,6 @@ namespace twobillionarcgisaddin
         // 
         void AddStaticDataLayers()
         {
-            /*// Add static layers to the global dictionary
-            DataLayer sitePointsLayer = new DataLayer()
-            {
-                Name = "2BT Site Points",
-                GeomType = esriGeometryType.esriGeometryPoint,
-                ObjectIDColumn = "id",
-                Year = null,
-                ProjectNum = null
-            };
-            dataLayersToAdd["site_points"] = sitePointsLayer;
-
-            DataLayer siteBufferedPointsLayer = new DataLayer()
-            {
-                Name = "2BT Site Buffered Points",
-                GeomType = esriGeometryType.esriGeometryPolygon,
-                ObjectIDColumn = "id",
-                Year = null,
-                ProjectNum = null
-            };
-            dataLayersToAdd["site_buffered_points"] = siteBufferedPointsLayer;
-
-            DataLayer sitePolygonsLayer = new DataLayer()
-            {
-                Name = "2BT Site Polygons",
-                GeomType = esriGeometryType.esriGeometryPolygon,
-                ObjectIDColumn = "id",
-                Year = null,
-                ProjectNum = null
-            };
-            dataLayersToAdd["valid_geometry"] = sitePolygonsLayer;*/
-
             // Add static layers to the ObservableCollection
             dataLayersToAdd.Clear(); // Clear the ObservableCollection first
             dataLayersToAdd.Add(new DataLayer()
