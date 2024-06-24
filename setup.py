@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 setup(
     name='twobilliontoolkit',
     version='1.1',
-    packages=find_packages(exclude=['tests']),
+    packages=find_packages(exclude=['ArcGISAddin', 'ArcGISToolbox', 'tests']),
     install_requires=[
         'dash==2.14.2',        
         'Fiona==1.9.4.post1',
@@ -18,7 +18,6 @@ setup(
         'PyQt5_sip==12.13.0',
         'pywin32==306',
         'setuptools==68.2.2',
-        'setuptools==57.4.0',
         'Shapely==2.0.4'
     ],
     extras_require={},
