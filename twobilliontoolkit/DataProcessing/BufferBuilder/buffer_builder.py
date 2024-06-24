@@ -327,31 +327,31 @@ def add_entries_to_database(cursor: psycopg2.extensions.cursor, geodataframe: gp
         if row.aspatial_geom_points != None:
             # If the distance between the points is larger than the tolerance (in metres)
             if row.site in point_sites and not np.isnan(row.point_distance) and row.point_distance > DISTANCE_TOLERANCE:        
-                # # If the point location different, update the existing point's dropped status to True
-                # update_database_entry(cursor, 'site_points', row.site)
+                # If the point location different, update the existing point's dropped status to True
+                update_database_entry(cursor, 'site_points', row.site)
             
-                # # Then insert the point into the database
-                # insert_database_entry(cursor, 'site_points', row.site, row.aspatial_geom_points.wkt)
+                # Then insert the point into the database
+                insert_database_entry(cursor, 'site_points', row.site, row.aspatial_geom_points.wkt)
                 
                 num_points_altered += 1
             elif row.site not in point_sites:
-                # # Insert the point into the database
-                # insert_database_entry(cursor, 'site_points', row.site, row.aspatial_geom_points.wkt)
+                # Insert the point into the database
+                insert_database_entry(cursor, 'site_points', row.site, row.aspatial_geom_points.wkt)
                 
                 num_points_added += 1
             
         # If the area difference between the buffered points is larger than the 1.0 HA (hectares)
         if row.site in buffered_sites and row.area_difference > AREA_TOLERANCE:
-            # # Update the previous buffered point entry to dropped
-            # update_database_entry(cursor, 'site_buffered_points', row.site)
+            # Update the previous buffered point entry to dropped
+            update_database_entry(cursor, 'site_buffered_points', row.site)
         
-            # # Then insert the new buffered point into the database
-            # insert_database_entry(cursor, 'site_buffered_points', row.site, MultiPolygon([wkt.loads(row.aspatial_geom_buffered.wkt)]).wkt)
+            # Then insert the new buffered point into the database
+            insert_database_entry(cursor, 'site_buffered_points', row.site, MultiPolygon([wkt.loads(row.aspatial_geom_buffered.wkt)]).wkt)
             
             num_buffered_points_altered += 1
         elif row.site not in buffered_sites:
-            # # Insert the point into the database
-            # insert_database_entry(cursor, 'site_buffered_points', row.site, MultiPolygon([wkt.loads(row.aspatial_geom_buffered.wkt)]).wkt)
+            # Insert the point into the database
+            insert_database_entry(cursor, 'site_buffered_points', row.site, MultiPolygon([wkt.loads(row.aspatial_geom_buffered.wkt)]).wkt)
             
             num_buffered_points_added += 1
             pass
