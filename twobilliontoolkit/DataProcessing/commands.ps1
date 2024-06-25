@@ -4,7 +4,6 @@
 # Last Updated: June 20, 2024
 
 # A script for easily running the data processing tools in the twobilliontoolkit.     
-
 # _____________________________________________________________
 
 # Get current date in YYYY-MM-DD format

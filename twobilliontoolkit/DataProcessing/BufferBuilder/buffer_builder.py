@@ -19,10 +19,23 @@ Organization:     Natural Resources of Canada
 Team:             Carbon Accounting Team
 
 Description: 
-    The buffer_builder.py script is a Python tool for processing . 
+    The buffer_builder.py script is a Python tool for processing spatial data,
+    creating buffer zones around given points, and integrating the results with 
+    a PostgreSQL/PostGIS database. This script supports spatial analysis tasks 
+    related to carbon accounting and land management.
 
 Usage:
-    python path/to/buffer_builder.py [-h] 
+    python path/to/buffer_builder.py --datasheet <datasheet_path> --ini <database_ini_path> --log <log_file_path> [--debug] [--ps_script <script_path>]
+
+Arguments:
+    --datasheet     Path to the spatial data sheet (must be .csv or .xlsx).
+    --ini           Path to the .ini file with database connection details.
+    --log           Path to the output log file.
+    --debug         Optional flag to enable debug mode, which saves intermediate shapefiles.
+    --ps_script     Optional path to a PowerShell script for additional commands.
+
+Example:
+    python buffer_builder.py --datasheet data/spatial_data.csv --ini config/database.ini --log logs/buffer_builder.log --debug
 """
 #========================================================
 # Imports
@@ -175,7 +188,7 @@ def buffer_builder(data_sheet: str, database_ini: str, debug: bool = False) -> N
 
     except Exception as error:        
         # Log the error
-        log(log_path, Colors.ERROR, traceback.format_exc())
+        log(file_path=log_path, type=Colors.ERROR, message=traceback.format_exc(), ps_script=ps_script, absolute_provided=True)
         exit(1)
       
 #========================================================
@@ -339,25 +352,25 @@ def add_entries_to_database(cursor: psycopg2.extensions.cursor, geodataframe: gp
                 insert_database_entry(cursor, 'site_points', row.site, row.aspatial_geom_points.wkt)
                 
                 num_points_added += 1
+           
+        if row.aspatial_geom_buffered != None: 
+            # If the area difference between the buffered points is larger than the tolerance (1.0 hectares)
+            if row.site in buffered_sites and not np.isnan(row.area_difference) and row.area_difference > AREA_TOLERANCE:
+                # Update the previous buffered point entry to dropped
+                update_database_entry(cursor, 'site_buffered_points', row.site)
             
-        # If the area difference between the buffered points is larger than the 1.0 HA (hectares)
-        if row.site in buffered_sites and row.area_difference > AREA_TOLERANCE:
-            # Update the previous buffered point entry to dropped
-            update_database_entry(cursor, 'site_buffered_points', row.site)
-        
-            # Then insert the new buffered point into the database
-            insert_database_entry(cursor, 'site_buffered_points', row.site, MultiPolygon([wkt.loads(row.aspatial_geom_buffered.wkt)]).wkt)
-            
-            num_buffered_points_altered += 1
-        elif row.site not in buffered_sites:
-            # Insert the point into the database
-            insert_database_entry(cursor, 'site_buffered_points', row.site, MultiPolygon([wkt.loads(row.aspatial_geom_buffered.wkt)]).wkt)
-            
-            num_buffered_points_added += 1
-            pass
+                # Then insert the new buffered point into the database
+                insert_database_entry(cursor, 'site_buffered_points', row.site, MultiPolygon([wkt.loads(row.aspatial_geom_buffered.wkt)]).wkt)
+                
+                num_buffered_points_altered += 1
+            elif row.site not in buffered_sites:
+                # Insert the point into the database
+                insert_database_entry(cursor, 'site_buffered_points', row.site, MultiPolygon([wkt.loads(row.aspatial_geom_buffered.wkt)]).wkt)
+                
+                num_buffered_points_added += 1
           
-    log(None, Colors.INFO, f"{num_points_added} points have been added, {num_points_altered} points have been altered.")
-    log(None, Colors.INFO, f"{num_buffered_points_added} buffered points have been added, {num_buffered_points_altered} buffered points have been altered.\n")    
+    log(None, Colors.INFO, f"{num_points_added} new points have been added, {num_points_altered} points have been altered.")
+    log(None, Colors.INFO, f"{num_buffered_points_added} new buffered points have been added, {num_buffered_points_altered} buffered points have been altered.\n")    
 
 def get_connection(config: configparser.ConfigParser):
     """
@@ -384,7 +397,7 @@ def get_connection(config: configparser.ConfigParser):
         return connection
     except psycopg2.Error as error:
         # Log the error
-        log(log_path, Colors.ERROR, f"Error connecting to PostgreSQL: {error}" + traceback.format_exc())
+        log(file_path=log_path, type=Colors.ERROR, message=f"Error connecting to PostgreSQL: {error}" + traceback.format_exc(), ps_script=ps_script, absolute_provided=True)
         return None
       
 def query_database(connection: psycopg2.extensions.connection, schema: str, table: str, column_name: str):
@@ -424,7 +437,7 @@ def update_database_entry(cursor: psycopg2.extensions.cursor, table: str, site_i
         )
     except Exception as error:
         # Log the error
-        log(log_path, Colors.ERROR, f"Error connecting to PostgreSQL: {error}")
+        log(file_path=log_path, type=Colors.ERROR, message=f"Error connecting to PostgreSQL: {error}", ps_script=ps_script, absolute_provided=True)
     
 def insert_database_entry(cursor: psycopg2.extensions.cursor, table: str, site_id: int, geometry):
     """
@@ -444,7 +457,7 @@ def insert_database_entry(cursor: psycopg2.extensions.cursor, table: str, site_i
         )
     except psycopg2.errors.ForeignKeyViolation as error:
         # Log the error
-        log(log_path, Colors.ERROR, f"Error connecting to PostgreSQL: {error}" + traceback.format_exc())
+        log(file_path=log_path, type=Colors.ERROR, message=f"Error connecting to PostgreSQL: {error}" + traceback.format_exc(), ps_script=ps_script, absolute_provided=True)
                        
 #========================================================
 # Main
