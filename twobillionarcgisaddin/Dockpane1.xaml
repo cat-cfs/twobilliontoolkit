@@ -200,7 +200,7 @@
                                     <Setter Property="Background" Value="Transparent" />
                                 </Trigger>
                                 <Trigger Property="ItemsControl.AlternationIndex" Value="1">
-                                    <Setter Property="Background" Value="#404040" />
+                                    <Setter Property="Background" Value="{DynamicResource Esri_DialogFrameBackgroundBrush}" />
                                 </Trigger>
                                 <DataTrigger Binding="{Binding Disabled}" Value="True">
                                     <Setter Property="Background" Value="IndianRed" />
