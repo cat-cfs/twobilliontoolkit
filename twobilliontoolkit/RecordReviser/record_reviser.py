@@ -19,7 +19,7 @@ Organization:     Natural Resources of Canada
 Team:             Carbon Accounting Team
 
 Description: 
-    The script will be used to revise any records that have been created in the 2BT Spatial Tools. It provides a graphical user interface (GUI) for viewing and updating records in the Data Tracker. The GUI allows users to make changes to various fields, including 'project_spatial_id', 'project_number', 'in_raw_gdb', 'contains_pdf', 'contains_image', and 'contains_attachment'. Additionally, the script supports the creation of duplicate records when updating 'project_number', ensuring data integrity. Changes made through the GUI can be committed to either the Data Tracker Excel file or a Postgres DB table. The script also offers functionality to update associated Raw Data GDB layers and attachment folders.
+    The script will be used to revise any records that have been created in the 2BT Spatial Tools. It provides a graphical user interface (GUI) for viewing and updating records in the Data Tracker. The GUI allows users to make changes to various fields, including 'project_spatial_id', 'project_number', 'in_raw_gdb', 'absolute_path', and 'entry_type'. Additionally, the script supports the creation of duplicate records when updating 'project_number', ensuring data integrity. Changes made through the GUI can be committed to either the Data Tracker Excel file or a Postgres DB table. The script also offers functionality to update associated Raw Data GDB layers and attachment folders.
 
 Usage:
     python path/to/record_reviser.py --gdb /path/to/geodatabase --load [datatracker/database] --save [datatracker/database] --datatracker /path/to/datatracker.xlsx --changes "{key: {field: newvalue, field2: newvalue2...}, key2: {field: newfield}...}"
@@ -37,32 +37,41 @@ import argparse
 import datetime
 import pandas as pd
 
-from PyQt5.QtWidgets import QApplication, QTableWidget, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QTableWidgetItem, QMessageBox
+from PyQt5.QtWidgets import QApplication, QTableWidget, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QTableWidgetItem
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QIcon
 
 from twobilliontoolkit.Logger.logger import log, Colors
 from twobilliontoolkit.SpatialTransformer.Datatracker import Datatracker2BT
 
+
+#========================================================
+# Globals
+#========================================================
+session_added_entries = []
+
 #========================================================
 # Classes
 #========================================================
 class DataTableApp(QWidget):
-    def __init__(self, data: Datatracker2BT, gdb: str = None) -> None:
+    def __init__(self, data: Datatracker2BT, gdb: str = None, filter: dict = None) -> None:
         """
         Initialize the DataTableApp with the provided data.
 
         Args:
             data (Datatracker2BT): An instance of the Datatracker2BT class.
             gdb (str, optional): The path to the gdb that changes will be made to if applicable.
+            filter (dict, optional): The dictionary of filters for the display data.
         """        
         super().__init__()
 
         # Columns that are not editable and the key
-        self.columns_noedit = ['project_spatial_id', 'dropped', 'raw_data_path']
+        self.columns_noedit = ['project_spatial_id', 'created_at']
+        self.columns_to_add = ['project_spatial_id', 'project_number', 'dropped', 'in_raw_gdb', 'absolute_file_path', 'entry_type', 'created_at']
         self.key = 'project_spatial_id'
 
         # Store the original and current dataframes
+        self.filter = filter
         self.refresh_data(data)
         self.gdb = gdb
         
@@ -73,12 +82,15 @@ class DataTableApp(QWidget):
         """
         Initialize the user interface components.
         """
-         # Create the main layout
+        # Create the main layout
         self.layout = QVBoxLayout()
 
         # Create the table and populate it
         self.table = QTableWidget()
         self.populate_table()
+        
+        # Enable sorting for the columns
+        self.table.setSortingEnabled(True)
 
         # Create a QHBoxLayout for buttons
         button_layout = QHBoxLayout()
@@ -119,9 +131,27 @@ class DataTableApp(QWidget):
         self.data = data
         formatted_data = self.format_data(data)
         self.original_dataframe = formatted_data[formatted_data['dropped'] != True]
+  
+        # Filter out the data if there was a filter given
+        if self.filter is not None:
+            for key, value in self.filter.items():
+                if key == "created_at":
+                    date = value.date()
+                    self.original_dataframe = self.original_dataframe[
+                        (self.original_dataframe.created_at.dt.date == date) | 
+                        (self.original_dataframe.project_spatial_id.isin(session_added_entries))
+                    ]
+                else:
+                    self.original_dataframe = self.original_dataframe[self.original_dataframe[key] == value]
+
+        # Drop columns after it has been filtered
+        self.original_dataframe = self.original_dataframe.drop(columns=['dropped', 'created_at'])
+        
+        # Make a working copy of the original dataframe
         self.dataframe = self.original_dataframe.copy()
 
     def format_data(self, data: Datatracker2BT) -> pd.DataFrame:
+        
         """
         Format the raw data into a pandas DataFrame.
 
@@ -176,14 +206,18 @@ class DataTableApp(QWidget):
         Args:
             item (QTableWidgetItem): The changed item in the table.
         """
-        # Check if the changed value is different from the original value
+        # Get the project_spatial_id of the row changed
         row = item.row()
-        col = item.column()
-        edited_value = item.text()
-        original_value = str(self.original_dataframe.iloc[row, col])
+        project_spatial_id = self.table.item(row, 0).text()
+
+        # Get the column name from the horizontal header
+        column_name = self.table.horizontalHeaderItem(item.column()).text()
+
+        # Fetch the original value using project_spatial_id
+        original_value = str(self.original_dataframe.loc[self.original_dataframe[self.key] == project_spatial_id, column_name].values[0])
 
         # Highlight the cell if the value is different
-        if edited_value != original_value:
+        if item.text() != original_value:
             item.setForeground(QColor('red'))
         else:
             item.setForeground(QColor('black'))
@@ -195,31 +229,30 @@ class DataTableApp(QWidget):
         # Dictionary to store changes made in the GUI
         changes_dict = {}
 
-        # Iterate over rows and columns to identify changes
+        # Iterate over rows to identify changes
         for row in range(len(self.dataframe.index)):
+            project_spatial_id = self.table.item(row, 0).text()
             row_changes = {}
 
             for column in range(len(self.dataframe.columns)):
                 item = self.table.item(row, column)
                 if item is not None:
                     edited_value = item.text()
-                    original_value = str(self.original_dataframe.iloc[row, column])
+                    column_name = self.table.horizontalHeaderItem(column).text()
+                    original_value = str(self.original_dataframe.loc[self.original_dataframe[self.key] == project_spatial_id, column_name].values[0])
 
                     # Record changes if the value is different
                     if edited_value != original_value:
-                        row_changes[self.dataframe.columns[column]] = edited_value
+                        row_changes[column_name] = edited_value
 
             if row_changes:
-                # Store changes with project_spatial_id as key
-                project_spatial_id_value = self.dataframe.iat[row, 0]
-                changes_dict[project_spatial_id_value] = row_changes
+                changes_dict[project_spatial_id] = row_changes
 
         # Log the changes
         log(None, Colors.INFO, f'The changes made in the GUI were: {changes_dict}')
 
         # Update the original data with the changes
         for project_spatial_id, changes in changes_dict.items():
-            row_index = self.dataframe[self.dataframe[self.key] == project_spatial_id].index[0]
             for column, value in changes.items():
                 # Explicitly convert 'value' to the appropriate data type
                 if self.original_dataframe[column].dtype == bool:
@@ -233,11 +266,11 @@ class DataTableApp(QWidget):
                 elif self.original_dataframe[column].dtype == float:
                     value = float(value)
 
-                self.original_dataframe.at[row_index, column] = value
+                self.original_dataframe.loc[self.original_dataframe[self.key] == project_spatial_id, column] = value
 
         # Update the records in the original data class
         update_records(self.data, changes_dict, self.gdb)
-        
+
         # Refresh the data being put into the table and reset the table to the current state
         self.refresh_data(self.data)
         self.reset_changes()
@@ -251,10 +284,13 @@ class DataTableApp(QWidget):
 
         # Clear the table
         self.table.clear()
-        
+
         # Reset the dataframe to the original state
         self.dataframe = self.original_dataframe.copy()
 
+        # Reset table sort so no confusion between dataframe and table occurs
+        self.table.sortByColumn(0, Qt.AscendingOrder)
+         
         # Repopulate the table with the original data
         self.populate_table()
 
@@ -301,7 +337,10 @@ def create_duplicate(data: Datatracker2BT, project_spatial_id: str, new_project_
         processed=entry_to_duplicate.get('processed'),
         entry_type=entry_to_duplicate.get('entry_type'),
     )
-
+    
+    # Add new project spatial id's to be included in the table
+    session_added_entries.append(new_project_spatial_id)
+        
     # Set the 'dropped' attribute to True for the original project
     data.set_data(project_spatial_id, dropped=True)
 
@@ -374,21 +413,22 @@ def update_records(data: Datatracker2BT, changes_dict: dict, gdb: str = None) ->
         data.set_data(
             project_spatial_id,
             in_raw_gdb=value.get('in_raw_gdb'),
-            contains_pdf=value.get('contains_pdf'),
-            contains_image=value.get('contains_image')
+            absolute_file_path=value.get('absolute_file_path'),
+            entry_type=value.get('entry_type')
         )
 
     # Save the updated data
     data.save_data(update=True)
     
-def call_record_reviser(data: Datatracker2BT, gdb: str = None, changes: str = None) -> None:
+def call_record_reviser(data: Datatracker2BT, gdb: str = None, filter: dict = None, changes: str = None) -> None:
     """
     Handles calling the record reviser parts so the tool can be used outside of command-line as well.
 
     Args:
         data (Datatracker2BT): An instance of Datatracker2BT.
         gdb (str, optional): The geodatabase path. If provided, updates are applied to the geodatabase.
-        changes (dict, optional): A dictionary containing changes for each project. If provided, no GUI will appear and only process the changes in the dictionary, else a GUI will appear and the user can alter the data as they see fit.
+        filter (dict, optional): A dictionary containing filters for the data to be displayed.
+        changes (str, optional): A string dictionary containing changes for each project. If provided, no GUI will appear and only process the changes in the dictionary, else a GUI will appear and the user can alter the data as they see fit.
     """
     if changes:
         try:
@@ -401,10 +441,11 @@ def call_record_reviser(data: Datatracker2BT, gdb: str = None, changes: str = No
         # If no changes dict is provided, open a PyQt application for data visualization
         try:
             app = QApplication([])
-            window = DataTableApp(data, gdb)
+            window = DataTableApp(data, gdb, filter)
             app.exec_()  
         except RuntimeWarning as error:
             log(None, Colors.INFO, error)
+            
 #========================================================
 # Main
 #========================================================

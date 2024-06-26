@@ -64,7 +64,7 @@ def spatial_transformer(input_path: str, output_path: str, load_from: str, save_
     log_file = os.path.basename(gdb_path).replace('.gdb', f"_Log_{datetime.datetime.now().strftime('%Y-%m-%d')}.txt")
     
     # Initialize a variable for the processor in case an error occurs beforehand
-    spatial_data = None
+    spatial_processor = None
     
     try:       
         # Initialize Parameters class
@@ -72,56 +72,56 @@ def spatial_transformer(input_path: str, output_path: str, load_from: str, save_
         
         # Start the unzip tool 
         setup_parameters.handle_unzip()
-        log(None, Colors.INFO, 'Ripple Unzipple has completed extracted the files.')
+        log(None, Colors.INFO, f'Ripple Unzipple has completed extracted the files. Now starting to create the datatracker entries from the files. Time: {datetime.datetime.now().strftime("%H:%M:%S")}')
 
         # Create the GDB
         setup_parameters.create_gdb()
         
         # Initialize the SpatialData class
-        spatial_data = Processor(setup_parameters)
+        spatial_processor = Processor(setup_parameters)
         
-        # Search for any spatial data and data sheets in the output directory
-        spatial_data.search_for_spatial_data()
-        log(None, Colors.INFO, 'All spatial and aspatial files have been found when searching the output directory. Now starting to process those found spatial files.')
-                
-        # Start the processing
-        spatial_data.process_spatial_files()
-        log(None, Colors.INFO, 'The Processor has completed processing the files into the Geodatabase. Now starting to extract attachments from the Geodatabase.')
-
+        # Search for any spatial data and create an entry in the datatracker for each one
+        spatial_processor.create_datatracker_entries()
+        log(None, Colors.INFO, f'All entries have been created in the datatracker for the aspatial and spatial files. Now starting to process those found spatial files. Time: {datetime.datetime.now().strftime("%H:%M:%S")}')
+        
+        # Go through the dictionary of entries and process them into the output geodatabase
+        spatial_processor.process_entries()
+        log(None, Colors.INFO, f'The Processor has completed processing the files into the Geodatabase. Now starting to extract attachments from the Geodatabase. Time: {datetime.datetime.now().strftime("%H:%M:%S")}')
+        
         # Extract attachments from the Geodatabase
-        spatial_data.extract_attachments()
-        log(None, Colors.INFO, 'The Attachments Seeker has completed extracting the attachments from the geodatabase. Now starting to transfer over the files from the local directory to the specified output.')
+        spatial_processor.extract_attachments()
+        log(None, Colors.INFO, f'The Attachments Seeker has completed extracting the attachments from the geodatabase. Now starting to transfer over the files from the local directory to the specified output. Time: {datetime.datetime.now().strftime("%H:%M:%S")}')
         
         # Move the local files to the specified output
         transfer(
-            spatial_data.params.local_dir,
-            os.path.dirname(spatial_data.params.gdb_path),
-            [os.path.basename(spatial_data.params.gdb_path), os.path.basename(spatial_data.params.datatracker), os.path.basename(spatial_data.params.attachments), spatial_data.params.log[:-4] + '_WARNING.txt', spatial_data.params.log[:-4] + '_ERROR.txt'],
-            spatial_data.params.log
+            spatial_processor.params.local_dir,
+            os.path.dirname(spatial_processor.params.gdb_path),
+            [os.path.basename(spatial_processor.params.gdb_path), os.path.basename(spatial_processor.params.datatracker), os.path.basename(spatial_processor.params.attachments), spatial_processor.params.log[:-4] + '_WARNING.txt', spatial_processor.params.log[:-4] + '_ERROR.txt'],
+            spatial_processor.params.log
         )
-        log(None, Colors.INFO, 'The Network Transfer has completed moving the files from local to the network. Now removing contents from the local directory.')
-                   
-        if not debug:
-            # Remove the local contents
-            shutil.rmtree(setup_parameters.local_dir)
-            os.mkdir(setup_parameters.local_dir)
-            log(None, Colors.INFO, 'Removing contents from the local directory completed. Now saving the changes to the specified data tracker.')
-                   
+        log(None, Colors.INFO, f'The Network Transfer has completed moving the files from local to the network. Now saving the data. Time: {datetime.datetime.now().strftime("%H:%M:%S")}')
+                                      
         # Save the data tracker before returning
-        spatial_data.data.save_data(True if resume else False)
-        log(None, Colors.INFO, 'The changes have successfully been saved to the specified datatracker. Now opening Record Reviser.')
+        spatial_processor.data.save_data(True if resume else False)
+        log(None, Colors.INFO, f'The changes have successfully been saved to the specified datatracker. Now opening Record Reviser. Time: {datetime.datetime.now().strftime("%H:%M:%S")}')
         
         # Open the record reviser
-        call_record_reviser(spatial_data.data, spatial_data.params.gdb_path)
+        call_record_reviser(spatial_processor.data, spatial_processor.params.gdb_path)
         log(None, Colors.INFO, 'The Record Reviser has completed editing any entries and is closing.')
+        
+        if not debug:
+            # Remove the local contents
+            spatial_processor.del_gdb()
+            os.mkdir(setup_parameters.local_dir)
+            log(None, Colors.INFO, f'Removing contents from the local directory completed. Time: {datetime.datetime.now().strftime("%H:%M:%S")}')
             
     except (ValueError, Exception) as error:        
         # Log the error
         log(log_file, Colors.ERROR, traceback.format_exc(), ps_script=ps_script)
         
         # Save the data to the datatracker in case of crashing
-        if spatial_data:
-            spatial_data.data.save_data(True if resume else False)
+        if spatial_processor:
+            spatial_processor.data.save_data(True if resume else False)
             log(None, Colors.INFO, 'A checkpoint has been made at the point of failure.')
         
         exit(1)
@@ -133,7 +133,7 @@ def main():
     """ The main function of the spatial_transformer.py script """
     # Get the start time of the script
     start_time = time.time()
-    log(None, Colors.INFO, 'Tool is starting...')
+    log(None, Colors.INFO, f'Tool is starting... Time: {datetime.datetime.now().strftime("%H:%M:%S")}')
     
     # Initialize the argument parse
     parser = argparse.ArgumentParser(description='Spatial Transformer Tool')
@@ -160,7 +160,7 @@ def main():
                         
     # Get the end time of the script and calculate the elapsed time
     end_time = time.time()
-    log(None, Colors.INFO, 'Tool has completed')
+    log(None, Colors.INFO, f'Tool has completed. Time: {datetime.datetime.now().strftime("%H:%M:%S")}')
     log(None, Colors.INFO, f'Elapsed time: {end_time - start_time:.2f} seconds')
 
 #========================================================

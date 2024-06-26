@@ -333,6 +333,23 @@ class Datatracker2BT(Datatracker):
             None
         )
         
+    def get_highest_suffix(self, project_number: str) -> int:
+        """
+        Get the highest suffix for the given project number in the spatial_project_id field.
+
+        Args:
+            project_number (str): The project number to find the highest suffix for.
+
+        Returns:
+            int: The highest suffix found, or 0 if none are found.
+        """
+        suffixes = [
+            int(key.split('_')[-1])
+            for key in self.data_dict.keys()
+            if self.data_dict[key].get('project_number') == project_number
+        ]
+        return max(suffixes, default=0)
+        
     def create_project_spatial_id(self, project_number: str) -> str:
         """
         Create the next project spatial id for the file
@@ -343,13 +360,13 @@ class Datatracker2BT(Datatracker):
         Returns:
             str: The project spatial id next in line.
         """
-        # Get the number of entries with the specified project number, add one because this is for the next entry
-        result_occurrences = self.count_occurances('project_number', project_number) + 1
+        # Get the next suffix from the project spatial ids from the data entries
+        results_next_id = self.get_highest_suffix(project_number) + 1
         
         # Clean the project number and format to the correct project_spatial_id format
         clean_project_number = project_number.replace('- ', '').replace(' ', '_')
 
-        return clean_project_number + '_' + str(result_occurrences).zfill(2)
+        return clean_project_number + '_' + str(results_next_id).zfill(2)
     
     def load_from_database(self) -> None:
         """
@@ -357,7 +374,7 @@ class Datatracker2BT(Datatracker):
         """
         self.database_connection.connect(self.database_parameters)
 
-        columns = ['project_spatial_id', 'project_number', 'dropped', 'raw_data_path','raw_gdb_path','absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image','extracted_attachments_path', 'editor_tracking_enabled', 'processed', 'entry_type']
+        columns = ['project_spatial_id', 'project_number', 'dropped', 'raw_data_path','raw_gdb_path','absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image','extracted_attachments_path', 'editor_tracking_enabled', 'processed', 'entry_type', 'created_at']
 
         rows = self.database_connection.read(schema=self.database_connection.schema, table=self.database_connection.table, columns=columns)
 

@@ -53,17 +53,24 @@ def merge_gdbs(src_gdb: str, dest_gdb: str, log_path: str = None) -> None:
         # Set the workplace for the source geodatabase
         arcpy.env.workspace = src_gdb
         
-        # Create the gdb if it does not exist
+        # Copy the whole GDB if it does not exist
         if not arcpy.Exists(dest_gdb):
-            arcpy.management.CreateFileGDB(os.path.dirname(dest_gdb), os.path.basename(dest_gdb))
+            if not os.path.exists(os.path.dirname(dest_gdb)):
+                os.mkdir(os.path.dirname(dest_gdb))
+                
+            arcpy.management.Copy(
+                src_gdb,
+                dest_gdb
+            )
+            
+            return
         
         # Get a list of feature classes in the source geodatabase
         feature_classes = arcpy.ListFeatureClasses()
         for feature_class in feature_classes:
             # Skip if already exists in destination
             if arcpy.Exists(os.path.join(dest_gdb, feature_class)):
-                continue
-                        
+                continue        
             arcpy.management.Copy(
                 os.path.join(src_gdb, feature_class),
                 os.path.join(dest_gdb, feature_class)
@@ -131,7 +138,7 @@ def transfer(local_path: str, network_path: str, list_files: list[str] = None, l
             # Transfer files or directories
             if os.path.isdir(src_path):
                 # Merge Geodatabases if destination exists
-                if item.endswith(".gdb") and arcpy.Exists(dest_path):
+                if item.endswith(".gdb"):
                     merge_gdbs(src_path, dest_path, log_path)
                 else:
                     merge_directories(src_path, dest_path, log_path)
