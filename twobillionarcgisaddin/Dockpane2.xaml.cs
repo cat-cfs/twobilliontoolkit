@@ -72,52 +72,5 @@ namespace twobillionarcgisaddin
                 });
             }
         }
-
-        /*private object originalValue; // Store the original value globally
-
-        private void CellBeginningEdit(object sender, DataGridBeginningEditEventArgs e)
-        {
-            // Store the original value when editing begins
-            var selectedItem = SiteMapperDataGrid.SelectedItem;
-            var propertyName = SiteMapperDataGrid.CurrentColumn.SortMemberPath;
-            originalValue = selectedItem.GetType().GetProperty(propertyName).GetValue(selectedItem, null);
-        }
-
-        private void CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
-        {
-            if (e.EditAction == DataGridEditAction.Commit)
-            {
-                // Access the edited cell and apply the desired style or color
-                var editedCell = e.EditingElement as TextBox;
-
-                if (editedCell != null)
-                {
-                    // Get the DataGridCell container for the edited cell
-                    DataGridCell cell = GetCell(e.Row, e.Column);
-
-                    // Get the new value from the edited cell
-                    var newValue = editedCell.Text;
-
-                    // Check if the text has changed
-                    if (originalValue.ToString() != newValue)
-                    {
-                        // Set the background color of the DataGridCell
-                        cell.Foreground = Brushes.Red;
-                    }
-                }
-            }
-        }
-
-        private DataGridCell GetCell(DataGridRow row, DataGridColumn column)
-        {
-            var cellContent = column.GetCellContent(row);
-
-            if (cellContent != null)
-            {
-                return (DataGridCell)cellContent.Parent;
-            }
-
-            return null;
-        }*/
     }
 }

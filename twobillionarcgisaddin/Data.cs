@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Text.Json;
 
 namespace twobillionarcgisaddin
@@ -95,6 +96,22 @@ namespace twobillionarcgisaddin
                 // Add the entry to the list
                 Data.Add(entry);
             }
+        }
+
+        public DataEntry GetDataEntryBySiteID(string siteID)
+        {
+            // Find the DataEntry with the given SiteID
+            return Data.Find(entry => entry.SiteID == siteID);
+        }
+
+        public List<DataEntry> GetDataEntriesByProjectNumber(string projectNumber)
+        {
+            // Return all entries if projectNumber is an empty string, otherwise filter by projectNumber
+            if (string.IsNullOrEmpty(projectNumber))
+            {
+                return Data;
+            }
+            return Data.Where(entry => entry.ProjectNumber == projectNumber).ToList();
         }
     }
 }
