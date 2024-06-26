@@ -512,7 +512,7 @@ namespace twobillionarcgisaddin
         }
 
         // Method to handle the click event of the Send Data button
-        private void SendButtonClicked(object sender, RoutedEventArgs e)
+        private async void SendButtonClicked(object sender, RoutedEventArgs e)
         {
             try
             {
@@ -528,17 +528,26 @@ namespace twobillionarcgisaddin
                 if (mapView == null)
                 {
                     ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("No active map view found.");
+                    this.SendDataButton.IsEnabled = true;
                     return;
                 }
 
-                if (SiteMapper_IsBatch)
+                bool foundGeometryOrCanceled = await SiteMapperCheckGeometryExistInDB(mapView);
+                if (foundGeometryOrCanceled)
+                {
+                    ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Canceled");
+                    this.SendDataButton.IsEnabled = true;
+                    return;
+                }
+
+                /*if (SiteMapper_IsBatch)
                 {
                     SiteMapperSendDataBatch(mapView);
                 }
                 else
                 {
                     SiteMapperSendData(mapView);
-                }
+                }*/
 
 
             }
@@ -1096,6 +1105,21 @@ namespace twobillionarcgisaddin
         }
 
         //
+        private async Task<bool> SiteMapperCheckGeometryExistInDB(MapView mapView)
+        {
+            // Get the first selected feature layer from the active map view
+            FeatureLayer featureLayer = mapView.GetSelectedLayers().OfType<FeatureLayer>().FirstOrDefault();
+            if (featureLayer == null)
+            {
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Please select a feature layer in the Drawing Order and try again.");
+                return false;
+            }
+
+            bool foundGeometry = await ExecuteCheckGeometryExistsToolAsync(featureLayer);
+            return foundGeometry;
+        }
+
+        //
         private async void MatchSiteToEntry(Row row, string columnName)
         {
             string value = (string)row[columnName];
@@ -1349,6 +1373,7 @@ namespace twobillionarcgisaddin
 
             this.SiteMapper_SuccessStatus.Visibility = Visibility.Collapsed;
             this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
+
             return false;
         }
 
@@ -1381,7 +1406,93 @@ namespace twobillionarcgisaddin
 
             this.SiteMapper_SuccessStatus.Visibility = Visibility.Collapsed;
             this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
+
             return false;
+        }
+
+        // Method to execute the Check Geomtry Exists tool asynchronously, returns false if no issues arise
+        private async Task<bool> ExecuteCheckGeometryExistsToolAsync(FeatureLayer featureLayer)
+        {
+            try
+            {
+                // Set the parameters
+                string toolboxPath = this.ArcPythonToolboxPath.Text + "\\CheckGeometryExists";
+                string connectionFile = this.ArcConnectionFilePath.Text;
+                string tableName = this.DatabaseSchema.Text + ".site_geometry";
+
+                // Execute the Python tool and get the result
+                var parameters = Geoprocessing.MakeValueArray(connectionFile, tableName, featureLayer);
+                var returnValue = await Geoprocessing.ExecuteToolAsync(toolboxPath, parameters);
+
+                if (returnValue.IsFailed)
+                {
+                    throw new Exception("The CheckGeometryExists Python tool failed");
+                }
+
+                // A return value of "1" indicates no duplicates were found
+                if (returnValue.ReturnValue == "1")
+                {
+                    return false;
+                }
+
+                // Split by semicolon to get individual lists
+                string[] lists = returnValue.ReturnValue.Split(';');
+
+                // Initialize variables to store parsed values
+                string numberOfOccurrences = "";
+                List<string> allIds = new List<string>();
+                List<string> allSiteIds = new List<string>();
+
+                // Ensure there are enough lists to proceed safely
+                foreach (string listStr in lists)
+                {
+                    // Process each list (assuming it contains the data you need)
+                    string trimmedListStr = listStr.Trim('[', ']');
+                    string[] parts = trimmedListStr.Split(',');
+
+                    // Extract values assuming a specific order (adjust as needed)
+                    if (parts.Length >= 3)
+                    {
+                        numberOfOccurrences = parts[0].Trim();
+
+                        // Collect IDs and SiteIDs
+                        string ids = parts[1].Trim();
+                        string siteIds = parts[2].Trim();
+
+                        // Add to the lists (if more than one)
+                        allIds.Add(ids);
+                        allSiteIds.Add(siteIds);
+                    }
+                }
+
+                // Join multiple IDs and SiteIDs with commas
+                string joinedIds = string.Join(", ", allIds);
+                string joinedSiteIds = string.Join(", ", allSiteIds);
+
+                // Construct the message
+                string message = $"{numberOfOccurrences} Duplicate geometries have been found in the database for the geometry selected:\n" +
+                                 $"     ID's: {joinedIds}\n" +
+                                 $"     SiteID's: {joinedSiteIds}\n\n" +
+                                 "Press OK if you still wish to commit the geometry to the database or Cancel to abort";
+
+
+                // Displaying a message box with OK/Cancel buttons
+                MessageBoxResult buttonResult = ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show(
+                    message, "Warning", MessageBoxButton.OKCancel);
+
+                // Checking the result of the message box
+                if (buttonResult == MessageBoxResult.OK) // OK button was clicked
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions that occur during tool execution
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
+            }
+
+            return true;
         }
 
         // Method to execute the Insert Data tool asynchronously

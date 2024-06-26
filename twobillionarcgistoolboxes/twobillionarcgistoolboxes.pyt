@@ -18,6 +18,7 @@ class Toolbox(object):
             BatchInsertDataTool,
             UpdateDataTool,
             BatchUpdateDataTool,
+            CheckGeometryExists,
             CompleteProjectTool
         ]
 
@@ -42,15 +43,15 @@ class EstablishConnectionTool(object):
         connection_file_param.filter.list = ["SDE"]
 
         # Parameter 2: Table Name
-        table_name_param = arcpy.Parameter(
+        table_param = arcpy.Parameter(
             displayName="Table Name",
-            name="table_name",
+            name="table",
             datatype="DETable",
             parameterType="Required",
             direction="Input"
         )
 
-        return [connection_file_param, table_name_param]
+        return [connection_file_param, table_param]
 
     def isLicensed(self):
         """Set whether the tool is licensed to execute."""
@@ -80,13 +81,13 @@ class EstablishConnectionTool(object):
         try:
             # Get parameters
             connection_file = parameters[0].valueAsText
-            table_name = parameters[1].valueAsText
+            table = parameters[1].valueAsText
 
             # Connect to the enterprise geodatabase
             arcpy.env.workspace = connection_file
 
             # Ping the database to establish connection
-            with arcpy.da.SearchCursor(table_name, "*") as cursor:
+            with arcpy.da.SearchCursor(table, "*") as cursor:
                 pass
 
         except Exception as e:
@@ -116,9 +117,9 @@ class ReadDataTool(object):
         connection_file_param.filter.list = ["SDE"]
 
         # Parameter 2: Table Name
-        table_name_param = arcpy.Parameter(
+        table_param = arcpy.Parameter(
             displayName="Table Name",
-            name="table_name",
+            name="table",
             datatype="DETable",
             parameterType="Required",
             direction="Input"
@@ -133,7 +134,7 @@ class ReadDataTool(object):
             direction="Output"
         )
 
-        return [connection_file_param, table_name_param, output_list]
+        return [connection_file_param, table_param, output_list]
 
     def isLicensed(self):
         """Set whether the tool is licensed to execute."""
@@ -166,13 +167,13 @@ class ReadDataTool(object):
         try:
             # Get parameters
             connection_file = parameters[0].valueAsText
-            table_name = parameters[1].valueAsText
+            table = parameters[1].valueAsText
 
             # Connect to the enterprise geodatabase
             arcpy.env.workspace = connection_file
             
             # Retrieve data from the table using a SearchCursor
-            ret_list = [row for row in arcpy.da.SearchCursor(table_name, "*")]
+            ret_list = [row for row in arcpy.da.SearchCursor(table, "*")]
 
             # Convert the list of rows to a dictionary
             data_dict = {"data": ret_list}
@@ -191,7 +192,7 @@ class ReadDataTool(object):
             arcpy.AddError(f"Error: {str(e)}")
             
         arcpy.AddMessage(f"This tool took {start - time.perf_counter():0.4f} seconds")
-            
+
 class InsertDataTool(object):
     def __init__(self):
         """Define the InsertDataTool class."""
@@ -213,9 +214,9 @@ class InsertDataTool(object):
         connection_file_param.filter.list = ["SDE"]
 
         # Parameter 2: Table Name
-        table_name_param = arcpy.Parameter(
+        table_param = arcpy.Parameter(
             displayName="Table Name",
-            name="table_name",
+            name="table",
             datatype="DETable",
             parameterType="Required",
             direction="Input"
@@ -239,7 +240,7 @@ class InsertDataTool(object):
             direction="Input"
         )
 
-        return [connection_file_param, table_name_param, site_id_param, feature_layer_param]
+        return [connection_file_param, table_param, site_id_param, feature_layer_param]
 
     def isLicensed(self):
         """Set whether the tool is licensed to execute."""
@@ -269,7 +270,7 @@ class InsertDataTool(object):
         try:
             # Get parameters
             connection_file = parameters[0].valueAsText
-            table_name = parameters[1].valueAsText
+            table = parameters[1].valueAsText
             site_id = parameters[2].valueAsText
             feature_layer = parameters[3].value
             
@@ -293,7 +294,7 @@ class InsertDataTool(object):
                     projected_multipolygon = arcpy.Polygon(array_of_polygons, target_Ref)
                     
                     # Construct the SQL query for insertion
-                    sql_insert = f'INSERT INTO {table_name} ("site_id", "geom") VALUES ({site_id}, ST_GeomFromText(\'{projected_multipolygon.WKT}\', 102001))'
+                    sql_insert = f'INSERT INTO {table} ("site_id", "geom") VALUES ({site_id}, ST_GeomFromText(\'{projected_multipolygon.WKT}\', 102001))'
                     egdb_conn.execute(sql_insert)
             
             # Get the feature layer location  
@@ -341,9 +342,9 @@ class BatchInsertDataTool(object):
         connection_file_param.filter.list = ["SDE"]
 
         # Parameter 2: Table Name
-        table_name_param = arcpy.Parameter(
+        table_param = arcpy.Parameter(
             displayName="Table Name",
-            name="table_name",
+            name="table",
             datatype="DETable",
             parameterType="Required",
             direction="Input"
@@ -358,7 +359,7 @@ class BatchInsertDataTool(object):
             direction="Input"
         )
 
-        return [connection_file_param, table_name_param, feature_layer_param]
+        return [connection_file_param, table_param, feature_layer_param]
 
     def isLicensed(self):
         """Set whether the tool is licensed to execute."""
@@ -388,7 +389,7 @@ class BatchInsertDataTool(object):
         try:
             # Get parameters
             connection_file = parameters[0].valueAsText
-            table_name = parameters[1].valueAsText
+            table = parameters[1].valueAsText
             feature_layer = parameters[2].value
             
             # Define the target spatial reference for all features
@@ -413,7 +414,7 @@ class BatchInsertDataTool(object):
                         projected_multipolygon = arcpy.Polygon(array_of_polygons, target_Ref)
                         
                         # Construct the SQL query for insertion
-                        sql_insert = f'INSERT INTO {table_name} ("site_id", "geom") VALUES ({site_id}, ST_GeomFromText(\'{projected_multipolygon.WKT}\', 102001))'
+                        sql_insert = f'INSERT INTO {table} ("site_id", "geom") VALUES ({site_id}, ST_GeomFromText(\'{projected_multipolygon.WKT}\', 102001))'
                         egdb_conn.execute(sql_insert)
 
         except Exception as e:
@@ -443,9 +444,9 @@ class UpdateDataTool(object):
         connection_file_param.filter.list = ["SDE"]
 
         # Parameter 2: Table Name
-        table_name_param = arcpy.Parameter(
+        table_param = arcpy.Parameter(
             displayName="Table Name",
-            name="table_name",
+            name="table",
             datatype="DETable",
             parameterType="Required",
             direction="Input"
@@ -469,7 +470,7 @@ class UpdateDataTool(object):
             direction="Input"
         )
 
-        return [connection_file_param, table_name_param, site_id_param, feature_layer_param]
+        return [connection_file_param, table_param, site_id_param, feature_layer_param]
 
     def isLicensed(self):
         """Set whether the tool is licensed to execute."""
@@ -499,7 +500,7 @@ class UpdateDataTool(object):
         try:
             # Get parameters
             connection_file = parameters[0].valueAsText
-            table_name = parameters[1].valueAsText
+            table = parameters[1].valueAsText
             site_id = parameters[2].valueAsText
             feature_layer = parameters[3].value
 
@@ -514,7 +515,7 @@ class UpdateDataTool(object):
                 egdb_conn = arcpy.ArcSDESQLExecute(connection_file)
                 
                 # Construct the SQL query for updating the entries 
-                sql_update = f'UPDATE {table_name} SET "dropped" = true WHERE "site_id" = {site_id}' 
+                sql_update = f'UPDATE {table} SET "dropped" = true WHERE "site_id" = {site_id}' 
                 egdb_conn.execute(sql_update)
                 
                 # Loop through the selected features in the layer
@@ -527,7 +528,7 @@ class UpdateDataTool(object):
                     projected_multipolygon = arcpy.Polygon(array_of_polygons, target_Ref)
                     
                     # Construct the SQL query for insertion
-                    sql_insert = f'INSERT INTO {table_name} ("site_id", "geom") VALUES ({site_id}, ST_GeomFromText(\'{projected_multipolygon.WKT}\', 102001))'
+                    sql_insert = f'INSERT INTO {table} ("site_id", "geom") VALUES ({site_id}, ST_GeomFromText(\'{projected_multipolygon.WKT}\', 102001))'
                     egdb_conn.execute(sql_insert)
                
             # Get the feature layer location  
@@ -553,7 +554,7 @@ class UpdateDataTool(object):
             arcpy.AddError(f"Error: {str(e)}")
             
         arcpy.AddMessage(f"This tool took {start - time.perf_counter():0.4f} seconds")
-        
+
 class BatchUpdateDataTool(object):
     def __init__(self):
         """Define the BatchUpdateDataTool class."""
@@ -575,9 +576,9 @@ class BatchUpdateDataTool(object):
         connection_file_param.filter.list = ["SDE"]
 
         # Parameter 2: Table Name
-        table_name_param = arcpy.Parameter(
+        table_param = arcpy.Parameter(
             displayName="Table Name",
-            name="table_name",
+            name="table",
             datatype="DETable",
             parameterType="Required",
             direction="Input"
@@ -592,7 +593,7 @@ class BatchUpdateDataTool(object):
             direction="Input"
         )
 
-        return [connection_file_param, table_name_param, feature_layer_param]
+        return [connection_file_param, table_param, feature_layer_param]
 
     def isLicensed(self):
         """Set whether the tool is licensed to execute."""
@@ -622,7 +623,7 @@ class BatchUpdateDataTool(object):
         try:
             # Get parameters
             connection_file = parameters[0].valueAsText
-            table_name = parameters[1].valueAsText
+            table = parameters[1].valueAsText
             feature_layer = parameters[2].value
 
             # Define the target spatial reference for all features
@@ -651,13 +652,13 @@ class BatchUpdateDataTool(object):
             egdb_conn = arcpy.ArcSDESQLExecute(connection_file)
             
             # Construct the SQL query for updating the entries 
-            update_sql = f'UPDATE {table_name} SET "dropped" = true WHERE "site_id" IN ({",".join(str(site_id) for site_id, _ in entries_list)})' 
+            update_sql = f'UPDATE {table} SET "dropped" = true WHERE "site_id" IN ({",".join(str(site_id) for site_id, _ in entries_list)})' 
             egdb_conn.execute(update_sql)
 
             # Loop through the entries_list to perform SQL insertion
             for site_id, geom in entries_list:
                 # Construct the SQL query for insertion
-                insert_sql = f'INSERT INTO {table_name} ("site_id", "geom") VALUES ({site_id}, ST_GeomFromText(\'{geom.WKT}\', 102001))'
+                insert_sql = f'INSERT INTO {table} ("site_id", "geom") VALUES ({site_id}, ST_GeomFromText(\'{geom.WKT}\', 102001))'
                 egdb_conn.execute(insert_sql)
                                
         except Exception as e:
@@ -666,12 +667,12 @@ class BatchUpdateDataTool(object):
             
         arcpy.AddMessage(f"This tool took {start - time.perf_counter():0.4f} seconds")
 
-class CompleteProjectTool(object):
+class CheckGeometryExists(object):
     def __init__(self):
-        """Define the CompleteProjectTool class."""
+        """Define the CheckGeometryExists class."""
         # Tool information
-        self.label = "Complete Project"
-        self.description = "Flag the project entry in the database as completed (looked at and processed) by the analyst and the project is all done in this step."
+        self.label = "Check Geometry Exists"
+        self.description = "Connect to an enterprise geodatabase and check if a geometry already exists."
         self.canRunInBackground = False
 
     def getParameterInfo(self):
@@ -687,24 +688,34 @@ class CompleteProjectTool(object):
         connection_file_param.filter.list = ["SDE"]
 
         # Parameter 2: Table Name
-        table_name_param = arcpy.Parameter(
+        table_param = arcpy.Parameter(
             displayName="Table Name",
-            name="table_name",
+            name="table",
             datatype="DETable",
             parameterType="Required",
             direction="Input"
         )
 
-        # Parameter 3: Project Spatial id
-        project_id_param = arcpy.Parameter(
-            displayName="Project Spatial id",
-            name="project_id",
-            datatype="GPString",
+        # Parameter 3: Feature Layer
+        feature_layer_param = arcpy.Parameter(
+            displayName="Feature Layer",
+            name="feature_layer",
+            datatype="GPFeatureLayer",
             parameterType="Required",
             direction="Input"
         )
+        
+        # Parameter 4: Output
+        output_list = arcpy.Parameter(
+            displayName="Output",
+            name="output",
+            datatype="Variant",
+            parameterType="Derived",
+            direction="Output"
+        )
 
-        return [connection_file_param, table_name_param, project_id_param]
+
+        return [connection_file_param, table_param, feature_layer_param, output_list]
 
     def isLicensed(self):
         """Set whether the tool is licensed to execute."""
@@ -734,7 +745,135 @@ class CompleteProjectTool(object):
         try:
             # Get parameters
             connection_file = parameters[0].valueAsText
-            table_name = parameters[1].valueAsText
+            table = parameters[1].valueAsText
+            feature_layer = parameters[2].value
+
+            # Define the target spatial reference for all features
+            target_Ref = arcpy.SpatialReference(102001)
+
+            # Get all of the selected features' geometries in the layer
+            with arcpy.da.SearchCursor(feature_layer, 'SHAPE@') as cursor:
+
+                # Connect to the enterprise geodatabase
+                arcpy.env.workspace = connection_file
+                egdb_conn = arcpy.ArcSDESQLExecute(connection_file)
+
+                # Loop through the selected features in the layer
+                for row in cursor:                    
+                    # Project the polygon to Canadian Albers (wkid 102001)
+                    polygon_projected = row[0].projectAs(target_Ref)   
+
+                    # Get all parts of the project polygon and construct a new polygon with no z or m-coordinates
+                    array_of_polygons = arcpy.Array(polygon_projected.getPart())
+                    projected_multipolygon = arcpy.Polygon(array_of_polygons, target_Ref)
+                    
+                    # Construct the SQL query for checking the geometries
+                    check_query = f"""
+                        WITH duplicates AS (
+                            SELECT 
+                                id, 
+                                site_id,
+                                geom, 
+                                CAST(COUNT(*) OVER(PARTITION BY geom) AS INTEGER) AS num_occurrences
+                            FROM ONLY {table}
+                            WHERE dropped = false
+                        )
+                        SELECT 
+                            num_occurrences,
+                            id,
+                            site_id
+                        FROM duplicates
+                        WHERE geom = ST_GeomFromText('{projected_multipolygon.WKT}', 102001)
+                        GROUP BY geom, num_occurrences, id, site_id
+                        ORDER BY geom;
+                    """
+                    
+                    # Get the result of the query into a variable
+                    result = egdb_conn.execute(check_query)
+                    
+                    arcpy.AddMessage(result)
+                    
+                    # Set the output parameter with the result data
+                    arcpy.SetParameter(3, result)
+
+                    # Return the JSON data
+                    return result
+                
+        except Exception as e:
+            # Handle and log errors
+            arcpy.AddError(f"Error: {str(e)}")
+
+        arcpy.AddMessage(f"This tool took {start - time.perf_counter():0.4f} seconds")
+
+class CompleteProjectTool(object):
+    def __init__(self):
+        """Define the CompleteProjectTool class."""
+        # Tool information
+        self.label = "Complete Project"
+        self.description = "Flag the project entry in the database as completed (looked at and processed) by the analyst and the project is all done in this step."
+        self.canRunInBackground = False
+
+    def getParameterInfo(self):
+        """Define input parameters for the tool."""
+        # Parameter 1: Enterprise Connection File
+        connection_file_param = arcpy.Parameter(
+            displayName="Enterprise Connection File",
+            name="connection_file",
+            datatype="DEFile",
+            parameterType="Required",
+            direction="Input"
+        )
+        connection_file_param.filter.list = ["SDE"]
+
+        # Parameter 2: Table Name
+        table_param = arcpy.Parameter(
+            displayName="Table Name",
+            name="table",
+            datatype="DETable",
+            parameterType="Required",
+            direction="Input"
+        )
+
+        # Parameter 3: Project Spatial id
+        project_id_param = arcpy.Parameter(
+            displayName="Project Spatial id",
+            name="project_id",
+            datatype="GPString",
+            parameterType="Required",
+            direction="Input"
+        )
+
+        return [connection_file_param, table_param, project_id_param]
+
+    def isLicensed(self):
+        """Set whether the tool is licensed to execute."""
+        return True
+
+    def updateParameters(self, parameters):
+        """Update parameters based on the selected connection file."""
+        if parameters[0].value:
+            connection_file = parameters[0].valueAsText
+            arcpy.env.workspace = connection_file
+
+        return
+
+    def updateMessages(self, parameters):
+        """Modify messages created by internal validation."""
+        return
+
+    def execute(self, parameters, messages):
+        """
+        Connect to the enterprise geodatabase and update data in the specified table.
+
+        Parameters:
+        - parameters: List of input parameters.
+        - messages: List to store messages or errors.
+        """
+        start = time.perf_counter()
+        try:
+            # Get parameters
+            connection_file = parameters[0].valueAsText
+            table = parameters[1].valueAsText
             project_id = parameters[2].valueAsText
             project_id = project_id.replace('proj_', '')
             
@@ -743,7 +882,7 @@ class CompleteProjectTool(object):
             egdb_conn = arcpy.ArcSDESQLExecute(connection_file)
             
             # Construct the SQL query for updating the entry
-            sql_update = f'UPDATE {table_name} SET "analyst_processed" = true WHERE "project_spatial_id" = \'{project_id}\'' 
+            sql_update = f'UPDATE {table} SET "analyst_processed" = true WHERE "project_spatial_id" = \'{project_id}\'' 
             egdb_conn.execute(sql_update)
              
         except Exception as e:
@@ -751,4 +890,3 @@ class CompleteProjectTool(object):
             arcpy.AddError(f"Error: {str(e)}")
             
         arcpy.AddMessage(f"This tool took {start - time.perf_counter():0.4f} seconds")
-        
