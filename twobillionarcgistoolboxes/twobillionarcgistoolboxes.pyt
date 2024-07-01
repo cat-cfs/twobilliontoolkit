@@ -758,6 +758,9 @@ class CheckGeometryExists(object):
                 arcpy.env.workspace = connection_file
                 egdb_conn = arcpy.ArcSDESQLExecute(connection_file)
 
+                # Initialize list to add all results from for each selected feature
+                result_list = []
+
                 # Loop through the selected features in the layer
                 for row in cursor:                    
                     # Project the polygon to Canadian Albers (wkid 102001)
@@ -790,14 +793,17 @@ class CheckGeometryExists(object):
                     
                     # Get the result of the query into a variable
                     result = egdb_conn.execute(check_query)
+            
+                    # Add the result to the return list
+                    result_list.append(result)
                     
-                    arcpy.AddMessage(result)
-                    
-                    # Set the output parameter with the result data
-                    arcpy.SetParameter(3, result)
+                arcpy.AddMessage(result_list)
+                     
+                # Set the output parameter with the result data
+                arcpy.SetParameter(3, result_list)
 
-                    # Return the JSON data
-                    return result
+                # Return the data
+                return result_list
                 
         except Exception as e:
             # Handle and log errors

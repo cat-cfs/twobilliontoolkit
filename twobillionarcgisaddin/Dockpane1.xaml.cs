@@ -1,4 +1,5 @@
-﻿using ArcGIS.Core.CIM;
+﻿using ActiproSoftware.Windows.Extensions;
+using ArcGIS.Core.CIM;
 using ArcGIS.Core.Data;
 using ArcGIS.Core.Data.UtilityNetwork.Trace;
 using ArcGIS.Core.Geometry;
@@ -540,14 +541,14 @@ namespace twobillionarcgisaddin
                     return;
                 }
 
-                /*if (SiteMapper_IsBatch)
+                if (SiteMapper_IsBatch)
                 {
                     SiteMapperSendDataBatch(mapView);
                 }
                 else
                 {
                     SiteMapperSendData(mapView);
-                }*/
+                }
 
 
             }
@@ -1033,20 +1034,23 @@ namespace twobillionarcgisaddin
             {
                 // Get the currently selected features in the map
                 selectedFeatures = mapView.Map.GetSelection();
+            });
 
-                // Check if any features are selected in any layer
-                if (selectedFeatures.Count == 0)
-                {
-                    ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("No features on the map are selected, please select a feature you want to process and try again!");
-                    this.SendDataButton.IsEnabled = true;
-                    this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
-                    return;
-                }
+            // Check if any features are selected in any layer
+            if (selectedFeatures.Count == 0)
+            {
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("No features on the map are selected, please select a feature you want to process and try again!");
+                SendDataButton.IsEnabled = true;
+                SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
+                return;
+            }
 
-                // Get the first layer and its corresponding selected feature OIDs
-                var selectionSet = selectedFeatures.ToDictionary().First();
-                featureLayer = selectionSet.Key as FeatureLayer;
+            // Get the first layer and its corresponding selected feature OIDs
+            var selectionSet = selectedFeatures.ToDictionary().First();
+            featureLayer = selectionSet.Key as FeatureLayer;
 
+            await QueuedTask.Run(() =>
+            {
                 // Check if the feature layer is not null
                 if (featureLayer != null)
                 {
@@ -1435,56 +1439,86 @@ namespace twobillionarcgisaddin
                     return false;
                 }
 
-                // Split by semicolon to get individual lists
-                string[] lists = returnValue.ReturnValue.Split(';');
+                // Split by semicolon to get individual groups
+                string[] listGroups = returnValue.ReturnValue.Split(';');
 
-                // Initialize variables to store parsed values
-                string numberOfOccurrences = "";
-                List<string> allIds = new List<string>();
-                List<string> allSiteIds = new List<string>();
+                // Convert array to list for easier manipulation
+                List<string> listGroupList = new List<string>(listGroups);
 
-                // Ensure there are enough lists to proceed safely
-                foreach (string listStr in lists)
+                for (int index = 0; index < listGroupList.Count; index++)
                 {
-                    // Process each list (assuming it contains the data you need)
-                    string trimmedListStr = listStr.Trim('[', ']');
-                    string[] parts = trimmedListStr.Split(',');
+                    string group = listGroupList[index];
 
-                    // Extract values assuming a specific order (adjust as needed)
-                    if (parts.Length >= 3)
+                    // Trim trailing ellipses if present
+                    string trimmedGroup = group.Trim('[', ']', ' ', '.', ',');
+
+                    // Split by semicolon to get individual lists within the group
+                    string[] lists = trimmedGroup.Split("], [");
+
+                    // Initialize variables to store parsed values
+                    string numberOfOccurrences = "";
+                    List<string> allIds = new List<string>();
+                    List<string> allSiteIds = new List<string>();
+
+                    foreach (string listStr in lists)
                     {
-                        numberOfOccurrences = parts[0].Trim();
+                        // Trim brackets and split by comma
+                        string trimmedListStr = listStr.Trim('[', ']');
+                        string[] parts = trimmedListStr.Split(',');
 
-                        // Collect IDs and SiteIDs
-                        string ids = parts[1].Trim();
-                        string siteIds = parts[2].Trim();
-
-                        // Add to the lists (if more than one)
-                        allIds.Add(ids);
-                        allSiteIds.Add(siteIds);
+                        // Ensure at least three parts (assuming format [number, id, siteId])
+                        if (parts.Length >= 3)
+                        {
+                            // Extract values
+                            numberOfOccurrences = parts[0].Trim();
+                            allIds.Add(parts[1].Trim());
+                            allSiteIds.Add(parts[2].Trim());                           
+                        }
                     }
+
+                    // Join multiple IDs and SiteIDs with commas
+                    string joinedIds = string.Join(", ", allIds);
+                    string joinedSiteIds = string.Join(", ", allSiteIds);
+
+                    // Construct the message for each feature
+                    string message = $"{numberOfOccurrences} Duplicate geometries have been found in the database for the geometry selected:\n" +
+                                     $"     Database ID's: {joinedIds}\n" +
+                                     $"     Database SiteID's: {joinedSiteIds}\n\n" +
+                                     "Press OK if you still wish to commit the geometry to the database or Cancel to abort";
+
+                    IReadOnlyList<long> list = new List<long>();
+                    Selection selection = null;
+
+                    // Get the selected entries object ID's
+                    await QueuedTask.Run(() =>
+                    {
+                        list = featureLayer.GetSelection().GetObjectIDs();
+                        selection = featureLayer.GetSelection();
+                    });
+
+                    // Show message box for each feature
+                    MessageBoxResult buttonResult = ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show(
+                        message, $"ArcGIS ID: {list[index]} Warning", MessageBoxButton.OKCancel);
+
+                    // Checking the result of the message box
+                    if (buttonResult != MessageBoxResult.OK) // OK button was clicked
+                    {
+                        // Remove the selected entry from the map
+                        await QueuedTask.Run(() =>
+                        {
+                            selection.Remove(new List<long> { list[index] });
+                            featureLayer.SetSelection(selection);
+                        });
+
+                        // Remove the group from listGroups and decrement index
+                        listGroupList.RemoveAt(index);
+                        index--;
+                    }
+                    
                 }
 
-                // Join multiple IDs and SiteIDs with commas
-                string joinedIds = string.Join(", ", allIds);
-                string joinedSiteIds = string.Join(", ", allSiteIds);
-
-                // Construct the message
-                string message = $"{numberOfOccurrences} Duplicate geometries have been found in the database for the geometry selected:\n" +
-                                 $"     ID's: {joinedIds}\n" +
-                                 $"     SiteID's: {joinedSiteIds}\n\n" +
-                                 "Press OK if you still wish to commit the geometry to the database or Cancel to abort";
-
-
-                // Displaying a message box with OK/Cancel buttons
-                MessageBoxResult buttonResult = ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show(
-                    message, "Warning", MessageBoxButton.OKCancel);
-
-                // Checking the result of the message box
-                if (buttonResult == MessageBoxResult.OK) // OK button was clicked
-                {
-                    return false;
-                }
+                return false;
+                
             }
             catch (Exception ex)
             {
