@@ -67,7 +67,7 @@ class DataTableApp(QWidget):
 
         # Columns that are not editable and the key
         self.columns_noedit = ['project_spatial_id', 'created_at']
-        self.columns_to_add = ['project_spatial_id', 'project_number', 'dropped', 'in_raw_gdb', 'absolute_file_path', 'entry_type', 'created_at']
+        self.columns_to_add = ['project_spatial_id', 'project_number', 'in_raw_gdb', 'absolute_file_path', 'entry_type']
         self.key = 'project_spatial_id'
 
         # Store the original and current dataframes
@@ -132,20 +132,33 @@ class DataTableApp(QWidget):
         formatted_data = self.format_data(data)
         self.original_dataframe = formatted_data[formatted_data['dropped'] != True]
   
+        conditions = []
+        # combined_condition = 
+
         # Filter out the data if there was a filter given
         if self.filter is not None:
             for key, value in self.filter.items():
                 if key == "created_at":
                     date = value.date()
-                    self.original_dataframe = self.original_dataframe[
+                    condition = (
                         (self.original_dataframe.created_at.dt.date == date) | 
-                        (self.original_dataframe.project_spatial_id.isin(session_added_entries))
-                    ]
+                        (pd.isna(self.original_dataframe.created_at))
+                    )
                 else:
-                    self.original_dataframe = self.original_dataframe[self.original_dataframe[key] == value]
+                    condition = (self.original_dataframe[key] == value)
+                
+                conditions.append(condition)
 
-        # Drop columns after it has been filtered
-        self.original_dataframe = self.original_dataframe.drop(columns=['dropped', 'created_at'])
+            # Combine all conditions using & (and) operator
+            combined_condition = conditions[0]
+            for condition in conditions[1:]:
+                combined_condition &= condition
+
+        # Always add the condition for project_spatial_id
+        combined_condition |= self.original_dataframe.project_spatial_id.isin(session_added_entries)
+
+        # Apply the combined condition to the DataFrame
+        self.original_dataframe = self.original_dataframe[combined_condition]
         
         # Make a working copy of the original dataframe
         self.dataframe = self.original_dataframe.copy()
@@ -174,21 +187,24 @@ class DataTableApp(QWidget):
         """
         Populate the table with data from the dataframe.
         """
+        # Filter the dataframe to include only the columns_to_add
+        dataframe_filtered = self.dataframe[self.columns_to_add]
+        
         # Set the number of columns and rows in the table
-        self.table.setColumnCount(len(self.dataframe.columns))
-        self.table.setRowCount(len(self.dataframe))
+        self.table.setColumnCount(len(dataframe_filtered.columns))
+        self.table.setRowCount(len(dataframe_filtered))
         
         # Set headers in the table
-        headers = [str(header) for header in self.dataframe.columns]
+        headers = [str(header) for header in dataframe_filtered.columns]
         self.table.setHorizontalHeaderLabels(headers)
 
         # Populate each cell in the table with corresponding data
-        for i in range(len(self.dataframe.index)):
-            for j in range(len(self.dataframe.columns)):
-                item = QTableWidgetItem(str(self.dataframe.iloc[i, j]))
+        for i in range(len(dataframe_filtered.index)):
+            for j in range(len(dataframe_filtered.columns)):
+                item = QTableWidgetItem(str(dataframe_filtered.iloc[i, j]))
 
                 # Set flags for non-editable columns
-                if self.dataframe.columns[j] in self.columns_noedit:
+                if dataframe_filtered.columns[j] in self.columns_noedit:
                     item.setFlags(item.flags() & ~Qt.ItemIsEditable | Qt.ItemIsSelectable)
 
                 self.table.setItem(i, j, item) 
