@@ -1448,6 +1448,10 @@ namespace twobillionarcgisaddin
                 for (int index = 0; index < listGroupList.Count; index++)
                 {
                     string group = listGroupList[index];
+                    if (group == "1")
+                    {
+                        continue;
+                    }
 
                     // Trim trailing ellipses if present
                     string trimmedGroup = group.Trim('[', ']', ' ', '.', ',');
