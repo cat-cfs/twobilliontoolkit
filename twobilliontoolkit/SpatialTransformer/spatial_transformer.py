@@ -106,9 +106,10 @@ def spatial_transformer(input_path: str, output_path: str, load_from: str, save_
         log(None, Colors.INFO, f'The changes have successfully been saved to the specified datatracker. Now opening Record Reviser. Time: {datetime.datetime.now().strftime("%H:%M:%S")}')
         
         # Open the record reviser
-        call_record_reviser(spatial_processor.data, spatial_processor.params.gdb_path)
+        filter = {'created_at': datetime.datetime.now()}
+        call_record_reviser(spatial_processor.data, spatial_processor.params.gdb_path, filter)
         log(None, Colors.INFO, 'The Record Reviser has completed editing any entries and is closing.')
-        
+
         if not debug:
             # Remove the local contents
             spatial_processor.del_gdb()
