@@ -148,11 +148,11 @@ class Parameters:
             masterdata = pd.read_excel(master_datasheet)
             
             # Extra validation on master data to check it has project number column
-            if 'Project Number' not in masterdata.columns:
-                raise ValueError(f"The column 'Project Number' does not exist in the master data.")
+            if 'BT_Legacy_Project_ID__c' not in masterdata.columns:
+                raise ValueError(f"The column 'BT_Legacy_Project_ID__c' does not exist in the master data.")
             
             # Convert masterdata to a list of strings
-            return masterdata['Project Number'].unique().tolist()
+            return masterdata['BT_Legacy_Project_ID__c'].unique().tolist()
         
         # Create database object
         database_connection = Database()
