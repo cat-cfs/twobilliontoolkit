@@ -126,32 +126,35 @@ class Processor:
                     project_spatial_id = self.create_entry(file_path, file_path)
                       
                 elif lowercase_file.endswith(('.kml', '.kmz')):
-                    contain_point = False
-                    contain_polygon = False
-                    contain_linestring = False
-                    layers = fiona.listlayers(file_path) 
+                    try:
+                        contain_point = False
+                        contain_polygon = False
+                        contain_linestring = False
+                        layers = fiona.listlayers(file_path) 
 
-                    # Iterate through layers and check their geometry type
-                    for layer in layers:
-                        with fiona.open(file_path, 'r', driver='LIBKML', layer=layer) as src:
-                            for feat in src:
-                                if contain_point and contain_polygon and contain_linestring:
-                                    break
-                                            
-                                geom_type = feat.geometry.type
-                                if geom_type == 'Point':
-                                    contain_point = True
-                                elif geom_type == 'Polygon':
-                                    contain_polygon = True
-                                elif geom_type == 'LineString':
-                                    contain_linestring = True
-                                    
-                    if contain_point:
-                        project_spatial_id = self.create_entry(file_path, f"{file_path}\Points")
-                    if contain_polygon:
-                        project_spatial_id = self.create_entry(file_path, f"{file_path}\Polygons")
-                    if contain_linestring:
-                        project_spatial_id = self.create_entry(file_path, f"{file_path}\Lines")
+                        # Iterate through layers and check their geometry type
+                        for layer in layers:
+                            with fiona.open(file_path, 'r', driver='LIBKML', layer=layer) as src:
+                                for feat in src:
+                                    if contain_point and contain_polygon and contain_linestring:
+                                        break
+                                                
+                                    geom_type = feat.geometry.type
+                                    if geom_type == 'Point':
+                                        contain_point = True
+                                    elif geom_type == 'Polygon':
+                                        contain_polygon = True
+                                    elif geom_type == 'LineString':
+                                        contain_linestring = True
+                                        
+                        if contain_point:
+                            project_spatial_id = self.create_entry(file_path, f"{file_path}\Points")
+                        if contain_polygon:
+                            project_spatial_id = self.create_entry(file_path, f"{file_path}\Polygons")
+                        if contain_linestring:
+                            project_spatial_id = self.create_entry(file_path, f"{file_path}\Lines")
+                    except Exception as error:
+                        log(self.params.log, Colors.ERROR, f'KML/KMZ file: {file_path} has encountered an error when making a datatracker entry. {error}')
                                             
                 elif lowercase_file.endswith('.geojson'):
                     project_spatial_id = self.create_entry(file_path, file_path)
@@ -280,7 +283,7 @@ class Processor:
                     for layer in layers:
                         # Read each layer into a temporary GeoDataFrame
                         layer_gdb = gpd.read_file(entry_absolute_path, driver='LIBKML', layer=layer)
-                                                                        
+                                               
                         # Check if the temporary GeoDataFrame is empty before concatenating
                         if not layer_gdb.empty:
                             data = pd.concat([data, layer_gdb], ignore_index=True)
@@ -293,6 +296,10 @@ class Processor:
                     for col in data.select_dtypes(include=['datetime64[ns]', 'datetime64[ns, UTC]']).columns:
                         data[col] = pd.to_datetime(data[col], utc=True, errors='coerce').dt.strftime('%Y-%m-%d')
 
+                    # Check if 'timestamp' column exists
+                    if 'timestamp' in data.columns:
+                        data['timestamp'] = pd.to_datetime(data['timestamp'], utc=True, errors='coerce').dt.strftime('%Y-%m-%d')
+                    
                     # Determine the path for raw data and entry basename
                     raw_data_path = self.data.data_dict[entry].get('raw_data_path')
                     entry_data_basename = os.path.basename(raw_data_path)
