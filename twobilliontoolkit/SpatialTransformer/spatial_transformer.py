@@ -37,7 +37,7 @@ from twobilliontoolkit.Logger.logger import log, Colors
 from twobilliontoolkit.SpatialTransformer.Parameters import Parameters
 from twobilliontoolkit.SpatialTransformer.Processor import Processor
 from twobilliontoolkit.RecordReviser.record_reviser import call_record_reviser
-from twobilliontoolkit.SpatialTransformer.network_transfer import transfer
+from twobilliontoolkit.NetworkTransfer.network_transfer import transfer
        
 #========================================================
 # Entry Function

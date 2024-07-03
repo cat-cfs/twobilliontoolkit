@@ -144,9 +144,9 @@ do {
         }
         "7" {
             Write-Host "Running Network Transfer Independently..."
-            Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\network_transfer.py" "$local_dir_path" "$gdb_output" --files $transfer_files
+            Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\NetworkTransfer\network_transfer.py" "$local_dir_path" "$gdb_output" --files $transfer_files
             Write-Host
-            & $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\network_transfer.py" "$local_dir_path" "$gdb_output" --files $transfer_files
+            & $python_exe "$toolkit_dir\twobilliontoolkit\NetworkTransfer\network_transfer.py" "$local_dir_path" "$gdb_output" --files $transfer_files
             Write-Host
             Write-Host "Network Transfer has completed its processing!"
             Pause

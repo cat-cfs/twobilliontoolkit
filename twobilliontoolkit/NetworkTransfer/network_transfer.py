@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #~-~ encoding: utf-8 ~-~
-# twobilliontoolkit/SpatialTransformer/network_transfer.py
+# twobilliontoolkit/NetworkTransfer/network_transfer.py
 #========================================================
 # Created By:       Anthony Rodway
 # Email:            anthony.rodway@nrcan-rncan.gc.ca
@@ -11,7 +11,7 @@
 # File Header
 #========================================================
 """
-File: twobilliontoolkit/SpatialTransformer/network_transfer.py
+File: twobilliontoolkit/NetworkTransfer/network_transfer.py
 Created By:       Anthony Rodway
 Email:            anthony.rodway@nrcan-rncan.gc.ca
 Creation Date:    Fri March 29 02:30:00 PST 2024
