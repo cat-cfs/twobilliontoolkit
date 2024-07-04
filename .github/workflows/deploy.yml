@@ -9,6 +9,7 @@ on:
     branches: 
       - main
       - master
+      - Documentation
     paths:
       - 'docs/**'    # Trigger on changes in the docs folder
       - 'mkdocs.yml' # Trigger on changes to mkdocs.yml
@@ -17,6 +18,7 @@ on:
     branches: 
       - main
       - master
+      - Documentation
     paths:
       - 'docs/**'    # Trigger on changes in the docs folder
       - 'mkdocs.yml' # Trigger on changes to mkdocs.yml
