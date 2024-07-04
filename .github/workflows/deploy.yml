@@ -87,4 +87,4 @@ jobs:
 
       # Deploy the MkDocs documentation to GitHub Pages
       - name: Configure GitHub Pages
-        run: mkdocs gh-deploy --force
+        run: mkdocs gh-deploy --force --config-file twobilliontoolkit/mkdocs.yml
