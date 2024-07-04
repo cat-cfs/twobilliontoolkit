@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>GeoAttachmentSeeker - TwoBillionToolkit Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../assets/_mkdocstrings.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "GeoAttachmentSeeker";
+        var mkdocs_page_input_path = "pages\\GeoAttachmentSeeker.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> TwoBillionToolkit Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">TwoBillionToolkit Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">TwobillionToolkit Pages</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" >SpatialTransformer</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../SpatialTransformer/Database/">Database</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../SpatialTransformer/Datatracker/">Datatracker</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../SpatialTransformer/Parameters/">Parameters</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../SpatialTransformer/Processor/">Processor</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../SpatialTransformer/SpatialTransformer/">SpatialTransformer</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">GeoAttachmentSeeker</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#twobilliontoolkit.GeoAttachmentSeeker.geo_attachment_seeker">geo_attachment_seeker</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#twobilliontoolkit.GeoAttachmentSeeker.geo_attachment_seeker.find_attachments">find_attachments</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#twobilliontoolkit.GeoAttachmentSeeker.geo_attachment_seeker.main">main</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#twobilliontoolkit.GeoAttachmentSeeker.geo_attachment_seeker.process_attachment">process_attachment</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../Logger/">Logger</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../NetworkTransfer/">NetworkTransfer</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../RecordReviser/">RecordReviser</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../RippleUnzipple/">RippleUnzipple</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">TwoBillionToolkit Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">TwobillionToolkit Pages</li>
+      <li class="breadcrumb-item active">GeoAttachmentSeeker</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="geoattachmentseeker">GeoAttachmentSeeker</h1>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<a id="twobilliontoolkit.GeoAttachmentSeeker.geo_attachment_seeker"></a>
+    <div class="doc doc-contents first">
+
+      <p>File: twobilliontoolkit/GeoAttachmentSeeker/geo_attachment_seeker.py
+Created By:       Anthony Rodway
+Email:            anthony.rodway@nrcan-rncan.gc.ca
+Creation Date:    Fri January 05 08:30:00 PST 2024
+Organization:     Natural Resources of Canada
+Team:             Carbon Accounting Team</p>
+
+
+<details class="description" open>
+  <summary>Description</summary>
+  <p>The script identifies and processes attachment tables within the specified GDB, filtering out non-attachment tables. It then extracts attachment files from each table and exports them to a specified output directory. The attachments are exported to a directory structure organized by project IDs. Each attachment file is named with a prefix (e.g., "ATT{attachment_id}_") to distinguish them.</p>
+</details>
+
+<details class="usage" open>
+  <summary>Usage</summary>
+  <p>python path/to/geo_attachment_seeker.py gdb_path output_path</p>
+</details>
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="twobilliontoolkit.GeoAttachmentSeeker.geo_attachment_seeker.find_attachments" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">find_attachments</span><span class="p">(</span><span class="n">gdb_path</span><span class="p">,</span> <span class="n">output_path</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Searches through the GDB and finds all relevant attachments.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>gdb_path</code></b>
+                  (<code>str</code>)
+              –
+              <div class="doc-md-description">
+                <p>Path to input GDB.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>output_path</code></b>
+                  (<code>str</code>)
+              –
+              <div class="doc-md-description">
+                <p>Path to export the attachments to.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Returns:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+<b><code>dict</code></b>(                  <code>dict</code>
+)              –
+              <div class="doc-md-description">
+                <p>A dictionary of key-value pairs tying each project ID that had attachments to the path they were extracted to.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+            <details class="quote">
+              <summary>Source code in <code>twobilliontoolkit\GeoAttachmentSeeker\geo_attachment_seeker.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span>
+<span class="normal">55</span>
+<span class="normal">56</span>
+<span class="normal">57</span>
+<span class="normal">58</span>
+<span class="normal">59</span>
+<span class="normal">60</span>
+<span class="normal">61</span>
+<span class="normal">62</span>
+<span class="normal">63</span>
+<span class="normal">64</span>
+<span class="normal">65</span>
+<span class="normal">66</span>
+<span class="normal">67</span>
+<span class="normal">68</span>
+<span class="normal">69</span>
+<span class="normal">70</span>
+<span class="normal">71</span>
+<span class="normal">72</span>
+<span class="normal">73</span>
+<span class="normal">74</span>
+<span class="normal">75</span>
+<span class="normal">76</span>
+<span class="normal">77</span>
+<span class="normal">78</span>
+<span class="normal">79</span>
+<span class="normal">80</span>
+<span class="normal">81</span>
+<span class="normal">82</span>
+<span class="normal">83</span>
+<span class="normal">84</span>
+<span class="normal">85</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">find_attachments</span><span class="p">(</span><span class="n">gdb_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">output_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Searches through the GDB and finds all relevant attachments.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        gdb_path (str): Path to input GDB.</span>
+<span class="sd">        output_path (str): Path to export the attachments to.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: A dictionary of key-value pairs tying each project ID that had attachments to the path they were extracted to.</span>
+<span class="sd">    &quot;&quot;&quot;</span> 
+    <span class="c1"># validate the gdb_path</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gdb_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">gdb_path</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;The provided gdb_path must be a non-empty string.&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">gdb_path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.gdb&#39;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;The provided gdb_path must be of type &quot;.gdb&quot;.&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">gdb_path</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;The provided gdb_path path does not exist.&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Set the arc environment</span>
+    <span class="n">arcpy</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">workspace</span> <span class="o">=</span> <span class="n">gdb_path</span>
+
+    <span class="c1"># Work all attach tables</span>
+    <span class="n">attachment_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">arcpy</span><span class="o">.</span><span class="n">ListTables</span><span class="p">():</span> 
+        <span class="c1"># Filter out non attachment tables   </span>
+        <span class="k">if</span> <span class="s1">&#39;__ATTACH&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">table</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># Build the output project paths</span>
+        <span class="n">project_id</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;__ATTACH&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">output_project_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">project_id</span><span class="p">))</span>
+        <span class="n">table_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">gdb_path</span><span class="p">,</span> <span class="n">table</span><span class="p">)</span>
+
+        <span class="c1"># Call the processing function</span>
+        <span class="n">process_attachment</span><span class="p">(</span><span class="n">output_project_path</span><span class="p">,</span> <span class="n">table_path</span><span class="p">)</span>
+
+        <span class="c1"># Add to the dictionary</span>
+        <span class="n">attachment_dict</span><span class="p">[</span><span class="n">project_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">output_project_path</span>
+
+    <span class="c1"># Return the attachement dictionary</span>
+    <span class="k">return</span> <span class="n">attachment_dict</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="twobilliontoolkit.GeoAttachmentSeeker.geo_attachment_seeker.main" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">main</span><span class="p">()</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+      <p>The main function of the geo_attachment_seeker.py script</p>
+
+            <details class="quote">
+              <summary>Source code in <code>twobilliontoolkit\GeoAttachmentSeeker\geo_attachment_seeker.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">main</span><span class="p">():</span><span class="c1">#</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; The main function of the geo_attachment_seeker.py script &quot;&quot;&quot;</span>
+    <span class="c1"># Get the start time of the script</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">log</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">Colors</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="s1">&#39;Tool is starting...&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Initialize the argument parse</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Define command-line arguments</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;gdb_path&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Input GDB path&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;output_path&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Where to export the attachments to&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Parse the command-line arguments</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="c1"># Access the values using the attribute notation</span>
+    <span class="n">gdb_path</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">gdb_path</span>
+    <span class="n">output_path</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">output_path</span>
+
+    <span class="c1"># Call the function to perform the processing</span>
+    <span class="n">find_attachments</span><span class="p">(</span><span class="n">gdb_path</span><span class="p">,</span> <span class="n">output_path</span><span class="p">)</span>
+
+    <span class="c1"># Get the end time of the script and calculate the elapsed time</span>
+    <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">log</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">Colors</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="s1">&#39;Tool has completed&#39;</span><span class="p">)</span>
+    <span class="n">log</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">Colors</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Elapsed time: </span><span class="si">{</span><span class="n">end_time</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start_time</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1"> seconds&#39;</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="twobilliontoolkit.GeoAttachmentSeeker.geo_attachment_seeker.process_attachment" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">process_attachment</span><span class="p">(</span><span class="n">output_project_path</span><span class="p">,</span> <span class="n">table_path</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Processes any attachments handed to it.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>output_project_path</code></b>
+                  (<code>str</code>)
+              –
+              <div class="doc-md-description">
+                <p>The path where the attachments will be exported.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>table_path</code></b>
+                  (<code>str</code>)
+              –
+              <div class="doc-md-description">
+                <p>The path to a __ATTACH table in a GDB.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+            <details class="quote">
+              <summary>Source code in <code>twobilliontoolkit\GeoAttachmentSeeker\geo_attachment_seeker.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">process_attachment</span><span class="p">(</span><span class="n">output_project_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">table_path</span> <span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Processes any attachments handed to it.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        output_project_path (str): The path where the attachments will be exported.</span>
+<span class="sd">        table_path (str): The path to a __ATTACH table in a GDB.</span>
+<span class="sd">    &quot;&quot;&quot;</span>                
+    <span class="c1"># Check if the directory exists, if not, create it</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">output_project_path</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">output_project_path</span><span class="p">)</span>
+
+    <span class="c1"># Extract the attachment files from each table</span>
+    <span class="c1"># Credits: A Modified version of the method Andrea found at https://support.esri.com/en-us/knowledge-base/how-to-batch-export-attachments-from-a-feature-class-in-000011912</span>
+    <span class="k">with</span> <span class="n">arcpy</span><span class="o">.</span><span class="n">da</span><span class="o">.</span><span class="n">SearchCursor</span><span class="p">(</span><span class="n">table_path</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;DATA&#39;</span><span class="p">,</span> <span class="s1">&#39;ATT_NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;ATTACHMENTID&#39;</span><span class="p">])</span> <span class="k">as</span> <span class="n">cursor</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">attachment</span><span class="p">,</span> <span class="n">att_name</span><span class="p">,</span> <span class="n">attachment_id</span> <span class="ow">in</span> <span class="n">cursor</span><span class="p">:</span>
+            <span class="n">filenum</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;ATT</span><span class="si">{</span><span class="n">attachment_id</span><span class="si">}</span><span class="s2">_&quot;</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_project_path</span><span class="p">,</span> <span class="n">filenum</span> <span class="o">+</span> <span class="n">att_name</span><span class="p">)</span>
+
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+                <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">attachment</span><span class="o">.</span><span class="n">tobytes</span><span class="p">())</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../SpatialTransformer/SpatialTransformer/" class="btn btn-neutral float-left" title="SpatialTransformer"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../Logger/" class="btn btn-neutral float-right" title="Logger">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../SpatialTransformer/SpatialTransformer/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../Logger/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

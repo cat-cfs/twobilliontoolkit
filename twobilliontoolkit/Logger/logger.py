@@ -95,11 +95,11 @@ def log(file_path: str = '', type: str = Colors.ERROR, message: str = '', suppre
 
 def generate_header(file_path: str, ps_script: str = None):
     """
-    _summary_
+    Generate the header for the log file.
 
     Args:
-        file_path (str): _description_
-        ps_script (str, optional): The path location of the script to run spatial transformer.
+        file_path (str): Path to the log file.
+        ps_script (str, optional): The path location of the script to run spatial transformer. Defaults to an empty string.
     """
     try:
         with open(file_path, 'a') as log_file:

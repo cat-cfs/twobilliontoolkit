@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Logger - TwoBillionToolkit Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../assets/_mkdocstrings.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Logger";
+        var mkdocs_page_input_path = "pages\\Logger.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> TwoBillionToolkit Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">TwoBillionToolkit Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">TwobillionToolkit Pages</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" >SpatialTransformer</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../SpatialTransformer/Database/">Database</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../SpatialTransformer/Datatracker/">Datatracker</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../SpatialTransformer/Parameters/">Parameters</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../SpatialTransformer/Processor/">Processor</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../SpatialTransformer/SpatialTransformer/">SpatialTransformer</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../GeoAttachmentSeeker/">GeoAttachmentSeeker</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Logger</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#twobilliontoolkit.Logger.logger">logger</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#twobilliontoolkit.Logger.logger.generate_header">generate_header</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#twobilliontoolkit.Logger.logger.log">log</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../NetworkTransfer/">NetworkTransfer</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../RecordReviser/">RecordReviser</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../RippleUnzipple/">RippleUnzipple</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">TwoBillionToolkit Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">TwobillionToolkit Pages</li>
+      <li class="breadcrumb-item active">Logger</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="logger">Logger</h1>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<a id="twobilliontoolkit.Logger.logger"></a>
+    <div class="doc doc-contents first">
+
+      <p>File: twobilliontoolkit/Logger/logger.py
+Created By:       Anthony Rodway
+Email:            anthony.rodway@nrcan-rncan.gc.ca
+Creation Date:    Thur January 18 12:00:00 PST 2024
+Organization:     Natural Resources of Canada
+Team:             Carbon Accounting Team</p>
+
+
+<details class="description" open>
+  <summary>Description</summary>
+  <p>The module holds the function that handles the logging for the package, the user may provide a log path so that each warning and error gets written to that, otherwise everything will be written to the terminal.</p>
+</details>
+
+<details class="usage" open>
+  <summary>Usage</summary>
+  <p>Not callable from the command-line</p>
+</details>
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="twobilliontoolkit.Logger.logger.generate_header" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">generate_header</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">ps_script</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Generate the header for the log file.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>file_path</code></b>
+                  (<code>str</code>)
+              –
+              <div class="doc-md-description">
+                <p>Path to the log file.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>ps_script</code></b>
+                  (<code>str</code>, default:
+                      <code>None</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>The path location of the script to run spatial transformer. Defaults to an empty string.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+            <details class="quote">
+              <summary>Source code in <code>twobilliontoolkit\Logger\logger.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">generate_header</span><span class="p">(</span><span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ps_script</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate the header for the log file.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        file_path (str): Path to the log file.</span>
+<span class="sd">        ps_script (str, optional): The path location of the script to run spatial transformer. Defaults to an empty string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">log_file</span><span class="p">:</span>
+            <span class="n">log_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;___________________________________________________________</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">log_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span><span class="si">}</span><span class="s2"> file header</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">log_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;___________________________________________________________</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">log_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;User: </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">getlogin</span><span class="p">()</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">log_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Log Header Created: &quot;</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y/%m/</span><span class="si">%d</span><span class="s2"> %H:%M:%S&quot;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">))</span>
+            <span class="n">log_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Script Path: </span><span class="si">{</span><span class="n">ps_script</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">log_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;twobilliontoolkit package version: </span><span class="si">{</span><span class="n">version</span><span class="p">(</span><span class="s1">&#39;twobilliontoolkit&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">log_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;___________________________________________________________</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="twobilliontoolkit.Logger.logger.log" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">log</span><span class="p">(</span><span class="n">file_path</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">Colors</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">suppress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ps_script</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">project_id</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Log messages with colored tags and timestamps.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>file_path</code></b>
+                  (<code>str</code>, default:
+                      <code>&#39;&#39;</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Path to the log file.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>type</code></b>
+                  (<code>str</code>, default:
+                      <code><span title="twobilliontoolkit.Logger.logger.Colors.ERROR">ERROR</span></code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Color code for the log message type.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>message</code></b>
+                  (<code>str</code>, default:
+                      <code>&#39;&#39;</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>The log message.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>suppress</code></b>
+                  (<code>bool</code>, default:
+                      <code>False</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>Suppress warnings in the command line.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>ps_script</code></b>
+                  (<code>str</code>, default:
+                      <code>&#39;&#39;</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>The path location of the script to run spatial transformer. </p>
+              </div>
+            </li>
+            <li>
+              <b><code>project_id</code></b>
+                  (<code>str</code>, default:
+                      <code>&#39;&#39;</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>A 2BT specific variable to include a project id to more easily correlate errors and fix them.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+            <details class="quote">
+              <summary>Source code in <code>twobilliontoolkit\Logger\logger.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span>
+<span class="normal">55</span>
+<span class="normal">56</span>
+<span class="normal">57</span>
+<span class="normal">58</span>
+<span class="normal">59</span>
+<span class="normal">60</span>
+<span class="normal">61</span>
+<span class="normal">62</span>
+<span class="normal">63</span>
+<span class="normal">64</span>
+<span class="normal">65</span>
+<span class="normal">66</span>
+<span class="normal">67</span>
+<span class="normal">68</span>
+<span class="normal">69</span>
+<span class="normal">70</span>
+<span class="normal">71</span>
+<span class="normal">72</span>
+<span class="normal">73</span>
+<span class="normal">74</span>
+<span class="normal">75</span>
+<span class="normal">76</span>
+<span class="normal">77</span>
+<span class="normal">78</span>
+<span class="normal">79</span>
+<span class="normal">80</span>
+<span class="normal">81</span>
+<span class="normal">82</span>
+<span class="normal">83</span>
+<span class="normal">84</span>
+<span class="normal">85</span>
+<span class="normal">86</span>
+<span class="normal">87</span>
+<span class="normal">88</span>
+<span class="normal">89</span>
+<span class="normal">90</span>
+<span class="normal">91</span>
+<span class="normal">92</span>
+<span class="normal">93</span>
+<span class="normal">94</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Colors</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">suppress</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">ps_script</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">project_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Log messages with colored tags and timestamps.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        file_path (str, optional): Path to the log file.</span>
+<span class="sd">        type (str): Color code for the log message type.</span>
+<span class="sd">        message (str): The log message.</span>
+<span class="sd">        suppress (bool, optional): Suppress warnings in the command line.</span>
+<span class="sd">        ps_script (str, optional): The path location of the script to run spatial transformer. </span>
+<span class="sd">        project_id (str, optional): A 2BT specific variable to include a project id to more easily correlate errors and fix them.</span>
+<span class="sd">    &quot;&quot;&quot;</span>       
+    <span class="k">if</span> <span class="n">project_id</span><span class="p">:</span>
+        <span class="n">project_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;- Project Spatial ID: </span><span class="si">{</span><span class="n">project_id</span><span class="si">}</span><span class="s1"> - &#39;</span>    
+
+    <span class="c1"># Set the tag and print to the console</span>
+    <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="n">Colors</span><span class="o">.</span><span class="n">INFO</span><span class="p">:</span>
+        <span class="n">tag</span> <span class="o">=</span> <span class="s1">&#39;INFO&#39;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="nb">type</span><span class="si">}</span><span class="s1">[</span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s1">] </span><span class="si">{</span><span class="n">message</span><span class="si">}{</span><span class="n">Colors</span><span class="o">.</span><span class="n">END</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="n">Colors</span><span class="o">.</span><span class="n">WARNING</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">suppress</span><span class="p">:</span>
+        <span class="n">tag</span> <span class="o">=</span> <span class="s1">&#39;WARNING&#39;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="nb">type</span><span class="si">}</span><span class="s1">[</span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s1">] </span><span class="si">{</span><span class="n">project_id</span><span class="si">}{</span><span class="n">message</span><span class="si">}{</span><span class="n">Colors</span><span class="o">.</span><span class="n">END</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="n">Colors</span><span class="o">.</span><span class="n">WARNING</span> <span class="ow">and</span> <span class="n">suppress</span><span class="p">:</span>
+        <span class="n">tag</span> <span class="o">=</span> <span class="s1">&#39;WARNING&#39;</span>
+    <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="n">Colors</span><span class="o">.</span><span class="n">ERROR</span><span class="p">:</span>
+        <span class="n">tag</span> <span class="o">=</span> <span class="s1">&#39;ERROR&#39;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="nb">type</span><span class="si">}</span><span class="s1">[</span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s1">] </span><span class="si">{</span><span class="n">project_id</span><span class="si">}{</span><span class="n">message</span><span class="si">}{</span><span class="n">Colors</span><span class="o">.</span><span class="n">END</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="c1"># If a file path is provided</span>
+    <span class="k">if</span> <span class="n">file_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Split the log files into seperate Warning and Error logs</span>
+        <span class="n">file_path</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;C:\LocalTwoBillionToolkit</span><span class="se">\\</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">file_path</span><span class="p">[:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">tag</span> <span class="o">+</span> <span class="s1">&#39;.txt&#39;</span>
+
+        <span class="c1"># Check if the directory exists, if not, create it</span>
+        <span class="n">directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">file_path</span><span class="p">):</span>
+            <span class="n">generate_header</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">ps_script</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Open the file in append mode and append a log message</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">log_file</span><span class="p">:</span>
+                <span class="n">log_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">/%m/%Y %H:%M:%S&quot;</span><span class="p">)</span><span class="si">}</span><span class="s1"> [</span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s1">] </span><span class="si">{</span><span class="n">project_id</span><span class="si">}{</span><span class="n">message</span><span class="si">}</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">PermissionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Permission denied to write to file: </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">. Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../GeoAttachmentSeeker/" class="btn btn-neutral float-left" title="GeoAttachmentSeeker"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../NetworkTransfer/" class="btn btn-neutral float-right" title="NetworkTransfer">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../GeoAttachmentSeeker/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../NetworkTransfer/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
