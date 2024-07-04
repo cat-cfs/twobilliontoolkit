@@ -89,6 +89,10 @@ jobs:
       - name: Install mkdocs-material
         run: pip install mkdocs-material==9.5.28
 
+      # Set the PYTHONPATH environment variable
+      - name: Set PYTHONPATH
+        run: echo "PYTHONPATH=$PYTHONPATH:$(pwd)" >> $GITHUB_ENV
+
       # Deploy the MkDocs documentation to GitHub Pages
       - name: Deploy to GitHub Pages
         run: mkdocs gh-deploy --force --config-file twobilliontoolkit/mkdocs.yml
