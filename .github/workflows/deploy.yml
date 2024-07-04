@@ -75,6 +75,10 @@ jobs:
           restore-keys: |
             mkdocs-material-
 
+      # Install the twobilliontoolkit module
+      - name: Install the twobilliontoolkit
+        run: pip install -e .
+
       # Install MkDocs, MkDocs dostrings, and MkDocs Material theme
       - name: Install mkdocs
         run: pip install mkdocs==1.6.0
