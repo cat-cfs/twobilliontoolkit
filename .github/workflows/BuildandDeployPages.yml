@@ -7,18 +7,22 @@ on:
   # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
     branches: ['main']
+    # Trigger when either files in the docs folder, the requirements.txt file or the mkdocs.yml file are edited and commited.
+    paths:
+      - 'docs/**'
+      - 'requirements.txt'
+      - 'mkdocs.yml'
   pull_request:
     branches:  ['main']
+    # Trigger when either files in the docs folder, the requirements.txt file or the mkdocs.yml file are edited and commited.
+    paths:
+      - 'docs/**'
+      - 'requirements.txt'
+      - 'mkdocs.yml'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-
-  # Trigger when either files in the docs folder, the requirements.txt file or the mkdocs.yml file are edited and commited.
-  paths:
-    - 'docs/**'
-    - 'requirements.txt'
-    - 'mkdocs.yml'
-
+  
 # These permissions are required for it to work
 permissions:
   contents: read
