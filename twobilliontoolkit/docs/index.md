@@ -11,12 +11,6 @@
 - [RecordReviser](pages/RecordReviser.md)
 - [RippleUnzipple](pages/RippleUnzipple.md)
 
-## Commands
-
-* `mkdocs -h` - Print help message and exit.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs serve` - Start the live-reloading docs server.
-
 ## Project layout
 
     mkdocs.yml                      # The configuration file.
@@ -27,7 +21,28 @@
                 Database.md         # Documentation for the Database module
                 ...
             GeoAttachmentSeeker.md  # Documentation for the attachment seeker tool
-            ...
-        ...       
+            ... 
+    GeoAttachmentSeeker/
+        geo_attachment_seeker.py
+    Logger/
+        logger.py
+    NetworkTransfer/
+        network_transfer.py
+    RecordReviser/
+        record_reviser.py
+    RippleUnzipple/
+        ripple_unzipple.py
+    SpatialTransformer/             
+        common.py 
+        database.ini
+        Database.py
+        spatial_transformer.py
+        ...
+
+## Commands
+
+* `mkdocs -h` - Print help message and exit.
+* `mkdocs build` - Build the documentation site.
+* `mkdocs serve` - Start the live-reloading docs server.
 
 For full documentation visit [mkdocs.org](https://www.mkdocs.org).
