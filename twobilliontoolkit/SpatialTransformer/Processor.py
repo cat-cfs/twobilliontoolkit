@@ -49,12 +49,6 @@ class Processor:
 
         This function walks through the specified output directory, processes different file types, and creates entries in the data tracker. It handles geodatabases, shapefiles, KML/KMZ files,
         GeoJSON files, GeoPackages, and other file types, ensuring that they are correctly added to the data tracker.
-
-        Args:
-            None
-
-        Returns:
-            None
         """  
         # Step through unzip output path
         for root, dirs, files in os.walk(self.params.output):
@@ -232,12 +226,6 @@ class Processor:
         Processes spatial data entries from a dictionary, converts them into a geodatabase format, and enables version control and editor tracking.
 
         The function iterates over the entries in the data dictionary, checks their file types, converts them to a geodatabase feature class, and updates their processing status.
-
-        Args:
-            None
-
-        Returns:
-            None
         """
         # Iterate over each entry in the data dictionary
         for index, entry in enumerate(self.data.data_dict):

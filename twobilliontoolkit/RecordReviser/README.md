@@ -15,6 +15,7 @@ If no changes are given in the command-line, a GUI popup will open and allow the
 - [Configuration](#configuration)
 - [Contributing](#contributing)
 - [License](#license)
+- [Contact](#contact)
 
 ## Installation
 

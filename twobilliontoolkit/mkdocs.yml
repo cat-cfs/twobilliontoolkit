@@ -1,0 +1,32 @@
+site_name: TwoBillionToolkit Documentation
+
+nav:
+  - TwoBillionToolkit Home: index.md
+  - TwobillionToolkit Pages:
+      - SpatialTransformer:
+          - Database: pages/SpatialTransformer/Database.md
+          - Datatracker: pages/SpatialTransformer/Datatracker.md
+          - Parameters: pages/SpatialTransformer/Parameters.md
+          - Processor: pages/SpatialTransformer/Processor.md
+          - SpatialTransformer: pages/SpatialTransformer/SpatialTransformer.md
+      - GeoAttachmentSeeker: pages/GeoAttachmentSeeker.md
+      - Logger: pages/Logger.md
+      - NetworkTransfer: pages/NetworkTransfer.md
+      - RecordReviser: pages/RecordReviser.md
+      - RippleUnzipple: pages/RippleUnzipple.md
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google 
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.instant.progress

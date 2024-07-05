@@ -1,0 +1,3085 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../NetworkTransfer/">
+      
+      
+        <link rel="next" href="../RippleUnzipple/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.28">
+    
+    
+      
+        <title>RecordReviser - TwoBillionToolkit Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.6543a935.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#recordreviser" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="TwoBillionToolkit Documentation" class="md-header__button md-logo" aria-label="TwoBillionToolkit Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            TwoBillionToolkit Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              RecordReviser
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+    
+  
+  TwoBillionToolkit Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../SpatialTransformer/Database/" class="md-tabs__link">
+          
+  
+  TwobillionToolkit Pages
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="TwoBillionToolkit Documentation" class="md-nav__button md-logo" aria-label="TwoBillionToolkit Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    TwoBillionToolkit Documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    TwoBillionToolkit Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    TwobillionToolkit Pages
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            TwobillionToolkit Pages
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    SpatialTransformer
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            SpatialTransformer
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SpatialTransformer/Database/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Database
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SpatialTransformer/Datatracker/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Datatracker
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SpatialTransformer/Parameters/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Parameters
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SpatialTransformer/Processor/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Processor
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SpatialTransformer/SpatialTransformer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SpatialTransformer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../GeoAttachmentSeeker/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    GeoAttachmentSeeker
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Logger/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Logger
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../NetworkTransfer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    NetworkTransfer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    RecordReviser
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    RecordReviser
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#twobilliontoolkit.RecordReviser.record_reviser" class="md-nav__link">
+    <span class="md-ellipsis">
+      record_reviser
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#twobilliontoolkit.RecordReviser.record_reviser.DataTableApp" class="md-nav__link">
+    <span class="md-ellipsis">
+      DataTableApp
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="DataTableApp">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#twobilliontoolkit.RecordReviser.record_reviser.DataTableApp.__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __init__
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#twobilliontoolkit.RecordReviser.record_reviser.DataTableApp.format_data" class="md-nav__link">
+    <span class="md-ellipsis">
+      format_data
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#twobilliontoolkit.RecordReviser.record_reviser.DataTableApp.init_ui" class="md-nav__link">
+    <span class="md-ellipsis">
+      init_ui
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#twobilliontoolkit.RecordReviser.record_reviser.DataTableApp.item_changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      item_changed
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#twobilliontoolkit.RecordReviser.record_reviser.DataTableApp.populate_table" class="md-nav__link">
+    <span class="md-ellipsis">
+      populate_table
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#twobilliontoolkit.RecordReviser.record_reviser.DataTableApp.refresh_data" class="md-nav__link">
+    <span class="md-ellipsis">
+      refresh_data
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#twobilliontoolkit.RecordReviser.record_reviser.DataTableApp.reset_changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      reset_changes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#twobilliontoolkit.RecordReviser.record_reviser.DataTableApp.save_changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      save_changes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#twobilliontoolkit.RecordReviser.record_reviser.call_record_reviser" class="md-nav__link">
+    <span class="md-ellipsis">
+      call_record_reviser
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#twobilliontoolkit.RecordReviser.record_reviser.create_duplicate" class="md-nav__link">
+    <span class="md-ellipsis">
+      create_duplicate
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#twobilliontoolkit.RecordReviser.record_reviser.main" class="md-nav__link">
+    <span class="md-ellipsis">
+      main
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#twobilliontoolkit.RecordReviser.record_reviser.update_records" class="md-nav__link">
+    <span class="md-ellipsis">
+      update_records
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RippleUnzipple/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    RippleUnzipple
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#twobilliontoolkit.RecordReviser.record_reviser" class="md-nav__link">
+    <span class="md-ellipsis">
+      record_reviser
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#twobilliontoolkit.RecordReviser.record_reviser.DataTableApp" class="md-nav__link">
+    <span class="md-ellipsis">
+      DataTableApp
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="DataTableApp">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#twobilliontoolkit.RecordReviser.record_reviser.DataTableApp.__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __init__
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#twobilliontoolkit.RecordReviser.record_reviser.DataTableApp.format_data" class="md-nav__link">
+    <span class="md-ellipsis">
+      format_data
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#twobilliontoolkit.RecordReviser.record_reviser.DataTableApp.init_ui" class="md-nav__link">
+    <span class="md-ellipsis">
+      init_ui
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#twobilliontoolkit.RecordReviser.record_reviser.DataTableApp.item_changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      item_changed
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#twobilliontoolkit.RecordReviser.record_reviser.DataTableApp.populate_table" class="md-nav__link">
+    <span class="md-ellipsis">
+      populate_table
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#twobilliontoolkit.RecordReviser.record_reviser.DataTableApp.refresh_data" class="md-nav__link">
+    <span class="md-ellipsis">
+      refresh_data
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#twobilliontoolkit.RecordReviser.record_reviser.DataTableApp.reset_changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      reset_changes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#twobilliontoolkit.RecordReviser.record_reviser.DataTableApp.save_changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      save_changes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#twobilliontoolkit.RecordReviser.record_reviser.call_record_reviser" class="md-nav__link">
+    <span class="md-ellipsis">
+      call_record_reviser
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#twobilliontoolkit.RecordReviser.record_reviser.create_duplicate" class="md-nav__link">
+    <span class="md-ellipsis">
+      create_duplicate
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#twobilliontoolkit.RecordReviser.record_reviser.main" class="md-nav__link">
+    <span class="md-ellipsis">
+      main
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#twobilliontoolkit.RecordReviser.record_reviser.update_records" class="md-nav__link">
+    <span class="md-ellipsis">
+      update_records
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+<h1 id="recordreviser">RecordReviser</h1>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<a id="twobilliontoolkit.RecordReviser.record_reviser"></a>
+    <div class="doc doc-contents first">
+
+      <p>File: twobilliontoolkit/RecordReviser/record_reviser.py
+Created By:       Anthony Rodway
+Email:            anthony.rodway@nrcan-rncan.gc.ca
+Creation Date:    Wed January 17 10:30:00 PST 2024
+Organization:     Natural Resources of Canada
+Team:             Carbon Accounting Team</p>
+
+
+<details class="description" open>
+  <summary>Description</summary>
+  <p>The script will be used to revise any records that have been created in the 2BT Spatial Tools. It provides a graphical user interface (GUI) for viewing and updating records in the Data Tracker. The GUI allows users to make changes to various fields, including 'project_spatial_id', 'project_number', 'in_raw_gdb', 'absolute_path', and 'entry_type'. Additionally, the script supports the creation of duplicate records when updating 'project_number', ensuring data integrity. Changes made through the GUI can be committed to either the Data Tracker Excel file or a Postgres DB table. The script also offers functionality to update associated Raw Data GDB layers and attachment folders.</p>
+</details>
+
+<details class="usage" open>
+  <summary>Usage</summary>
+  <p>python path/to/record_reviser.py --gdb /path/to/geodatabase --load [datatracker/database] --save [datatracker/database] --datatracker /path/to/datatracker.xlsx --changes "{key: {field: newvalue, field2: newvalue2...}, key2: {field: newfield}...}"</p>
+</details>
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="twobilliontoolkit.RecordReviser.record_reviser.DataTableApp" class="doc doc-heading">
+            <code>DataTableApp</code>
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="PyQt5.QtWidgets.QWidget">QWidget</span></code></p>
+
+
+              <details class="quote">
+                <summary>Source code in <code>twobilliontoolkit\RecordReviser\record_reviser.py</code></summary>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 56</span>
+<span class="normal"> 57</span>
+<span class="normal"> 58</span>
+<span class="normal"> 59</span>
+<span class="normal"> 60</span>
+<span class="normal"> 61</span>
+<span class="normal"> 62</span>
+<span class="normal"> 63</span>
+<span class="normal"> 64</span>
+<span class="normal"> 65</span>
+<span class="normal"> 66</span>
+<span class="normal"> 67</span>
+<span class="normal"> 68</span>
+<span class="normal"> 69</span>
+<span class="normal"> 70</span>
+<span class="normal"> 71</span>
+<span class="normal"> 72</span>
+<span class="normal"> 73</span>
+<span class="normal"> 74</span>
+<span class="normal"> 75</span>
+<span class="normal"> 76</span>
+<span class="normal"> 77</span>
+<span class="normal"> 78</span>
+<span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span>
+<span class="normal">233</span>
+<span class="normal">234</span>
+<span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span>
+<span class="normal">240</span>
+<span class="normal">241</span>
+<span class="normal">242</span>
+<span class="normal">243</span>
+<span class="normal">244</span>
+<span class="normal">245</span>
+<span class="normal">246</span>
+<span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span>
+<span class="normal">261</span>
+<span class="normal">262</span>
+<span class="normal">263</span>
+<span class="normal">264</span>
+<span class="normal">265</span>
+<span class="normal">266</span>
+<span class="normal">267</span>
+<span class="normal">268</span>
+<span class="normal">269</span>
+<span class="normal">270</span>
+<span class="normal">271</span>
+<span class="normal">272</span>
+<span class="normal">273</span>
+<span class="normal">274</span>
+<span class="normal">275</span>
+<span class="normal">276</span>
+<span class="normal">277</span>
+<span class="normal">278</span>
+<span class="normal">279</span>
+<span class="normal">280</span>
+<span class="normal">281</span>
+<span class="normal">282</span>
+<span class="normal">283</span>
+<span class="normal">284</span>
+<span class="normal">285</span>
+<span class="normal">286</span>
+<span class="normal">287</span>
+<span class="normal">288</span>
+<span class="normal">289</span>
+<span class="normal">290</span>
+<span class="normal">291</span>
+<span class="normal">292</span>
+<span class="normal">293</span>
+<span class="normal">294</span>
+<span class="normal">295</span>
+<span class="normal">296</span>
+<span class="normal">297</span>
+<span class="normal">298</span>
+<span class="normal">299</span>
+<span class="normal">300</span>
+<span class="normal">301</span>
+<span class="normal">302</span>
+<span class="normal">303</span>
+<span class="normal">304</span>
+<span class="normal">305</span>
+<span class="normal">306</span>
+<span class="normal">307</span>
+<span class="normal">308</span>
+<span class="normal">309</span>
+<span class="normal">310</span>
+<span class="normal">311</span>
+<span class="normal">312</span>
+<span class="normal">313</span>
+<span class="normal">314</span>
+<span class="normal">315</span>
+<span class="normal">316</span>
+<span class="normal">317</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">DataTableApp</span><span class="p">(</span><span class="n">QWidget</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Datatracker2BT</span><span class="p">,</span> <span class="n">gdb</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">filter</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the DataTableApp with the provided data.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data (Datatracker2BT): An instance of the Datatracker2BT class.</span>
+<span class="sd">            gdb (str, optional): The path to the gdb that changes will be made to if applicable.</span>
+<span class="sd">            filter (dict, optional): The dictionary of filters for the display data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="c1"># Columns that are not editable and the key</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">columns_noedit</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;project_spatial_id&#39;</span><span class="p">,</span> <span class="s1">&#39;created_at&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">columns_to_add</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;project_spatial_id&#39;</span><span class="p">,</span> <span class="s1">&#39;project_number&#39;</span><span class="p">,</span> <span class="s1">&#39;in_raw_gdb&#39;</span><span class="p">,</span> <span class="s1">&#39;absolute_file_path&#39;</span><span class="p">,</span> <span class="s1">&#39;entry_type&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;project_spatial_id&#39;</span>
+
+        <span class="c1"># Store the original and current dataframes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filter</span> <span class="o">=</span> <span class="nb">filter</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">refresh_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gdb</span> <span class="o">=</span> <span class="n">gdb</span>
+
+        <span class="c1"># Initialize the user interface</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_ui</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">init_ui</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the user interface components.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Create the main layout</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">()</span>
+
+        <span class="c1"># Create the table and populate it</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span> <span class="o">=</span> <span class="n">QTableWidget</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">populate_table</span><span class="p">()</span>
+
+        <span class="c1"># Enable sorting for the columns</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">setSortingEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># Create a QHBoxLayout for buttons</span>
+        <span class="n">button_layout</span> <span class="o">=</span> <span class="n">QHBoxLayout</span><span class="p">()</span>
+
+        <span class="c1"># Create Save and Reset buttons</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edit_button</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="s1">&#39;Save&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edit_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">save_changes</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset_button</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="s1">&#39;Reset&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reset_changes</span><span class="p">)</span>
+
+        <span class="c1"># Add buttons to the button layout</span>
+        <span class="n">button_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edit_button</span><span class="p">)</span>
+        <span class="n">button_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reset_button</span><span class="p">)</span>
+
+        <span class="c1"># Add the table and button layout to the main layout</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">button_layout</span><span class="p">)</span>
+
+        <span class="c1"># Set the main layout for the widget</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setGeometry</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">800</span><span class="p">,</span> <span class="mi">600</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="s1">&#39;Record Reviser&#39;</span><span class="p">)</span>
+        <span class="n">script_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+        <span class="n">icon_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">script_dir</span><span class="p">,</span> <span class="s1">&#39;revision.png&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setWindowIcon</span><span class="p">(</span><span class="n">QIcon</span><span class="p">(</span><span class="n">icon_path</span><span class="p">))</span> <span class="c1"># Credit: https://www.flaticon.com/free-icons/revision</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setWindowFlags</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">WindowStaysOnTopHint</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">refresh_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Datatracker2BT</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Refresh the data in the application.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data (Datatracker2BT): The new data to be displayed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Update the data, original and current dataframe</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="n">formatted_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">format_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span> <span class="o">=</span> <span class="n">formatted_data</span><span class="p">[</span><span class="n">formatted_data</span><span class="p">[</span><span class="s1">&#39;dropped&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="kc">True</span><span class="p">]</span>
+
+        <span class="n">conditions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># combined_condition = </span>
+
+        <span class="c1"># Filter out the data if there was a filter given</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;created_at&quot;</span><span class="p">:</span>
+                    <span class="n">date</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">date</span><span class="p">()</span>
+                    <span class="n">condition</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="o">.</span><span class="n">created_at</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">date</span> <span class="o">==</span> <span class="n">date</span><span class="p">)</span> <span class="o">|</span> 
+                        <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="o">.</span><span class="n">created_at</span><span class="p">))</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">condition</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">==</span> <span class="n">value</span><span class="p">)</span>
+
+                <span class="n">conditions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">condition</span><span class="p">)</span>
+
+            <span class="c1"># Combine all conditions using &amp; (and) operator</span>
+            <span class="n">combined_condition</span> <span class="o">=</span> <span class="n">conditions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">condition</span> <span class="ow">in</span> <span class="n">conditions</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+                <span class="n">combined_condition</span> <span class="o">&amp;=</span> <span class="n">condition</span>
+
+        <span class="c1"># Always add the condition for project_spatial_id</span>
+        <span class="n">combined_condition</span> <span class="o">|=</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="o">.</span><span class="n">project_spatial_id</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">session_added_entries</span><span class="p">)</span>
+
+        <span class="c1"># Apply the combined condition to the DataFrame</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="p">[</span><span class="n">combined_condition</span><span class="p">]</span>
+
+        <span class="c1"># Make a working copy of the original dataframe</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataframe</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">format_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Datatracker2BT</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Format the raw data into a pandas DataFrame.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data (Datatracker2BT): Raw data to be formatted.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pd.DataFrame: A formatted pandas DataFrame.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Convert raw data to a DataFrame and rename index column</span>
+        <span class="n">dataframe</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+        <span class="n">dataframe</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;index&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">},</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># Sort the DataFrame by the &#39;self.key&#39; column alphabetically</span>
+        <span class="n">dataframe_sorted</span> <span class="o">=</span> <span class="n">dataframe</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">dataframe_sorted</span> 
+
+    <span class="k">def</span> <span class="nf">populate_table</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Populate the table with data from the dataframe.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Filter the dataframe to include only the columns_to_add</span>
+        <span class="n">dataframe_filtered</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataframe</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">columns_to_add</span><span class="p">]</span>
+
+        <span class="c1"># Set the number of columns and rows in the table</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">setColumnCount</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dataframe_filtered</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">setRowCount</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dataframe_filtered</span><span class="p">))</span>
+
+        <span class="c1"># Set headers in the table</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">header</span><span class="p">)</span> <span class="k">for</span> <span class="n">header</span> <span class="ow">in</span> <span class="n">dataframe_filtered</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">setHorizontalHeaderLabels</span><span class="p">(</span><span class="n">headers</span><span class="p">)</span>
+
+        <span class="c1"># Populate each cell in the table with corresponding data</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dataframe_filtered</span><span class="o">.</span><span class="n">index</span><span class="p">)):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dataframe_filtered</span><span class="o">.</span><span class="n">columns</span><span class="p">)):</span>
+                <span class="n">item</span> <span class="o">=</span> <span class="n">QTableWidgetItem</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">dataframe_filtered</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]))</span>
+
+                <span class="c1"># Set flags for non-editable columns</span>
+                <span class="k">if</span> <span class="n">dataframe_filtered</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">columns_noedit</span><span class="p">:</span>
+                    <span class="n">item</span><span class="o">.</span><span class="n">setFlags</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">flags</span><span class="p">()</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsEditable</span> <span class="o">|</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsSelectable</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">setItem</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span> 
+
+        <span class="c1"># Resize columns to fit the content</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">resizeColumnsToContents</span><span class="p">()</span>   
+
+        <span class="c1"># Connect the itemChanged signal to a custom slot (function)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">itemChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">item_changed</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">item_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">:</span> <span class="n">QTableWidgetItem</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Handle changes in the table items.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            item (QTableWidgetItem): The changed item in the table.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Get the project_spatial_id of the row changed</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">row</span><span class="p">()</span>
+        <span class="n">project_spatial_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+
+        <span class="c1"># Get the column name from the horizontal header</span>
+        <span class="n">column_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">horizontalHeaderItem</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">column</span><span class="p">())</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+
+        <span class="c1"># Fetch the original value using project_spatial_id</span>
+        <span class="n">original_value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">]</span> <span class="o">==</span> <span class="n">project_spatial_id</span><span class="p">,</span> <span class="n">column_name</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="c1"># Highlight the cell if the value is different</span>
+        <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">text</span><span class="p">()</span> <span class="o">!=</span> <span class="n">original_value</span><span class="p">:</span>
+            <span class="n">item</span><span class="o">.</span><span class="n">setForeground</span><span class="p">(</span><span class="n">QColor</span><span class="p">(</span><span class="s1">&#39;red&#39;</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">item</span><span class="o">.</span><span class="n">setForeground</span><span class="p">(</span><span class="n">QColor</span><span class="p">(</span><span class="s1">&#39;black&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">save_changes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save the changes made in the GUI.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Dictionary to store changes made in the GUI</span>
+        <span class="n">changes_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># Iterate over rows to identify changes</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataframe</span><span class="o">.</span><span class="n">index</span><span class="p">)):</span>
+            <span class="n">project_spatial_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+            <span class="n">row_changes</span> <span class="o">=</span> <span class="p">{}</span>
+
+            <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataframe</span><span class="o">.</span><span class="n">columns</span><span class="p">)):</span>
+                <span class="n">item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">item</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">edited_value</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+                    <span class="n">column_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">horizontalHeaderItem</span><span class="p">(</span><span class="n">column</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+                    <span class="n">original_value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">]</span> <span class="o">==</span> <span class="n">project_spatial_id</span><span class="p">,</span> <span class="n">column_name</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+                    <span class="c1"># Record changes if the value is different</span>
+                    <span class="k">if</span> <span class="n">edited_value</span> <span class="o">!=</span> <span class="n">original_value</span><span class="p">:</span>
+                        <span class="n">row_changes</span><span class="p">[</span><span class="n">column_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">edited_value</span>
+
+            <span class="k">if</span> <span class="n">row_changes</span><span class="p">:</span>
+                <span class="n">changes_dict</span><span class="p">[</span><span class="n">project_spatial_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">row_changes</span>
+
+        <span class="c1"># Log the changes</span>
+        <span class="n">log</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">Colors</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;The changes made in the GUI were: </span><span class="si">{</span><span class="n">changes_dict</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Update the original data with the changes</span>
+        <span class="k">for</span> <span class="n">project_spatial_id</span><span class="p">,</span> <span class="n">changes</span> <span class="ow">in</span> <span class="n">changes_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">column</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">changes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="c1"># Explicitly convert &#39;value&#39; to the appropriate data type</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="nb">bool</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;True&#39;</span><span class="p">,</span> <span class="s1">&#39;False&#39;</span><span class="p">]:</span>
+                        <span class="n">value</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">log_path</span><span class="p">,</span> <span class="n">Colors</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;The value </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s1"> must be a bool in </span><span class="si">{</span><span class="n">column</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                        <span class="k">return</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="nb">int</span><span class="p">:</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="nb">float</span><span class="p">:</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">]</span> <span class="o">==</span> <span class="n">project_spatial_id</span><span class="p">,</span> <span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+        <span class="c1"># Update the records in the original data class</span>
+        <span class="n">update_records</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">changes_dict</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gdb</span><span class="p">)</span>
+
+        <span class="c1"># Refresh the data being put into the table and reset the table to the current state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">refresh_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset_changes</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">reset_changes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reset the data in the table to its original state.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Disconnect the itemChanged signal temporarily</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">itemChanged</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">item_changed</span><span class="p">)</span>
+
+        <span class="c1"># Clear the table</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+        <span class="c1"># Reset the dataframe to the original state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataframe</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="c1"># Reset table sort so no confusion between dataframe and table occurs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">sortByColumn</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">Qt</span><span class="o">.</span><span class="n">AscendingOrder</span><span class="p">)</span>
+
+        <span class="c1"># Repopulate the table with the original data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">populate_table</span><span class="p">()</span>
+
+        <span class="c1"># Reconnect the itemChanged signal</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">itemChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">item_changed</span><span class="p">)</span>
+
+        <span class="c1"># Print a message or perform any other necessary actions</span>
+        <span class="n">log</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">Colors</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;GUI data has been reset to original state&#39;</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="twobilliontoolkit.RecordReviser.record_reviser.DataTableApp.__init__" class="doc doc-heading">
+            <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">gdb</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">filter</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Initialize the DataTableApp with the provided data.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code>data</code></td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="twobilliontoolkit.SpatialTransformer.Datatracker.Datatracker2BT" href="../SpatialTransformer/Datatracker/#twobilliontoolkit.SpatialTransformer.Datatracker.Datatracker2BT">Datatracker2BT</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>An instance of the Datatracker2BT class.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>gdb</code></td>
+            <td>
+                  <code>str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The path to the gdb that changes will be made to if applicable.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>filter</code></td>
+            <td>
+                  <code>dict</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The dictionary of filters for the display data.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+            <details class="quote">
+              <summary>Source code in <code>twobilliontoolkit\RecordReviser\record_reviser.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">57</span>
+<span class="normal">58</span>
+<span class="normal">59</span>
+<span class="normal">60</span>
+<span class="normal">61</span>
+<span class="normal">62</span>
+<span class="normal">63</span>
+<span class="normal">64</span>
+<span class="normal">65</span>
+<span class="normal">66</span>
+<span class="normal">67</span>
+<span class="normal">68</span>
+<span class="normal">69</span>
+<span class="normal">70</span>
+<span class="normal">71</span>
+<span class="normal">72</span>
+<span class="normal">73</span>
+<span class="normal">74</span>
+<span class="normal">75</span>
+<span class="normal">76</span>
+<span class="normal">77</span>
+<span class="normal">78</span>
+<span class="normal">79</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Datatracker2BT</span><span class="p">,</span> <span class="n">gdb</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">filter</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initialize the DataTableApp with the provided data.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data (Datatracker2BT): An instance of the Datatracker2BT class.</span>
+<span class="sd">        gdb (str, optional): The path to the gdb that changes will be made to if applicable.</span>
+<span class="sd">        filter (dict, optional): The dictionary of filters for the display data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>        
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+    <span class="c1"># Columns that are not editable and the key</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">columns_noedit</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;project_spatial_id&#39;</span><span class="p">,</span> <span class="s1">&#39;created_at&#39;</span><span class="p">]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">columns_to_add</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;project_spatial_id&#39;</span><span class="p">,</span> <span class="s1">&#39;project_number&#39;</span><span class="p">,</span> <span class="s1">&#39;in_raw_gdb&#39;</span><span class="p">,</span> <span class="s1">&#39;absolute_file_path&#39;</span><span class="p">,</span> <span class="s1">&#39;entry_type&#39;</span><span class="p">]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;project_spatial_id&#39;</span>
+
+    <span class="c1"># Store the original and current dataframes</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">filter</span> <span class="o">=</span> <span class="nb">filter</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">refresh_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">gdb</span> <span class="o">=</span> <span class="n">gdb</span>
+
+    <span class="c1"># Initialize the user interface</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">init_ui</span><span class="p">()</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="twobilliontoolkit.RecordReviser.record_reviser.DataTableApp.format_data" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">format_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Format the raw data into a pandas DataFrame.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code>data</code></td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="twobilliontoolkit.SpatialTransformer.Datatracker.Datatracker2BT" href="../SpatialTransformer/Datatracker/#twobilliontoolkit.SpatialTransformer.Datatracker.Datatracker2BT">Datatracker2BT</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Raw data to be formatted.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="pandas.DataFrame">DataFrame</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>pd.DataFrame: A formatted pandas DataFrame.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+            <details class="quote">
+              <summary>Source code in <code>twobilliontoolkit\RecordReviser\record_reviser.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">format_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Datatracker2BT</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Format the raw data into a pandas DataFrame.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data (Datatracker2BT): Raw data to be formatted.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pd.DataFrame: A formatted pandas DataFrame.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Convert raw data to a DataFrame and rename index column</span>
+    <span class="n">dataframe</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+    <span class="n">dataframe</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;index&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">},</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Sort the DataFrame by the &#39;self.key&#39; column alphabetically</span>
+    <span class="n">dataframe_sorted</span> <span class="o">=</span> <span class="n">dataframe</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">dataframe_sorted</span> 
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="twobilliontoolkit.RecordReviser.record_reviser.DataTableApp.init_ui" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">init_ui</span><span class="p">()</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Initialize the user interface components.</p>
+
+            <details class="quote">
+              <summary>Source code in <code>twobilliontoolkit\RecordReviser\record_reviser.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">init_ui</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initialize the user interface components.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Create the main layout</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">()</span>
+
+    <span class="c1"># Create the table and populate it</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">table</span> <span class="o">=</span> <span class="n">QTableWidget</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">populate_table</span><span class="p">()</span>
+
+    <span class="c1"># Enable sorting for the columns</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">setSortingEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Create a QHBoxLayout for buttons</span>
+    <span class="n">button_layout</span> <span class="o">=</span> <span class="n">QHBoxLayout</span><span class="p">()</span>
+
+    <span class="c1"># Create Save and Reset buttons</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">edit_button</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="s1">&#39;Save&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">edit_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">save_changes</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">reset_button</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="s1">&#39;Reset&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">reset_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reset_changes</span><span class="p">)</span>
+
+    <span class="c1"># Add buttons to the button layout</span>
+    <span class="n">button_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edit_button</span><span class="p">)</span>
+    <span class="n">button_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reset_button</span><span class="p">)</span>
+
+    <span class="c1"># Add the table and button layout to the main layout</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">button_layout</span><span class="p">)</span>
+
+    <span class="c1"># Set the main layout for the widget</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">setGeometry</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">800</span><span class="p">,</span> <span class="mi">600</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="s1">&#39;Record Reviser&#39;</span><span class="p">)</span>
+    <span class="n">script_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+    <span class="n">icon_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">script_dir</span><span class="p">,</span> <span class="s1">&#39;revision.png&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">setWindowIcon</span><span class="p">(</span><span class="n">QIcon</span><span class="p">(</span><span class="n">icon_path</span><span class="p">))</span> <span class="c1"># Credit: https://www.flaticon.com/free-icons/revision</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">setWindowFlags</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">WindowStaysOnTopHint</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="twobilliontoolkit.RecordReviser.record_reviser.DataTableApp.item_changed" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">item_changed</span><span class="p">(</span><span class="n">item</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Handle changes in the table items.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code>item</code></td>
+            <td>
+                  <code><span title="PyQt5.QtWidgets.QTableWidgetItem">QTableWidgetItem</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The changed item in the table.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+            <details class="quote">
+              <summary>Source code in <code>twobilliontoolkit\RecordReviser\record_reviser.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span>
+<span class="normal">233</span>
+<span class="normal">234</span>
+<span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">item_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">:</span> <span class="n">QTableWidgetItem</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Handle changes in the table items.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        item (QTableWidgetItem): The changed item in the table.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Get the project_spatial_id of the row changed</span>
+    <span class="n">row</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">row</span><span class="p">()</span>
+    <span class="n">project_spatial_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+
+    <span class="c1"># Get the column name from the horizontal header</span>
+    <span class="n">column_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">horizontalHeaderItem</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">column</span><span class="p">())</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+
+    <span class="c1"># Fetch the original value using project_spatial_id</span>
+    <span class="n">original_value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">]</span> <span class="o">==</span> <span class="n">project_spatial_id</span><span class="p">,</span> <span class="n">column_name</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="c1"># Highlight the cell if the value is different</span>
+    <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">text</span><span class="p">()</span> <span class="o">!=</span> <span class="n">original_value</span><span class="p">:</span>
+        <span class="n">item</span><span class="o">.</span><span class="n">setForeground</span><span class="p">(</span><span class="n">QColor</span><span class="p">(</span><span class="s1">&#39;red&#39;</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">item</span><span class="o">.</span><span class="n">setForeground</span><span class="p">(</span><span class="n">QColor</span><span class="p">(</span><span class="s1">&#39;black&#39;</span><span class="p">))</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="twobilliontoolkit.RecordReviser.record_reviser.DataTableApp.populate_table" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">populate_table</span><span class="p">()</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Populate the table with data from the dataframe.</p>
+
+            <details class="quote">
+              <summary>Source code in <code>twobilliontoolkit\RecordReviser\record_reviser.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">populate_table</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Populate the table with data from the dataframe.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Filter the dataframe to include only the columns_to_add</span>
+    <span class="n">dataframe_filtered</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataframe</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">columns_to_add</span><span class="p">]</span>
+
+    <span class="c1"># Set the number of columns and rows in the table</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">setColumnCount</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dataframe_filtered</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">setRowCount</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dataframe_filtered</span><span class="p">))</span>
+
+    <span class="c1"># Set headers in the table</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">header</span><span class="p">)</span> <span class="k">for</span> <span class="n">header</span> <span class="ow">in</span> <span class="n">dataframe_filtered</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">setHorizontalHeaderLabels</span><span class="p">(</span><span class="n">headers</span><span class="p">)</span>
+
+    <span class="c1"># Populate each cell in the table with corresponding data</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dataframe_filtered</span><span class="o">.</span><span class="n">index</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dataframe_filtered</span><span class="o">.</span><span class="n">columns</span><span class="p">)):</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="n">QTableWidgetItem</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">dataframe_filtered</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]))</span>
+
+            <span class="c1"># Set flags for non-editable columns</span>
+            <span class="k">if</span> <span class="n">dataframe_filtered</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">columns_noedit</span><span class="p">:</span>
+                <span class="n">item</span><span class="o">.</span><span class="n">setFlags</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">flags</span><span class="p">()</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsEditable</span> <span class="o">|</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsSelectable</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">setItem</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span> 
+
+    <span class="c1"># Resize columns to fit the content</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">resizeColumnsToContents</span><span class="p">()</span>   
+
+    <span class="c1"># Connect the itemChanged signal to a custom slot (function)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">itemChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">item_changed</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="twobilliontoolkit.RecordReviser.record_reviser.DataTableApp.refresh_data" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">refresh_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Refresh the data in the application.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code>data</code></td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="twobilliontoolkit.SpatialTransformer.Datatracker.Datatracker2BT" href="../SpatialTransformer/Datatracker/#twobilliontoolkit.SpatialTransformer.Datatracker.Datatracker2BT">Datatracker2BT</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The new data to be displayed.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+            <details class="quote">
+              <summary>Source code in <code>twobilliontoolkit\RecordReviser\record_reviser.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">refresh_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Datatracker2BT</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Refresh the data in the application.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data (Datatracker2BT): The new data to be displayed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Update the data, original and current dataframe</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+    <span class="n">formatted_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">format_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span> <span class="o">=</span> <span class="n">formatted_data</span><span class="p">[</span><span class="n">formatted_data</span><span class="p">[</span><span class="s1">&#39;dropped&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="kc">True</span><span class="p">]</span>
+
+    <span class="n">conditions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1"># combined_condition = </span>
+
+    <span class="c1"># Filter out the data if there was a filter given</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;created_at&quot;</span><span class="p">:</span>
+                <span class="n">date</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">date</span><span class="p">()</span>
+                <span class="n">condition</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="o">.</span><span class="n">created_at</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">date</span> <span class="o">==</span> <span class="n">date</span><span class="p">)</span> <span class="o">|</span> 
+                    <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="o">.</span><span class="n">created_at</span><span class="p">))</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">condition</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">==</span> <span class="n">value</span><span class="p">)</span>
+
+            <span class="n">conditions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">condition</span><span class="p">)</span>
+
+        <span class="c1"># Combine all conditions using &amp; (and) operator</span>
+        <span class="n">combined_condition</span> <span class="o">=</span> <span class="n">conditions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">condition</span> <span class="ow">in</span> <span class="n">conditions</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="n">combined_condition</span> <span class="o">&amp;=</span> <span class="n">condition</span>
+
+    <span class="c1"># Always add the condition for project_spatial_id</span>
+    <span class="n">combined_condition</span> <span class="o">|=</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="o">.</span><span class="n">project_spatial_id</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">session_added_entries</span><span class="p">)</span>
+
+    <span class="c1"># Apply the combined condition to the DataFrame</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="p">[</span><span class="n">combined_condition</span><span class="p">]</span>
+
+    <span class="c1"># Make a working copy of the original dataframe</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">dataframe</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="twobilliontoolkit.RecordReviser.record_reviser.DataTableApp.reset_changes" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">reset_changes</span><span class="p">()</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Reset the data in the table to its original state.</p>
+
+            <details class="quote">
+              <summary>Source code in <code>twobilliontoolkit\RecordReviser\record_reviser.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">294</span>
+<span class="normal">295</span>
+<span class="normal">296</span>
+<span class="normal">297</span>
+<span class="normal">298</span>
+<span class="normal">299</span>
+<span class="normal">300</span>
+<span class="normal">301</span>
+<span class="normal">302</span>
+<span class="normal">303</span>
+<span class="normal">304</span>
+<span class="normal">305</span>
+<span class="normal">306</span>
+<span class="normal">307</span>
+<span class="normal">308</span>
+<span class="normal">309</span>
+<span class="normal">310</span>
+<span class="normal">311</span>
+<span class="normal">312</span>
+<span class="normal">313</span>
+<span class="normal">314</span>
+<span class="normal">315</span>
+<span class="normal">316</span>
+<span class="normal">317</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">reset_changes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reset the data in the table to its original state.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Disconnect the itemChanged signal temporarily</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">itemChanged</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">item_changed</span><span class="p">)</span>
+
+    <span class="c1"># Clear the table</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+    <span class="c1"># Reset the dataframe to the original state</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">dataframe</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="c1"># Reset table sort so no confusion between dataframe and table occurs</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">sortByColumn</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">Qt</span><span class="o">.</span><span class="n">AscendingOrder</span><span class="p">)</span>
+
+    <span class="c1"># Repopulate the table with the original data</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">populate_table</span><span class="p">()</span>
+
+    <span class="c1"># Reconnect the itemChanged signal</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">itemChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">item_changed</span><span class="p">)</span>
+
+    <span class="c1"># Print a message or perform any other necessary actions</span>
+    <span class="n">log</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">Colors</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;GUI data has been reset to original state&#39;</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="twobilliontoolkit.RecordReviser.record_reviser.DataTableApp.save_changes" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">save_changes</span><span class="p">()</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Save the changes made in the GUI.</p>
+
+            <details class="quote">
+              <summary>Source code in <code>twobilliontoolkit\RecordReviser\record_reviser.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">241</span>
+<span class="normal">242</span>
+<span class="normal">243</span>
+<span class="normal">244</span>
+<span class="normal">245</span>
+<span class="normal">246</span>
+<span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span>
+<span class="normal">261</span>
+<span class="normal">262</span>
+<span class="normal">263</span>
+<span class="normal">264</span>
+<span class="normal">265</span>
+<span class="normal">266</span>
+<span class="normal">267</span>
+<span class="normal">268</span>
+<span class="normal">269</span>
+<span class="normal">270</span>
+<span class="normal">271</span>
+<span class="normal">272</span>
+<span class="normal">273</span>
+<span class="normal">274</span>
+<span class="normal">275</span>
+<span class="normal">276</span>
+<span class="normal">277</span>
+<span class="normal">278</span>
+<span class="normal">279</span>
+<span class="normal">280</span>
+<span class="normal">281</span>
+<span class="normal">282</span>
+<span class="normal">283</span>
+<span class="normal">284</span>
+<span class="normal">285</span>
+<span class="normal">286</span>
+<span class="normal">287</span>
+<span class="normal">288</span>
+<span class="normal">289</span>
+<span class="normal">290</span>
+<span class="normal">291</span>
+<span class="normal">292</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">save_changes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Save the changes made in the GUI.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Dictionary to store changes made in the GUI</span>
+    <span class="n">changes_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># Iterate over rows to identify changes</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataframe</span><span class="o">.</span><span class="n">index</span><span class="p">)):</span>
+        <span class="n">project_spatial_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+        <span class="n">row_changes</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataframe</span><span class="o">.</span><span class="n">columns</span><span class="p">)):</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">item</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">edited_value</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+                <span class="n">column_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">horizontalHeaderItem</span><span class="p">(</span><span class="n">column</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+                <span class="n">original_value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">]</span> <span class="o">==</span> <span class="n">project_spatial_id</span><span class="p">,</span> <span class="n">column_name</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+                <span class="c1"># Record changes if the value is different</span>
+                <span class="k">if</span> <span class="n">edited_value</span> <span class="o">!=</span> <span class="n">original_value</span><span class="p">:</span>
+                    <span class="n">row_changes</span><span class="p">[</span><span class="n">column_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">edited_value</span>
+
+        <span class="k">if</span> <span class="n">row_changes</span><span class="p">:</span>
+            <span class="n">changes_dict</span><span class="p">[</span><span class="n">project_spatial_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">row_changes</span>
+
+    <span class="c1"># Log the changes</span>
+    <span class="n">log</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">Colors</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;The changes made in the GUI were: </span><span class="si">{</span><span class="n">changes_dict</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Update the original data with the changes</span>
+    <span class="k">for</span> <span class="n">project_spatial_id</span><span class="p">,</span> <span class="n">changes</span> <span class="ow">in</span> <span class="n">changes_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">column</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">changes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="c1"># Explicitly convert &#39;value&#39; to the appropriate data type</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="nb">bool</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;True&#39;</span><span class="p">,</span> <span class="s1">&#39;False&#39;</span><span class="p">]:</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">log_path</span><span class="p">,</span> <span class="n">Colors</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;The value </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s1"> must be a bool in </span><span class="si">{</span><span class="n">column</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="k">return</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="nb">int</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="nb">float</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">original_dataframe</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">]</span> <span class="o">==</span> <span class="n">project_spatial_id</span><span class="p">,</span> <span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="c1"># Update the records in the original data class</span>
+    <span class="n">update_records</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">changes_dict</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gdb</span><span class="p">)</span>
+
+    <span class="c1"># Refresh the data being put into the table and reset the table to the current state</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">refresh_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">reset_changes</span><span class="p">()</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="twobilliontoolkit.RecordReviser.record_reviser.call_record_reviser" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">call_record_reviser</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">gdb</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">filter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">changes</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Handles calling the record reviser parts so the tool can be used outside of command-line as well.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code>data</code></td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="twobilliontoolkit.SpatialTransformer.Datatracker.Datatracker2BT" href="../SpatialTransformer/Datatracker/#twobilliontoolkit.SpatialTransformer.Datatracker.Datatracker2BT">Datatracker2BT</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>An instance of Datatracker2BT.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>gdb</code></td>
+            <td>
+                  <code>str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The geodatabase path. If provided, updates are applied to the geodatabase.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>filter</code></td>
+            <td>
+                  <code>dict</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A dictionary containing filters for the data to be displayed.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>changes</code></td>
+            <td>
+                  <code>str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A string dictionary containing changes for each project. If provided, no GUI will appear and only process the changes in the dictionary, else a GUI will appear and the user can alter the data as they see fit.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+            <details class="quote">
+              <summary>Source code in <code>twobilliontoolkit\RecordReviser\record_reviser.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">439</span>
+<span class="normal">440</span>
+<span class="normal">441</span>
+<span class="normal">442</span>
+<span class="normal">443</span>
+<span class="normal">444</span>
+<span class="normal">445</span>
+<span class="normal">446</span>
+<span class="normal">447</span>
+<span class="normal">448</span>
+<span class="normal">449</span>
+<span class="normal">450</span>
+<span class="normal">451</span>
+<span class="normal">452</span>
+<span class="normal">453</span>
+<span class="normal">454</span>
+<span class="normal">455</span>
+<span class="normal">456</span>
+<span class="normal">457</span>
+<span class="normal">458</span>
+<span class="normal">459</span>
+<span class="normal">460</span>
+<span class="normal">461</span>
+<span class="normal">462</span>
+<span class="normal">463</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">call_record_reviser</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Datatracker2BT</span><span class="p">,</span> <span class="n">gdb</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">filter</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">changes</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Handles calling the record reviser parts so the tool can be used outside of command-line as well.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data (Datatracker2BT): An instance of Datatracker2BT.</span>
+<span class="sd">        gdb (str, optional): The geodatabase path. If provided, updates are applied to the geodatabase.</span>
+<span class="sd">        filter (dict, optional): A dictionary containing filters for the data to be displayed.</span>
+<span class="sd">        changes (str, optional): A string dictionary containing changes for each project. If provided, no GUI will appear and only process the changes in the dictionary, else a GUI will appear and the user can alter the data as they see fit.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">changes</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Parse the changes argument and update records</span>
+            <span class="n">changes_dict</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">changes</span><span class="p">)</span>
+            <span class="n">update_records</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">changes_dict</span><span class="p">,</span> <span class="n">gdb</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">SyntaxError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">log</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">Colors</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Error parsing changes argument: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># If no changes dict is provided, open a PyQt application for data visualization</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">([])</span>
+            <span class="n">window</span> <span class="o">=</span> <span class="n">DataTableApp</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">gdb</span><span class="p">,</span> <span class="nb">filter</span><span class="p">)</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span>  
+        <span class="k">except</span> <span class="ne">RuntimeWarning</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+            <span class="n">log</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">Colors</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="n">error</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="twobilliontoolkit.RecordReviser.record_reviser.create_duplicate" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">create_duplicate</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">project_spatial_id</span><span class="p">,</span> <span class="n">new_project_number</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Create a duplicate entry in the data for a given project with a new project number.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code>data</code></td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="twobilliontoolkit.SpatialTransformer.Datatracker.Datatracker2BT" href="../SpatialTransformer/Datatracker/#twobilliontoolkit.SpatialTransformer.Datatracker.Datatracker2BT">Datatracker2BT</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>An instance of Datatracker2BT.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>project_spatial_id</code></td>
+            <td>
+                  <code>str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The unique identifier of the project to duplicate.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>new_project_number</code></td>
+            <td>
+                  <code>str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The new project number for the duplicated entry.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>str</code></td>            <td>
+                  <code>str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The spatial identifier of the newly created duplicate entry.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+            <details class="quote">
+              <summary>Source code in <code>twobilliontoolkit\RecordReviser\record_reviser.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">322</span>
+<span class="normal">323</span>
+<span class="normal">324</span>
+<span class="normal">325</span>
+<span class="normal">326</span>
+<span class="normal">327</span>
+<span class="normal">328</span>
+<span class="normal">329</span>
+<span class="normal">330</span>
+<span class="normal">331</span>
+<span class="normal">332</span>
+<span class="normal">333</span>
+<span class="normal">334</span>
+<span class="normal">335</span>
+<span class="normal">336</span>
+<span class="normal">337</span>
+<span class="normal">338</span>
+<span class="normal">339</span>
+<span class="normal">340</span>
+<span class="normal">341</span>
+<span class="normal">342</span>
+<span class="normal">343</span>
+<span class="normal">344</span>
+<span class="normal">345</span>
+<span class="normal">346</span>
+<span class="normal">347</span>
+<span class="normal">348</span>
+<span class="normal">349</span>
+<span class="normal">350</span>
+<span class="normal">351</span>
+<span class="normal">352</span>
+<span class="normal">353</span>
+<span class="normal">354</span>
+<span class="normal">355</span>
+<span class="normal">356</span>
+<span class="normal">357</span>
+<span class="normal">358</span>
+<span class="normal">359</span>
+<span class="normal">360</span>
+<span class="normal">361</span>
+<span class="normal">362</span>
+<span class="normal">363</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">create_duplicate</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Datatracker2BT</span><span class="p">,</span> <span class="n">project_spatial_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">new_project_number</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a duplicate entry in the data for a given project with a new project number.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data (Datatracker2BT): An instance of Datatracker2BT.</span>
+<span class="sd">        project_spatial_id (str): The unique identifier of the project to duplicate.</span>
+<span class="sd">        new_project_number (str): The new project number for the duplicated entry.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: The spatial identifier of the newly created duplicate entry.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Retrieve data for the project to duplicate</span>
+    <span class="n">entry_to_duplicate</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">project_spatial_id</span><span class="p">)</span>
+
+    <span class="c1"># Create a new spatial identifier for the duplicated project</span>
+    <span class="n">new_project_spatial_id</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">create_project_spatial_id</span><span class="p">(</span><span class="n">new_project_number</span><span class="p">)</span>
+
+    <span class="c1"># Add the duplicated entry with the new project number to the data</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span>
+        <span class="n">project_spatial_id</span><span class="o">=</span><span class="n">new_project_spatial_id</span><span class="p">,</span>
+        <span class="n">project_number</span><span class="o">=</span><span class="n">new_project_number</span><span class="p">,</span>
+        <span class="n">dropped</span><span class="o">=</span><span class="n">entry_to_duplicate</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;dropped&#39;</span><span class="p">),</span>
+        <span class="n">raw_data_path</span><span class="o">=</span><span class="n">entry_to_duplicate</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;raw_data_path&#39;</span><span class="p">),</span>
+        <span class="n">raw_gdb_path</span><span class="o">=</span><span class="n">entry_to_duplicate</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;raw_gdb_path&#39;</span><span class="p">),</span>
+        <span class="n">absolute_file_path</span><span class="o">=</span><span class="n">entry_to_duplicate</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;absolute_file_path&#39;</span><span class="p">),</span>
+        <span class="n">in_raw_gdb</span><span class="o">=</span><span class="n">entry_to_duplicate</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;in_raw_gdb&#39;</span><span class="p">),</span>
+        <span class="n">contains_pdf</span><span class="o">=</span><span class="n">entry_to_duplicate</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;contains_pdf&#39;</span><span class="p">),</span>
+        <span class="n">contains_image</span><span class="o">=</span><span class="n">entry_to_duplicate</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;contains_image&#39;</span><span class="p">),</span>
+        <span class="n">extracted_attachments_path</span><span class="o">=</span><span class="n">entry_to_duplicate</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;extracted_attachments_path&#39;</span><span class="p">),</span>
+        <span class="n">editor_tracking_enabled</span><span class="o">=</span><span class="n">entry_to_duplicate</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;editor_tracking_enabled&#39;</span><span class="p">),</span>
+        <span class="n">processed</span><span class="o">=</span><span class="n">entry_to_duplicate</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;processed&#39;</span><span class="p">),</span>
+        <span class="n">entry_type</span><span class="o">=</span><span class="n">entry_to_duplicate</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;entry_type&#39;</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Add new project spatial id&#39;s to be included in the table</span>
+    <span class="n">session_added_entries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_project_spatial_id</span><span class="p">)</span>
+
+    <span class="c1"># Set the &#39;dropped&#39; attribute to True for the original project</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">set_data</span><span class="p">(</span><span class="n">project_spatial_id</span><span class="p">,</span> <span class="n">dropped</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">new_project_spatial_id</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="twobilliontoolkit.RecordReviser.record_reviser.main" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">main</span><span class="p">()</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+      <p>The main function of the record_reviser.py script</p>
+
+            <details class="quote">
+              <summary>Source code in <code>twobilliontoolkit\RecordReviser\record_reviser.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">468</span>
+<span class="normal">469</span>
+<span class="normal">470</span>
+<span class="normal">471</span>
+<span class="normal">472</span>
+<span class="normal">473</span>
+<span class="normal">474</span>
+<span class="normal">475</span>
+<span class="normal">476</span>
+<span class="normal">477</span>
+<span class="normal">478</span>
+<span class="normal">479</span>
+<span class="normal">480</span>
+<span class="normal">481</span>
+<span class="normal">482</span>
+<span class="normal">483</span>
+<span class="normal">484</span>
+<span class="normal">485</span>
+<span class="normal">486</span>
+<span class="normal">487</span>
+<span class="normal">488</span>
+<span class="normal">489</span>
+<span class="normal">490</span>
+<span class="normal">491</span>
+<span class="normal">492</span>
+<span class="normal">493</span>
+<span class="normal">494</span>
+<span class="normal">495</span>
+<span class="normal">496</span>
+<span class="normal">497</span>
+<span class="normal">498</span>
+<span class="normal">499</span>
+<span class="normal">500</span>
+<span class="normal">501</span>
+<span class="normal">502</span>
+<span class="normal">503</span>
+<span class="normal">504</span>
+<span class="normal">505</span>
+<span class="normal">506</span>
+<span class="normal">507</span>
+<span class="normal">508</span>
+<span class="normal">509</span>
+<span class="normal">510</span>
+<span class="normal">511</span>
+<span class="normal">512</span>
+<span class="normal">513</span>
+<span class="normal">514</span>
+<span class="normal">515</span>
+<span class="normal">516</span>
+<span class="normal">517</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; The main function of the record_reviser.py script &quot;&quot;&quot;</span>
+    <span class="c1"># Get the start time of the script</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">log</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">Colors</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="s1">&#39;Tool is starting...&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Initialize the argument parse</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Define command-line arguments</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--gdb&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The new location or where an exsiting Geodatabase is located&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--load&#39;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;datatracker&#39;</span><span class="p">,</span> <span class="s1">&#39;database&#39;</span><span class="p">],</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;database&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Specify what to load from (datatracker or database)&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--save&#39;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;datatracker&#39;</span><span class="p">,</span> <span class="s1">&#39;database&#39;</span><span class="p">],</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;database&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Specify what to save to (datatracker or database)&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--datatracker&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The new location or where an exsiting data tracker is located&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--changes&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The changes that you want to update, in form &quot;{project_spaital_id: {field: newvalue, field2:newvalue2...}, project_spatial_id: {field: newfield}...&quot;&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Parse the command-line arguments</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="c1"># Access the values using the attribute notation</span>
+    <span class="n">load_from</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">load</span>
+    <span class="n">save_to</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">save</span>
+    <span class="n">datatracker_path</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">datatracker</span>
+    <span class="n">gdb_path</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">gdb</span>
+    <span class="n">changes</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">changes</span>
+
+    <span class="c1"># Ensure that if a datatracker is specified for loading or saving, then a path must be passed</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">load_from</span> <span class="o">==</span> <span class="s1">&#39;datatracker&#39;</span> <span class="ow">or</span> <span class="n">save_to</span> <span class="o">==</span> <span class="s1">&#39;datatracker&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">datatracker_path</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentTypeError</span><span class="p">(</span><span class="s2">&quot;If --load or --save is &#39;datatracker&#39;, --datatracker_path must be specified.&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="p">(</span><span class="n">load_from</span> <span class="o">==</span> <span class="s1">&#39;datatracker&#39;</span> <span class="ow">or</span> <span class="n">save_to</span> <span class="o">==</span> <span class="s1">&#39;datatracker&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">datatracker_path</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">datatracker_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">datatracker_path</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;datatracker_path: </span><span class="si">{</span><span class="n">datatracker_path</span><span class="si">}</span><span class="s1"> must be a non-empty string.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">datatracker_path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.xlsx&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;datatracker_path: </span><span class="si">{</span><span class="n">datatracker_path</span><span class="si">}</span><span class="s1"> must be of type .xlsx.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">datatracker_path</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;datatracker_path: </span><span class="si">{</span><span class="n">datatracker_path</span><span class="si">}</span><span class="s1"> path does not exist.&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Create the logfile path</span>
+    <span class="n">log_path</span> <span class="o">=</span> <span class="n">gdb_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.gdb&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">.txt&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Create an instance of the Datatracker2BT class</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">Datatracker2BT</span><span class="p">(</span><span class="n">datatracker_path</span><span class="p">,</span> <span class="n">load_from</span><span class="p">,</span> <span class="n">save_to</span><span class="p">,</span> <span class="n">log_path</span><span class="p">)</span>
+
+    <span class="c1"># Call the handler function</span>
+    <span class="n">call_record_reviser</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">gdb</span><span class="o">=</span><span class="n">gdb_path</span><span class="p">,</span> <span class="n">changes</span><span class="o">=</span><span class="n">changes</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="c1"># Get the end time of the script and calculate the elapsed time</span>
+    <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">log</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">Colors</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="s1">&#39;Tool has completed&#39;</span><span class="p">)</span>
+    <span class="n">log</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">Colors</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Elapsed time: </span><span class="si">{</span><span class="n">end_time</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start_time</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1"> seconds&#39;</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="twobilliontoolkit.RecordReviser.record_reviser.update_records" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">update_records</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">changes_dict</span><span class="p">,</span> <span class="n">gdb</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Update records in the data based on the changes provided in the dictionary.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code>data</code></td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="twobilliontoolkit.SpatialTransformer.Datatracker.Datatracker2BT" href="../SpatialTransformer/Datatracker/#twobilliontoolkit.SpatialTransformer.Datatracker.Datatracker2BT">Datatracker2BT</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>An instance of Datatracker2BT.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>changes_dict</code></td>
+            <td>
+                  <code>dict</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A dictionary containing changes for each project.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>gdb</code></td>
+            <td>
+                  <code>str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The geodatabase path. If provided, updates are applied to the geodatabase.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+            <details class="quote">
+              <summary>Source code in <code>twobilliontoolkit\RecordReviser\record_reviser.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">365</span>
+<span class="normal">366</span>
+<span class="normal">367</span>
+<span class="normal">368</span>
+<span class="normal">369</span>
+<span class="normal">370</span>
+<span class="normal">371</span>
+<span class="normal">372</span>
+<span class="normal">373</span>
+<span class="normal">374</span>
+<span class="normal">375</span>
+<span class="normal">376</span>
+<span class="normal">377</span>
+<span class="normal">378</span>
+<span class="normal">379</span>
+<span class="normal">380</span>
+<span class="normal">381</span>
+<span class="normal">382</span>
+<span class="normal">383</span>
+<span class="normal">384</span>
+<span class="normal">385</span>
+<span class="normal">386</span>
+<span class="normal">387</span>
+<span class="normal">388</span>
+<span class="normal">389</span>
+<span class="normal">390</span>
+<span class="normal">391</span>
+<span class="normal">392</span>
+<span class="normal">393</span>
+<span class="normal">394</span>
+<span class="normal">395</span>
+<span class="normal">396</span>
+<span class="normal">397</span>
+<span class="normal">398</span>
+<span class="normal">399</span>
+<span class="normal">400</span>
+<span class="normal">401</span>
+<span class="normal">402</span>
+<span class="normal">403</span>
+<span class="normal">404</span>
+<span class="normal">405</span>
+<span class="normal">406</span>
+<span class="normal">407</span>
+<span class="normal">408</span>
+<span class="normal">409</span>
+<span class="normal">410</span>
+<span class="normal">411</span>
+<span class="normal">412</span>
+<span class="normal">413</span>
+<span class="normal">414</span>
+<span class="normal">415</span>
+<span class="normal">416</span>
+<span class="normal">417</span>
+<span class="normal">418</span>
+<span class="normal">419</span>
+<span class="normal">420</span>
+<span class="normal">421</span>
+<span class="normal">422</span>
+<span class="normal">423</span>
+<span class="normal">424</span>
+<span class="normal">425</span>
+<span class="normal">426</span>
+<span class="normal">427</span>
+<span class="normal">428</span>
+<span class="normal">429</span>
+<span class="normal">430</span>
+<span class="normal">431</span>
+<span class="normal">432</span>
+<span class="normal">433</span>
+<span class="normal">434</span>
+<span class="normal">435</span>
+<span class="normal">436</span>
+<span class="normal">437</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">update_records</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Datatracker2BT</span><span class="p">,</span> <span class="n">changes_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">gdb</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Update records in the data based on the changes provided in the dictionary.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data (Datatracker2BT): An instance of Datatracker2BT.</span>
+<span class="sd">        changes_dict (dict): A dictionary containing changes for each project.</span>
+<span class="sd">        gdb (str, optional): The geodatabase path. If provided, updates are applied to the geodatabase.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">project_spatial_id</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">changes_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="c1"># Check if the current change updated the project number</span>
+        <span class="n">new_project_number</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;project_number&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">new_project_number</span><span class="p">:</span>
+            <span class="c1"># Check if the project number entered was valid</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">database_connection</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">database_parameters</span><span class="p">)</span>
+            <span class="n">found</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">database_connection</span><span class="o">.</span><span class="n">read</span><span class="p">(</span>
+                <span class="n">schema</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">database_connection</span><span class="o">.</span><span class="n">schema</span><span class="p">,</span>
+                <span class="n">table</span><span class="o">=</span><span class="s1">&#39;project_number&#39;</span><span class="p">,</span>
+                <span class="n">condition</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;project_number=&#39;</span><span class="si">{</span><span class="n">new_project_number</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+            <span class="p">)</span>               
+            <span class="n">data</span><span class="o">.</span><span class="n">database_connection</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Project number </span><span class="si">{</span><span class="n">new_project_number</span><span class="si">}</span><span class="s1"> is not a valid project number in the database. Skipping changing this...&#39;</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># Duplicate the project with the new project number</span>
+            <span class="n">old_project_spatial_id</span> <span class="o">=</span> <span class="s1">&#39;proj_&#39;</span> <span class="o">+</span> <span class="n">project_spatial_id</span>
+            <span class="n">project_spatial_id</span> <span class="o">=</span> <span class="n">create_duplicate</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">project_spatial_id</span><span class="p">,</span> <span class="n">new_project_number</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">gdb</span> <span class="ow">and</span> <span class="n">data</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">project_spatial_id</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;in_raw_gdb&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="c1"># If geodatabase is provided, rename the corresponding entries</span>
+                <span class="n">arcpy</span><span class="o">.</span><span class="n">management</span><span class="o">.</span><span class="n">Rename</span><span class="p">(</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">gdb</span><span class="p">,</span> <span class="n">old_project_spatial_id</span><span class="p">),</span>
+                    <span class="s1">&#39;proj_&#39;</span> <span class="o">+</span> <span class="n">project_spatial_id</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Rename attachments path if it exists</span>
+                <span class="n">attachments_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">project_spatial_id</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;extracted_attachments_path&#39;</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">attachments_path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;nan&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">]:</span>
+                    <span class="c1"># update the attachment path</span>
+                    <span class="n">new_attachments_path</span> <span class="o">=</span> <span class="n">attachments_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;proj_&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;proj_&#39;</span> <span class="o">+</span> <span class="n">project_spatial_id</span>
+
+                    <span class="c1"># Rename the path to the attachments</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+                        <span class="n">attachments_path</span><span class="p">,</span> 
+                        <span class="n">new_attachments_path</span>
+                    <span class="p">)</span>
+
+                    <span class="c1"># Set the corresponding attachments path</span>
+                    <span class="n">data</span><span class="o">.</span><span class="n">set_data</span><span class="p">(</span>
+                        <span class="n">project_spatial_id</span><span class="p">,</span> <span class="n">extracted_attachments_path</span><span class="o">=</span><span class="n">new_attachments_path</span>
+                    <span class="p">)</span>
+
+                    <span class="c1"># Also need to update the linked geodatabase things</span>
+                    <span class="n">arcpy</span><span class="o">.</span><span class="n">management</span><span class="o">.</span><span class="n">Rename</span><span class="p">(</span>
+                        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">gdb</span><span class="p">,</span> <span class="n">old_project_spatial_id</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;__ATTACH&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;proj_&#39;</span> <span class="o">+</span> <span class="n">project_spatial_id</span> <span class="o">+</span> <span class="s1">&#39;__ATTACH&#39;</span>
+                    <span class="p">)</span>
+                    <span class="n">arcpy</span><span class="o">.</span><span class="n">management</span><span class="o">.</span><span class="n">Rename</span><span class="p">(</span>
+                        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">gdb</span><span class="p">,</span> <span class="n">old_project_spatial_id</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;__ATTACHREL&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;proj_&#39;</span> <span class="o">+</span> <span class="n">project_spatial_id</span> <span class="o">+</span> <span class="s1">&#39;__ATTACHREL&#39;</span>
+                    <span class="p">)</span>
+
+        <span class="c1"># Update other attributes in the data</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">set_data</span><span class="p">(</span>
+            <span class="n">project_spatial_id</span><span class="p">,</span>
+            <span class="n">in_raw_gdb</span><span class="o">=</span><span class="n">value</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;in_raw_gdb&#39;</span><span class="p">),</span>
+            <span class="n">absolute_file_path</span><span class="o">=</span><span class="n">value</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;absolute_file_path&#39;</span><span class="p">),</span>
+            <span class="n">entry_type</span><span class="o">=</span><span class="n">value</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;entry_type&#39;</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Save the updated data</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">save_data</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+      
+    
+  </body>
+</html>

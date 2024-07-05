@@ -16,6 +16,7 @@ This repo stands as a singular place for all the tools that will be developed fo
 - [Configuration](#configuration)
 - [Contributing](#contributing)
 - [License](#license)
+- [Contact](#contact)
 
 ## Installation
 

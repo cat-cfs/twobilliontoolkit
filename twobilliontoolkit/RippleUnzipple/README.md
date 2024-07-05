@@ -12,6 +12,7 @@ The Ripple Unzipple project is a Python script designed to recursively unzip all
 - [Configuration](#configuration)
 - [Contributing](#contributing)
 - [License](#license)
+- [Contact](#contact)
 
 ## Installation
 
