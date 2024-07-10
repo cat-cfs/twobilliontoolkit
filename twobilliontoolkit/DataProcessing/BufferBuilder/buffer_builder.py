@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #~-~ encoding: utf-8 ~-~
-# twobilliontoolkit/BufferBuilder/buffer_builder.py
+# twobilliontoolkit/DataProcessing/BufferBuilder/buffer_builder.py
 #========================================================
 # Created By:       Anthony Rodway (Adapted from scripts written by Andrea Nesdoly)
 # Email:            anthony.rodway@nrcan-rncan.gc.ca (andrea.nesdoly@nrcan-rncan.gc.ca)
@@ -11,7 +11,7 @@
 # File Header
 #========================================================
 """
-File: twobilliontoolkit/BufferBuilder/buffer_builder.py
+File: twobilliontoolkit/DataProcessing/BufferBuilder/buffer_builder.py
 Created By:       Anthony Rodway (Adapted from scripts written by Andrea Nesdoly)
 Email:            anthony.rodway@nrcan-rncan.gc.ca (andrea.nesdoly@nrcan-rncan.gc.ca)
 Creation Date:    Mon June 10 15:00:00 PST 2024
