@@ -139,6 +139,8 @@ class DataTableApp(QWidget):
         if self.filter is not None:
             for key, value in self.filter.items():
                 if key == "created_at":
+                    if 'created_at' not in self.original_dataframe:
+                        self.original_dataframe['created_at'] = pd.Series([pd.NaT] * len(self.original_dataframe), dtype='datetime64[ns]')
                     date = value.date()
                     condition = (
                         (self.original_dataframe.created_at.dt.date == date) | 
