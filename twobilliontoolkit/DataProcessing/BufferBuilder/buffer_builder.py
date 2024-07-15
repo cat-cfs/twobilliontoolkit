@@ -177,7 +177,7 @@ def buffer_builder(data_sheet: str, database_ini: str, debug: bool = False) -> N
         cursor = connection.cursor()
         
         # Add each entry of the master geodataframe to the database
-        add_entries_to_database(cursor, geodataframe_master, point_site_ids, buffered_site_ids)
+        add_entries_to_database(cursor, geodataframe_master, schema, point_site_ids, buffered_site_ids)
                                     
         # Commit the transaction
         connection.commit()
@@ -315,7 +315,7 @@ def build_master_geodataframe(dataframe: pd.DataFrame):
     
     return geodataframe
 
-def add_entries_to_database(cursor: psycopg2.extensions.cursor, geodataframe: gpd.GeoDataFrame, point_sites: list[int], buffered_sites: list[int]):
+def add_entries_to_database(cursor: psycopg2.extensions.cursor, geodataframe: gpd.GeoDataFrame, schema: str, point_sites: list[int], buffered_sites: list[int]):
     """
     Adds or updates point and buffered point entries in the database based on 
     the provided GeoDataFrame, checking for differences and tolerances.
@@ -324,6 +324,7 @@ def add_entries_to_database(cursor: psycopg2.extensions.cursor, geodataframe: gp
         cursor (psycopg2.extensions.cursor): Database cursor for executing SQL commands.
         geodataframe (gpd.GeoDataFrame): A GeoDataFrame with site points and buffered 
         geometries.
+        schema (str): The schema for the buffered and regular points to be inserted/updated.
         point_sites (list[int]): List of site IDs for points already in the database.
         buffered_sites (list[int]): List of site IDs for buffered points already in the 
         database.
@@ -341,15 +342,15 @@ def add_entries_to_database(cursor: psycopg2.extensions.cursor, geodataframe: gp
             # If the distance between the points is larger than the tolerance (in metres)
             if row.site in point_sites and not np.isnan(row.point_distance) and row.point_distance > DISTANCE_TOLERANCE:        
                 # If the point location different, update the existing point's dropped status to True
-                update_database_entry(cursor, 'site_points', row.site)
+                update_database_entry(cursor, schema + '.site_points', row.site)
             
                 # Then insert the point into the database
-                insert_database_entry(cursor, 'site_points', row.site, row.aspatial_geom_points.wkt)
+                insert_database_entry(cursor, schema + '.site_points', row.site, row.aspatial_geom_points.wkt)
                 
                 num_points_altered += 1
             elif row.site not in point_sites:
                 # Insert the point into the database
-                insert_database_entry(cursor, 'site_points', row.site, row.aspatial_geom_points.wkt)
+                insert_database_entry(cursor, schema + '.site_points', row.site, row.aspatial_geom_points.wkt)
                 
                 num_points_added += 1
            
@@ -357,15 +358,15 @@ def add_entries_to_database(cursor: psycopg2.extensions.cursor, geodataframe: gp
             # If the area difference between the buffered points is larger than the tolerance (1.0 hectares)
             if row.site in buffered_sites and not np.isnan(row.area_difference) and row.area_difference > AREA_TOLERANCE:
                 # Update the previous buffered point entry to dropped
-                update_database_entry(cursor, 'site_buffered_points', row.site)
+                update_database_entry(cursor, schema + '.site_buffered_points', row.site)
             
                 # Then insert the new buffered point into the database
-                insert_database_entry(cursor, 'site_buffered_points', row.site, MultiPolygon([wkt.loads(row.aspatial_geom_buffered.wkt)]).wkt)
+                insert_database_entry(cursor, schema + '.site_buffered_points', row.site, MultiPolygon([wkt.loads(row.aspatial_geom_buffered.wkt)]).wkt)
                 
                 num_buffered_points_altered += 1
             elif row.site not in buffered_sites:
                 # Insert the point into the database
-                insert_database_entry(cursor, 'site_buffered_points', row.site, MultiPolygon([wkt.loads(row.aspatial_geom_buffered.wkt)]).wkt)
+                insert_database_entry(cursor, schema + '.site_buffered_points', row.site, MultiPolygon([wkt.loads(row.aspatial_geom_buffered.wkt)]).wkt)
                 
                 num_buffered_points_added += 1
           
@@ -420,39 +421,39 @@ def query_database(connection: psycopg2.extensions.connection, schema: str, tabl
     
     return databasePoints
       
-def update_database_entry(cursor: psycopg2.extensions.cursor, table: str, site_id):
+def update_database_entry(cursor: psycopg2.extensions.cursor, schema: str, site_id):
     """
     Updates a specific entry in the database to indicate it has been dropped (not to be used anymore).
 
     Args:
         cursor (psycopg2.extensions.cursor): The cursor connected to the database connection for executing SQL queries.
-        table (str): The table the SQL query will be updating.
+        schema (str): The schema the SQL query will be updating.
         site_id (int): The SiteID to indicate which entry to update in the database.
     """
     try:
         # Update the previous entry to dropped
         cursor.execute(
-            f"UPDATE bt_spatial_test.{table} SET dropped = True WHERE site_id = %s AND dropped = False",
+            f"UPDATE {schema} SET dropped = True WHERE site_id = %s AND dropped = False",
             (site_id,)
         )
     except Exception as error:
         # Log the error
         log(file_path=log_path, type=Colors.ERROR, message=f"Error connecting to PostgreSQL: {error}", ps_script=ps_script, absolute_provided=True)
     
-def insert_database_entry(cursor: psycopg2.extensions.cursor, table: str, site_id: int, geometry):
+def insert_database_entry(cursor: psycopg2.extensions.cursor, schema: str, site_id: int, geometry):
     """
     Inserts a buffered point entry into the database.
 
     Args:
         cursor (psycopg2.extensions.cursor): The cursor connected to the database connection for executing SQL queries.
-        table (str): The table the SQL query will be inserting into.
+        schema (str): The schema and table the SQL query will be inserting into.
         site_id (int): The SiteID to insert into the database.
         geometry: The Geometry to insert into the database.
     """
     try:
         # Insert the new geometry into the database
         cursor.execute(
-            f"INSERT INTO bt_spatial_test.{table} (site_id, geom, dropped) VALUES (%s, %s, %s)",
+            f"INSERT INTO {schema} (site_id, geom, dropped) VALUES (%s, %s, %s)",
             (site_id, f"SRID=102001;{geometry}", False)
         )
     except psycopg2.errors.ForeignKeyViolation as error:
@@ -490,6 +491,9 @@ def main():
     # Call the entry function
     buffer_builder(args.datasheet, args.ini, args.debug)
     
+    
+                        
+         
                         
     # Get the end time of the script and calculate the elapsed time
     end_time = time.time()
