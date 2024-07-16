@@ -762,7 +762,8 @@ class CheckGeometryExists(object):
                 result_list = []
 
                 # Loop through the selected features in the layer
-                for row in cursor:                    
+                for row in cursor:           
+                    arcpy.AddMessage(row)         
                     # Project the polygon to Canadian Albers (wkid 102001)
                     polygon_projected = row[0].projectAs(target_Ref)   
 

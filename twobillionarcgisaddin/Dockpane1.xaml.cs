@@ -533,24 +533,38 @@ namespace twobillionarcgisaddin
                     return;
                 }
 
-                bool foundGeometryOrCanceled = await SiteMapperCheckGeometryExistInDB(mapView);
+                // Get the first selected feature layer from the active map view
+                FeatureLayer featureLayer = mapView.GetSelectedLayers().OfType<FeatureLayer>().FirstOrDefault();
+                if (featureLayer == null)
+                {
+                    ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Please select a feature layer in the Drawing Order and try again.");
+                    SendDataButton.IsEnabled = true;
+                    return;
+                }
+
+                // Check if any features are selected in any layer
+                if (featureLayer.SelectionCount == 0)
+                {
+                    ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("No features on the map are selected, please select a feature you want to process and try again!");
+                    SendDataButton.IsEnabled = true;
+                    return;
+                }
+
+                bool foundGeometryOrCanceled = await SiteMapperCheckGeometryExistInDB(featureLayer);
                 if (foundGeometryOrCanceled)
                 {
-                    ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Canceled");
                     this.SendDataButton.IsEnabled = true;
                     return;
                 }
 
                 if (SiteMapper_IsBatch)
                 {
-                    SiteMapperSendDataBatch(mapView);
+                    SiteMapperSendDataBatch(featureLayer);
                 }
                 else
                 {
-                    SiteMapperSendData(mapView);
+                    SiteMapperSendData(featureLayer);
                 }
-
-
             }
             catch (Exception ex)
             {
@@ -1025,47 +1039,12 @@ namespace twobillionarcgisaddin
         }
 
         //
-        private async void SiteMapperSendData(MapView mapView)
+        private async void SiteMapperSendData(FeatureLayer featureLayer)
         {
-            SelectionSet selectedFeatures = null;
-            FeatureLayer featureLayer = null;
-            GeometryType geometryType = GeometryType.Unknown;
-            await QueuedTask.Run(() =>
-            {
-                // Get the currently selected features in the map
-                selectedFeatures = mapView.Map.GetSelection();
-            });
-
-            // Check if any features are selected in any layer
-            if (selectedFeatures.Count == 0)
-            {
-                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("No features on the map are selected, please select a feature you want to process and try again!");
-                SendDataButton.IsEnabled = true;
-                SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
-                return;
-            }
-
-            // Get the first layer and its corresponding selected feature OIDs
-            var selectionSet = selectedFeatures.ToDictionary().First();
-            featureLayer = selectionSet.Key as FeatureLayer;
-
-            await QueuedTask.Run(() =>
-            {
-                // Check if the feature layer is not null
-                if (featureLayer != null)
-                {
-                    // Access the feature class of the feature layer
-                    FeatureClass featureClass = featureLayer.GetFeatureClass();
-
-                    // Get the geometry type of the feature class
-                    geometryType = featureClass.GetDefinition().GetShapeType();
-                }
-            });
-
             // Check if the selected layer is a polygon or not
-            if (geometryType != GeometryType.Polygon)
+            if (featureLayer.ShapeType != esriGeometryType.esriGeometryPolygon)
             {
-                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("You currently have a " + geometryType.ToString() + " geometry selected. The tool does not currently accept anything other than Polygons.");
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("You currently have a " + featureLayer.ShapeType.ToString() + " geometry selected. The tool does not currently accept anything other than Polygons.");
 
                 // Disable the button (spam prevention)
                 this.SendDataButton.IsEnabled = true;
@@ -1087,17 +1066,8 @@ namespace twobillionarcgisaddin
         }
 
         //
-        private async void SiteMapperSendDataBatch(MapView mapView)
+        private async void SiteMapperSendDataBatch(FeatureLayer featureLayer)
         {
-            // Get the first selected feature layer from the active map view
-            FeatureLayer featureLayer = mapView.GetSelectedLayers().OfType<FeatureLayer>().FirstOrDefault();
-            if (featureLayer == null)
-            {
-                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Please select a feature layer in the Drawing Order and try again.");
-                this.MatchButton.IsEnabled = true;
-                return;
-            }
-
             if ((bool)this.OverwriteToggle.IsChecked)
             {
                 await ExecuteBatchUpdateDataToolAsync(featureLayer);
@@ -1109,16 +1079,8 @@ namespace twobillionarcgisaddin
         }
 
         //
-        private async Task<bool> SiteMapperCheckGeometryExistInDB(MapView mapView)
+        private async Task<bool> SiteMapperCheckGeometryExistInDB(FeatureLayer featureLayer)
         {
-            // Get the first selected feature layer from the active map view
-            FeatureLayer featureLayer = mapView.GetSelectedLayers().OfType<FeatureLayer>().FirstOrDefault();
-            if (featureLayer == null)
-            {
-                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Please select a feature layer in the Drawing Order and try again.");
-                return false;
-            }
-
             bool foundGeometry = await ExecuteCheckGeometryExistsToolAsync(featureLayer);
             return foundGeometry;
         }
@@ -1298,19 +1260,23 @@ namespace twobillionarcgisaddin
 
                 if (!returnValue.IsFailed)
                 {
+                    
                     this.SiteMapper_ErrorStatus.Visibility = Visibility.Collapsed;
                     this.SiteMapper_SuccessStatus.Visibility = Visibility.Visible;
                     return true;
-                }                
+                }
+                else
+                {
+                    this.SiteMapper_SuccessStatus.Visibility = Visibility.Collapsed;
+                    this.SiteMapper_ErrorStatusLabel.Content = '_' + returnValue?.ErrorMessages.FirstOrDefault()?.Text ?? "Error occurred";
+                    this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
+                }
             }
             catch (Exception ex)
             {
                 // Handle any exceptions that occur during tool execution
                 ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
             }
-
-            this.SiteMapper_SuccessStatus.Visibility = Visibility.Collapsed;
-            this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
 
             return false;
         }
@@ -1335,15 +1301,18 @@ namespace twobillionarcgisaddin
                     this.SiteMapper_SuccessStatus.Visibility = Visibility.Visible;
                     return true;
                 }
+                else
+                {
+                    this.SiteMapper_SuccessStatus.Visibility = Visibility.Collapsed;
+                    this.SiteMapper_ErrorStatusLabel.Content = '_' + returnValue?.ErrorMessages.FirstOrDefault()?.Text ?? "Error occurred";
+                    this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
+                }
             }
             catch (Exception ex)
             {
                 // Handle any exceptions that occur during tool execution
                 ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
             }
-
-            this.SiteMapper_SuccessStatus.Visibility = Visibility.Collapsed;
-            this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
 
             return false;
         }
@@ -1368,15 +1337,18 @@ namespace twobillionarcgisaddin
                     this.SiteMapper_SuccessStatus.Visibility = Visibility.Visible;
                     return true;
                 }
+                else
+                {
+                    this.SiteMapper_SuccessStatus.Visibility = Visibility.Collapsed;
+                    this.SiteMapper_ErrorStatusLabel.Content = '_' + returnValue?.ErrorMessages.FirstOrDefault()?.Text ?? "Error occurred";
+                    this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
+                }
             }
             catch (Exception ex)
             {
                 // Handle any exceptions that occur during tool execution
                 ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
             }
-
-            this.SiteMapper_SuccessStatus.Visibility = Visibility.Collapsed;
-            this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
 
             return false;
         }
@@ -1401,15 +1373,18 @@ namespace twobillionarcgisaddin
                     this.SiteMapper_SuccessStatus.Visibility = Visibility.Visible;
                     return true;
                 }
+                else
+                {
+                    this.SiteMapper_SuccessStatus.Visibility = Visibility.Collapsed;
+                    this.SiteMapper_ErrorStatusLabel.Content = '_' + returnValue?.ErrorMessages.FirstOrDefault()?.Text ?? "Error occurred";
+                    this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
+                }
             }
             catch (Exception ex)
             {
                 // Handle any exceptions that occur during tool execution
                 ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
             }
-
-            this.SiteMapper_SuccessStatus.Visibility = Visibility.Collapsed;
-            this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
 
             return false;
         }
@@ -1519,6 +1494,11 @@ namespace twobillionarcgisaddin
                         index--;
                     }
                     
+                }
+
+                if (listGroupList.Count == 0)
+                {
+                    return true;
                 }
 
                 return false;
