@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #~-~ encoding: utf-8 ~-~
-# twobilliontoolkit/SpatialTransformer/network_transfer.py
+# twobilliontoolkit/NetworkTransfer/network_transfer.py
 #========================================================
 # Created By:       Anthony Rodway
 # Email:            anthony.rodway@nrcan-rncan.gc.ca
@@ -11,7 +11,7 @@
 # File Header
 #========================================================
 """
-File: twobilliontoolkit/SpatialTransformer/network_transfer.py
+File: twobilliontoolkit/NetworkTransfer/network_transfer.py
 Created By:       Anthony Rodway
 Email:            anthony.rodway@nrcan-rncan.gc.ca
 Creation Date:    Fri March 29 02:30:00 PST 2024
@@ -40,45 +40,59 @@ from twobilliontoolkit.Logger.logger import log, Colors
 #========================================================
 # Functions
 #========================================================
-def merge_gdbs(src_gdb: str, dest_gdb: str, log_path: str = None) -> None:
+def merge_gdbs(src_gdb: str, dest_gdb: str, log_path: str = None) -> bool:
     """
     Merge source Geodatabase into destination Geodatabase.
-
+ 
     Args:
         src_gdb (str): Path to the source Geodatabase.
         dest_gdb (str): Path to the destination Geodatabase.
         log_path (str): path to the log file.
-    """
-    try:
-        # Set the workplace for the source geodatabase
-        arcpy.env.workspace = src_gdb
         
+    Return:
+        (bool): success flag of the operation.
+    """    
+    # Set the workplace for the source geodatabase
+    arcpy.env.workspace = src_gdb
+    try:
         # Copy the whole GDB if it does not exist
         if not arcpy.Exists(dest_gdb):
             if not os.path.exists(os.path.dirname(dest_gdb)):
                 os.mkdir(os.path.dirname(dest_gdb))
-                
+               
+            # Copy over the whole gdb
             arcpy.management.Copy(
                 src_gdb,
                 dest_gdb
             )
             
-            return
-        
-        # Get a list of feature classes in the source geodatabase
-        feature_classes = arcpy.ListFeatureClasses()
-        for feature_class in feature_classes:
+            log(None, Colors.INFO, f'Copy to {dest_gdb} has completed.')
+            return True
+           
+    except Exception as error:
+        log(log_path, Colors.ERROR, f'An error has been caught while trying to copy the geodatabase to {dest_gdb}: {error}')
+        return False
+       
+    # Get a list of feature classes in the source geodatabase
+    feature_classes = arcpy.ListFeatureClasses()
+    for feature_class in feature_classes:
+        try:
             # Skip if already exists in destination
             if arcpy.Exists(os.path.join(dest_gdb, feature_class)):
-                continue        
+                continue      
+             
+            # Copy over the specified feature
             arcpy.management.Copy(
                 os.path.join(src_gdb, feature_class),
                 os.path.join(dest_gdb, feature_class)
             )
+       
+            log(None, Colors.INFO, f'Merging to {dest_gdb} has completed.')
+        except Exception as error:
+            log(log_path, Colors.ERROR, f'An error has been caught while trying to merge the geodatabase to {dest_gdb}: {error}')
+            return False
         
-        log(None, Colors.INFO, f'Merging to {dest_gdb} has completed.')
-    except Exception as error:
-        log(log_path, Colors.ERROR, f'An error has been caught while trying to merge the geodatabase to {dest_gdb}: {error}')
+    return True
 
 def merge_directories(src_dir, dst_dir, log_path):
     """
@@ -108,7 +122,7 @@ def merge_directories(src_dir, dst_dir, log_path):
     except Exception as error:
         log(log_path, Colors.ERROR, f'An error has been caught while trying to merge the {src_dir} to {dst_dir}: {error}')
                         
-def transfer(local_path: str, network_path: str, list_files: list[str] = None, log_path: str = None) -> None:
+def transfer(local_path: str, network_path: str, list_files: list[str] = None, log_path: str = None) -> bool:
     """
     Transfer files from local directory to network directory.
     
@@ -117,6 +131,9 @@ def transfer(local_path: str, network_path: str, list_files: list[str] = None, l
         network_path (str): Path to the network directory.
         list_files (list): Optional. A provided list of files to transfew instead of all.
         log_path (str): path to the log file.
+        
+    Return:
+        (bool): success flag of the operation.
     """
     try:
         if list_files is None:
@@ -139,7 +156,9 @@ def transfer(local_path: str, network_path: str, list_files: list[str] = None, l
             if os.path.isdir(src_path):
                 # Merge Geodatabases if destination exists
                 if item.endswith(".gdb"):
-                    merge_gdbs(src_path, dest_path, log_path)
+                    success = merge_gdbs(src_path, dest_path, log_path)
+                    if not success:
+                        return False
                 else:
                     merge_directories(src_path, dest_path, log_path)
             else:
@@ -154,6 +173,9 @@ def transfer(local_path: str, network_path: str, list_files: list[str] = None, l
         log(None, Colors.INFO, f'The transfer of files has been completed')
     except Exception as error:
         log(log_path, Colors.ERROR, f'An error has been caught while transferring files from {local_path} to {network_path}: {error}')
+        return False
+    
+    return True
 
 #========================================================
 # Main
@@ -174,7 +196,7 @@ def main():
     files = args.files or None
     
     # Transfer files
-    transfer(args.local_path, args.network_path, files)
+    _ = transfer(args.local_path, args.network_path, files)
     
     # Get the end time of the script and calculate the elapsed time
     end_time = time.time()

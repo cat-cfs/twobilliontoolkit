@@ -37,7 +37,7 @@ from twobilliontoolkit.Logger.logger import log, Colors
 from twobilliontoolkit.SpatialTransformer.Parameters import Parameters
 from twobilliontoolkit.SpatialTransformer.Processor import Processor
 from twobilliontoolkit.RecordReviser.record_reviser import call_record_reviser
-from twobilliontoolkit.SpatialTransformer.network_transfer import transfer
+from twobilliontoolkit.NetworkTransfer.network_transfer import transfer
        
 #========================================================
 # Entry Function
@@ -93,7 +93,7 @@ def spatial_transformer(input_path: str, output_path: str, load_from: str, save_
         log(None, Colors.INFO, f'The Attachments Seeker has completed extracting the attachments from the geodatabase. Now starting to transfer over the files from the local directory to the specified output. Time: {datetime.datetime.now().strftime("%H:%M:%S")}')
         
         # Move the local files to the specified output
-        transfer(
+        success = transfer(
             spatial_processor.params.local_dir,
             os.path.dirname(spatial_processor.params.gdb_path),
             [os.path.basename(spatial_processor.params.gdb_path), os.path.basename(spatial_processor.params.datatracker), os.path.basename(spatial_processor.params.attachments), spatial_processor.params.log[:-4] + '_WARNING.txt', spatial_processor.params.log[:-4] + '_ERROR.txt'],
@@ -106,10 +106,11 @@ def spatial_transformer(input_path: str, output_path: str, load_from: str, save_
         log(None, Colors.INFO, f'The changes have successfully been saved to the specified datatracker. Now opening Record Reviser. Time: {datetime.datetime.now().strftime("%H:%M:%S")}')
         
         # Open the record reviser
-        call_record_reviser(spatial_processor.data, spatial_processor.params.gdb_path)
+        filter = {'created_at': datetime.datetime.now()}
+        call_record_reviser(spatial_processor.data, spatial_processor.params.gdb_path, filter)
         log(None, Colors.INFO, 'The Record Reviser has completed editing any entries and is closing.')
-        
-        if not debug:
+
+        if not debug and success:
             # Remove the local contents
             spatial_processor.del_gdb()
             os.mkdir(setup_parameters.local_dir)

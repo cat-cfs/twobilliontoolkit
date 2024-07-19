@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='twobilliontoolkit',
-    version='1.1',
+    version='1.2',
     packages=find_packages(exclude=['ArcGISAddin', 'ArcGISToolbox', 'tests']),
     install_requires=[
         'dash==2.14.2',        
