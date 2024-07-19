@@ -1147,7 +1147,7 @@ namespace twobillionarcgisaddin
             dataLayersToAdd.Clear(); // Clear the ObservableCollection first
             dataLayersToAdd.Add(new DataLayer()
             {
-                Table = "site_points",
+                Table = "valid_points",
                 Name = "2BT Site Points",
                 GeomType = esriGeometryType.esriGeometryPoint,
                 ObjectIDColumn = "id",
@@ -1158,7 +1158,7 @@ namespace twobillionarcgisaddin
 
             dataLayersToAdd.Add(new DataLayer()
             {
-                Table = "site_buffered_points",
+                Table = "valid_buffered_points",
                 Name = "2BT Site Buffered Points",
                 GeomType = esriGeometryType.esriGeometryPolygon,
                 ObjectIDColumn = "id",
