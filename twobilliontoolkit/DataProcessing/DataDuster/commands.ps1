@@ -14,7 +14,8 @@ $username = $env:USERNAME
 
 # Define Variables
 $toolkit_dir = "..."
-
+$database_init = "..." 
+$log_path = "..."
 $debug_mode = $false  # or $debug_mode = 0
 $script_location = $MyInvocation.MyCommand.Path
 
@@ -44,7 +45,9 @@ do {
         }
         "2" {
             Write-Host "Updating and dusting older data with the Data Duster..."
-
+            Write-Host python "$toolkit_dir\twobilliontoolkit\DataProcessing\DataDuster\data_duster.py" --ini "$database_init" --log "$log_path" --ps_script "$script_location" --debug
+            Write-Host
+            & python "$toolkit_dir\twobilliontoolkit\DataProcessing\DataDuster\data_duster.py" --ini "$database_init" --log "$log_path" --ps_script "$script_location" --debug
             Write-Host
             Write-Host "The Data Duster has completed its processing!"
             Pause
