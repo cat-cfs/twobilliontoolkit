@@ -64,6 +64,8 @@
 
             <!-- DockPanel for Button Tool List -->
             <DockPanel x:Name="ButtonToolist" LastChildFill="False" Margin="20,12,20,12" Visibility="Collapsed">
+                
+
                 <Grid DockPanel.Dock="Top">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -80,8 +82,15 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <Label Content="Two Billion Trees Tool List" Grid.Row="0" HorizontalAlignment="Center" FontSize="17" FontWeight="Normal"  Style="{StaticResource LabelStyle}"/>
+                    <Grid DockPanel.Dock="Top">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
 
+                        <Button x:Name="ButtonListBackButton" Grid.Row="0" Content="Back To Connection Details" Click="ButtonListBackButtonClicked" HorizontalAlignment="Left" VerticalAlignment="Center" Style="{DynamicResource Esri_ButtonBackSmall}" ToolTip="Back to Tool list"/>
+                        <Label Content="Two Billion Trees Tool List" Grid.Row="0" HorizontalAlignment="Center" FontSize="17" FontWeight="Normal"  Style="{StaticResource LabelStyle}"/>
+                    </Grid>
+                    
                     <Border Style="{StaticResource SuccessLabelBorder}" Margin="0,3,0,12" Grid.Row="1" Height="Auto">
                         <Label x:Name="ConnectedMessage" HorizontalContentAlignment="Center" Foreground="#FFFFFA">
                             <TextBlock TextWrapping="Wrap">
