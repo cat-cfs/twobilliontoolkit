@@ -231,6 +231,26 @@ namespace twobillionarcgisaddin
             this.EstablishConnectionButton.IsEnabled = true;
         }
 
+        // Method to handle the click event of the Establish Connection button
+        private void ButtonListBackButtonClicked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Toggle visibility of UI elements
+                if (this.ButtonToolist.Visibility == Visibility.Visible)
+                {
+                    this.ButtonToolist.Visibility = Visibility.Collapsed;
+                    this.UserForm.Visibility = Visibility.Visible;
+                    
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions that occur during tool execution
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
+            }
+        }
+
         // Method to handle the click event of the Browse button
         private void BrowseButtonClicked(object sender, RoutedEventArgs e)
         {
@@ -399,7 +419,7 @@ namespace twobillionarcgisaddin
                     }
 
                     // Build the database query based on parameters
-                    string databaseSchema = $"bt_testcase1.{this.DatabaseSchema.Text.Trim()}";
+                    string databaseSchema = this.DatabaseSchema.Text.Trim();
                     string dataset = $"{databaseSchema}.{entry.Table}";
                     var sqlQueryBuilder = new StringBuilder($@"SELECT si.*, sii.site_name, sii.project_number, sii.year FROM {dataset} si INNER JOIN {databaseSchema}.site_id sii ON si.site_id = sii.site_id"
                     );
@@ -1098,7 +1118,7 @@ namespace twobillionarcgisaddin
         //
         private async void MatchSiteToEntry(Row row, string columnName)
         {
-            string value = (string)row[columnName];
+            string value = row[columnName].ToString();
 
             foreach (DataEntry entry in dataEntries)
             {
