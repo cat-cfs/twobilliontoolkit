@@ -79,15 +79,10 @@ DISTANCE_TOLERANCE = 1.3
 # Another tolerance variable for the buffered points area checking
 AREA_TOLERANCE = 1.0
 
-# The location of the log file
-log_path = None
-# To indicate if the tool was run by a script
-ps_script = None
-
 #========================================================
 # Entry Function
 #========================================================  
-def buffer_builder(data_sheet: str, database_ini: str, debug: bool = False) -> None:
+def buffer_builder(data_sheet: str, database_ini: str, log_path: str = None, ps_script: str = None, debug: bool = False) -> None:
     """
     The buffer_builder function processes a data sheet containing spatial geometries,
     buffers the points, and integrates them with database information.
@@ -96,6 +91,8 @@ def buffer_builder(data_sheet: str, database_ini: str, debug: bool = False) -> N
         data_sheet (str): Path to the datasheet to be processed into spatial geometries.
         Must be *.xlsx or *.csv.
         database_ini (str): Path to the .ini file with the database connection details.
+        log_path (str, Optional): Path to the log file to output any errors.
+        ps_script (str, Optional): Path to the powershell script that was used to call the script if applicable.
         debug (bool): A flag that when enabled will create intermediary shapefiles
         for checking the spatial data.
     """    
@@ -144,7 +141,7 @@ def buffer_builder(data_sheet: str, database_ini: str, debug: bool = False) -> N
         # Read database configuration
         config_parse = configparser.ConfigParser()
         config_parse.read(database_ini)
-        connection = get_connection(config_parse)
+        connection = get_connection(config_parse, log_path, ps_script)
         schema = config_parse['postgresql']['schema']
 
         # Query site points from database
@@ -373,7 +370,7 @@ def add_entries_to_database(cursor: psycopg2.extensions.cursor, geodataframe: gp
     log(None, Colors.INFO, f"{num_points_added} new points have been added, {num_points_altered} points have been altered.")
     log(None, Colors.INFO, f"{num_buffered_points_added} new buffered points have been added, {num_buffered_points_altered} buffered points have been altered.\n")    
 
-def get_connection(config: configparser.ConfigParser):
+def get_connection(config: configparser.ConfigParser, log_path: str = None, ps_script: str = None) -> psycopg2.extensions.connection:
     """
     Takes a parsed config object from the configparser package, extracts the needed 
     variables to build and return a connection object.
@@ -381,6 +378,8 @@ def get_connection(config: configparser.ConfigParser):
     Args:
         config (configparser.ConfigParser): The parsed config to extract the variables
         from the database.ini file.
+        log_path (str, Optional): Path to the log file to output any errors.
+        ps_script (str, Optional): Path to the powershell script that was used to call the script if applicable.
 
     Returns:
         psycopg2.extensions.connection: The connection parsed from the config to connect 
@@ -421,7 +420,7 @@ def query_database(connection: psycopg2.extensions.connection, schema: str, tabl
     
     return databasePoints
       
-def update_database_entry(cursor: psycopg2.extensions.cursor, schema: str, site_id):
+def update_database_entry(cursor: psycopg2.extensions.cursor, schema: str, site_id: int, log_path: str = None, ps_script: str = None) -> None:
     """
     Updates a specific entry in the database to indicate it has been dropped (not to be used anymore).
 
@@ -429,6 +428,8 @@ def update_database_entry(cursor: psycopg2.extensions.cursor, schema: str, site_
         cursor (psycopg2.extensions.cursor): The cursor connected to the database connection for executing SQL queries.
         schema (str): The schema the SQL query will be updating.
         site_id (int): The SiteID to indicate which entry to update in the database.
+        log_path (str, Optional): Path to the log file to output any errors.
+        ps_script (str, Optional): Path to the powershell script that was used to call the script if applicable.
     """
     try:
         # Update the previous entry to dropped
@@ -440,7 +441,7 @@ def update_database_entry(cursor: psycopg2.extensions.cursor, schema: str, site_
         # Log the error
         log(file_path=log_path, type=Colors.ERROR, message=f"Error connecting to PostgreSQL: {error}", ps_script=ps_script, absolute_provided=True)
     
-def insert_database_entry(cursor: psycopg2.extensions.cursor, schema: str, site_id: int, geometry):
+def insert_database_entry(cursor: psycopg2.extensions.cursor, schema: str, site_id: int, geometry, log_path: str = None, ps_script: str = None) -> None:
     """
     Inserts a buffered point entry into the database.
 
@@ -449,6 +450,8 @@ def insert_database_entry(cursor: psycopg2.extensions.cursor, schema: str, site_
         schema (str): The schema and table the SQL query will be inserting into.
         site_id (int): The SiteID to insert into the database.
         geometry: The Geometry to insert into the database.
+        log_path (str, Optional): Path to the log file to output any errors.
+        ps_script (str, Optional): Path to the powershell script that was used to call the script if applicable.
     """
     try:
         # Insert the new geometry into the database
@@ -481,19 +484,17 @@ def main():
     
     # Parse the command-line arguments
     args = parser.parse_args()
-    
-    global log_path
-    global ps_script
-    log_path = args.log
+
+    log_path = None
+    if args.log:
+        log_path = args.log,
+        
+    ps_script = None
     if args.ps_script:
         ps_script = args.ps_script
         
     # Call the entry function
-    buffer_builder(args.datasheet, args.ini, args.debug)
-    
-    
-                        
-         
+    buffer_builder(args.datasheet, args.ini, log_path, ps_script, args.debug)
                         
     # Get the end time of the script and calculate the elapsed time
     end_time = time.time()

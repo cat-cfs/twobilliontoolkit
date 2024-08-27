@@ -19,16 +19,22 @@ Organization:     Natural Resources of Canada
 Team:             Carbon Accounting Team
 
 Description: 
-    The data_duster.py script is a Python tool for 
+    The data_duster.py script is a Python tool for cleaning the geometry tables in the database by updating the 'site_geometry' 
+    tables duplicate_geometries field.
+    It connects to the database using configuration details, retrieves data, and updates duplicate geometries
+    by triggering a database function.
 
 Usage:
-    python path/to/data_duster.py
+    python path/to/data_duster.py --ini path/to/db_config.ini --log path/to/log.txt [--ps_script path/to/ps_script.ps1] [--debug]
 
 Arguments:
-
+    --ini         : Path to the database configuration file.
+    --log         : Path to the output log file.
+    --ps_script   : Optional path to a PowerShell script used for additional commands.
+    --debug       : Optional flag to enable debug mode.
 
 Example:
-    python data_duster.py 
+    python ./data_duster.py --ini ../../SpatialTransformer/database.ini --log ./test_log.txt
 """
 #========================================================
 # Imports
@@ -36,35 +42,24 @@ Example:
 import os
 import sys
 import time
-import shutil
 import argparse
 import datetime
 import traceback
-import configparser
-import numpy as np
-import pandas as pd
-import geopandas as gpd
 
 from twobilliontoolkit.Logger.logger import log, Colors
 from twobilliontoolkit.SpatialTransformer.Database import Database
 
 #========================================================
-# Globals
-#========================================================
-# The location of the log file
-log_path = None
-# To indicate if the tool was run by a script
-ps_script = None
-
-#========================================================
 # Entry Function
 #========================================================  
-def data_duster(db_config: str) -> None:
+def data_duster(db_config: str, log_path: str = None, ps_script: str = None) -> None:
     """
     Entry function for cleaning data in the database.
     
     Args:
         db_config (str): Path to the database configuration file.
+        log_path (str, Optional): Path to the log file to output any errors.
+        ps_script (str, Optional): Path to the powershell script that was used to call the script if applicable.
     """      
     try:  
         # Create a database connection instance
@@ -74,7 +69,7 @@ def data_duster(db_config: str) -> None:
         database_parameters = database_connection.get_params(db_config)
         
         # Call the function to update duplicate geometries in the database
-        update_database_duplicate_geometries(database_connection, database_parameters)
+        update_database_duplicate_geometries(database_connection, database_parameters, log_path, ps_script)
 
     except Exception as error:        
         # Log any exceptions that occur
@@ -83,13 +78,15 @@ def data_duster(db_config: str) -> None:
 #========================================================
 # Helper Functions
 #========================================================
-def update_database_duplicate_geometries(database_connection: Database, database_parameters: dict[str, str]) -> None:
+def update_database_duplicate_geometries(database_connection: Database, database_parameters: dict[str, str], log_path: str = None, ps_script: str = None) -> None:
     """
     Updates each row in the site_geometry table to trigger the update_duplicate_geometry_ids_trigger.
     
     Args:
         database_connection (Database): Instance of the Database class.
         database_parameters (dict[str, str]): Dictionary of database connection parameters.
+        log_path (str, Optional): Path to the log file to output any errors.
+        ps_script (str, Optional): Path to the powershell script that was used to call the script if applicable.
     """
     try:
         # Connect to the database using the provided parameters
@@ -132,14 +129,16 @@ def main():
     # Parse the command-line arguments
     args = parser.parse_args()
     
-    global log_path
-    global ps_script
-    log_path = args.log
+    log_path = None
+    if args.log:
+        log_path = args.log,
+    
+    ps_script = None
     if args.ps_script:
         ps_script = args.ps_script
         
     # Call the entry function
-    data_duster(args.ini)
+    data_duster(args.ini, log_path, ps_script)
                         
     # Get the end time of the script and calculate the elapsed time
     end_time = time.time()
