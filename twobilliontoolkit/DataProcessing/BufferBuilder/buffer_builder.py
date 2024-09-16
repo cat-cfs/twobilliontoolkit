@@ -489,11 +489,7 @@ def main():
         ps_script = args.ps_script
         
     # Call the entry function
-    buffer_builder(args.datasheet, args.ini, args.debug)
-    
-    
-                        
-         
+    buffer_builder(args.datasheet, args.ini, args.debug)        
                         
     # Get the end time of the script and calculate the elapsed time
     end_time = time.time()
