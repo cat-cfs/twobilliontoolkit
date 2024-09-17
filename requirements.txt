@@ -1,5 +1,10 @@
 Fiona==1.9.4.post1
 geopandas==0.13.2
+matplotlib==3.7.2
+mkdocs==1.6.0
+mkdocstrings==0.25.1
+mkdocs-material==9.5.28
+numpy==1.25.2
 pandas==2.2.2
 psycopg2==2.9.9
 py7zr==0.20.8
@@ -7,6 +12,5 @@ PyQt5==5.15.10
 PyQt5_sip==12.13.0
 pywin32==306
 setuptools==68.2.2
-mkdocs==1.6.0
-mkdocstrings==0.25.1
-mkdocs-material==9.5.28
+setuptools==57.4.0
+Shapely==2.0.4

@@ -133,12 +133,13 @@ class DataTableApp(QWidget):
         self.original_dataframe = formatted_data[formatted_data['dropped'] != True]
   
         conditions = []
-        # combined_condition = 
 
         # Filter out the data if there was a filter given
         if self.filter is not None:
             for key, value in self.filter.items():
                 if key == "created_at":
+                    if 'created_at' not in self.original_dataframe:
+                        self.original_dataframe['created_at'] = pd.Series([pd.NaT] * len(self.original_dataframe), dtype='datetime64[ns]')
                     date = value.date()
                     condition = (
                         (self.original_dataframe.created_at.dt.date == date) | 
@@ -154,8 +155,14 @@ class DataTableApp(QWidget):
             for condition in conditions[1:]:
                 combined_condition &= condition
 
-        # Always add the condition for project_spatial_id
-        combined_condition |= self.original_dataframe.project_spatial_id.isin(session_added_entries)
+        # If the variable does not exist (no filter was provided)
+        if 'combined_condition' not in locals():
+            combined_condition = pd.Series([True] * len(self.original_dataframe), index=self.original_dataframe.index) 
+
+        # If there has been a change create the combined conition
+        if session_added_entries:
+            # Always add the condition for project_spatial_id
+            combined_condition |= self.original_dataframe.project_spatial_id.isin(session_added_entries)
 
         # Apply the combined condition to the DataFrame
         self.original_dataframe = self.original_dataframe[combined_condition]

@@ -45,7 +45,7 @@ class Colors:
 #========================================================
 # Logger Functions
 #========================================================   
-def log(file_path: str = '', type: str = Colors.ERROR, message: str = '', suppress: bool = False, ps_script: str = '', project_id: str = '') -> None:
+def log(file_path: str = '', type: str = Colors.ERROR, message: str = '', suppress: bool = False, ps_script: str = '', project_id: str = '', absolute_provided: bool = False) -> None:
     """
     Log messages with colored tags and timestamps.
 
@@ -55,11 +55,14 @@ def log(file_path: str = '', type: str = Colors.ERROR, message: str = '', suppre
         message (str): The log message.
         suppress (bool, optional): Suppress warnings in the command line.
         ps_script (str, optional): The path location of the script to run spatial transformer. 
-        project_id (str, optional): A 2BT specific variable to include a project id to more easily correlate errors and fix them.
+        project_id (str, optional): A 2BT specific variable to include a project id to more easily 
+        correlate errors and fix them.
+        absolute_provided (bool, optional): A Flag to indicate whether the filepath provided is an 
+        absolute path and should not be processed.
     """       
     if project_id:
         project_id = f'- Project Spatial ID: {project_id} - '    
-        
+
     # Set the tag and print to the console
     if type == Colors.INFO:
         tag = 'INFO'
@@ -72,11 +75,12 @@ def log(file_path: str = '', type: str = Colors.ERROR, message: str = '', suppre
     elif type == Colors.ERROR:
         tag = 'ERROR'
         print(f'{type}[{tag}] {project_id}{message}{Colors.END}')
-            
+    
     # If a file path is provided
     if file_path is not None:
-        # Split the log files into seperate Warning and Error logs
-        file_path = r'C:\LocalTwoBillionToolkit\\' + file_path[:-4] + '_' + tag + '.txt'
+        if not absolute_provided:
+            # Split the log files into seperate Warning and Error logs
+            file_path = r'C:\LocalTwoBillionToolkit\\' + file_path[:-4] + '_' + tag + '.txt'
         
         # Check if the directory exists, if not, create it
         directory = os.path.dirname(file_path)
