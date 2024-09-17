@@ -314,21 +314,21 @@ class Datatracker2BT(Datatracker):
         """
         return self.data_dict[project_spatial_id]
     
-    def find_matching_spatial_id(self, raw_data_path: str) -> str:
+    def find_matching_spatial_id(self, absolute_file_path: str) -> str:
         """
-        Search for a matching entry for the raw data path.
+        Search for a matching entry for the absolute data path.
 
         Args:
-            raw_data_path (str): The path of the raw data.
+            absolute_file_path (str): The absolute path of the data.
 
         Returns:
-            str: A matching project_spatial_id if it the raw data path already exists in the dataframe, otherwise return None.
+            str: A matching project_spatial_id if it the absolute data path already exists in the dataframe, otherwise return None.
         """        
         return next(
             (
                 project_spatial_id
                 for project_spatial_id, project_data in self.data_dict.items()
-                if project_data.get('raw_data_path') == raw_data_path
+                if project_data.get('absolute_file_path') == absolute_file_path
             ),
             None
         )

@@ -118,9 +118,10 @@ class Processor:
                         project_spatial_id = self.create_entry(file_path, file_path, contains_pdf=True, entry_type='Aspatial', processed=True)                
                     else:
                         project_spatial_id = self.create_entry(file_path, file_path, contains_image=True, entry_type='Aspatial', processed=True)
-                                           
-                    # Log it
-                    log(self.params.log, Colors.WARNING, f'Image/PDF file: {file_path} will be added to data tracker but not resulting gdb.', self.params.suppress, ps_script=self.params.ps_script, project_id=project_spatial_id)
+                         
+                    if self.params.debug:                  
+                        # Log it
+                        log(self.params.log, Colors.WARNING, f'Image/PDF file: {file_path} will be added to data tracker but not resulting gdb.', self.params.suppress, ps_script=self.params.ps_script, project_id=project_spatial_id)
                      
                 elif lowercase_file.endswith('.shp'):
                     project_spatial_id = self.create_entry(file_path, file_path)
@@ -206,7 +207,7 @@ class Processor:
         absolute_file_path = convert_drive_path(absolute_path)
 
         # Call a method to process raw data matching
-        self.call_raw_data_match(formatted_project_spatial_id, raw_data_path)
+        self.call_raw_data_match(formatted_project_spatial_id, absolute_file_path)
                 
         # Add data to the data class 
         self.data.add_data(
@@ -362,7 +363,7 @@ class Processor:
         
         # If no match is found, log a warning and assign an arbitrary project number
         if not search:
-            log(self.params.log, Colors.WARNING, f'Could not find a project number for: {file_path} - Giving it an arbitrary project number "0000 XXX - 000"', self.params.suppress, ps_script=self.params.ps_script)
+            log(self.params.log, Colors.WARNING, f'Could not find a project number for: {file_path} - giving it an arbitrary project number "0000 XXX - 000"', self.params.suppress, ps_script=self.params.ps_script)
             formatted_result = '0000 XXX - 000'
         else:
             # Format the result using the matched groups
@@ -377,22 +378,23 @@ class Processor:
                     break
 
             if not project_found:
-                log(self.params.log, Colors.WARNING, f'The project number {formatted_result} does not match any know project number in the master datasheet', self.params.suppress, ps_script=self.params.ps_script)
+                log(self.params.log, Colors.WARNING, f'The project number {formatted_result} does not match a project number in the provided source - giving it an arbitrary project number "0000 XXX - 000"', self.params.suppress, ps_script=self.params.ps_script)
+                formatted_result = '0000 XXX - 000'
             
         return formatted_result
         
-    def call_raw_data_match(self, current_spatial_id: str, raw_data_path: str) -> None:
+    def call_raw_data_match(self, current_spatial_id: str, absolute_file_path: str) -> None:
         """
         Call the method that finds a matching raw data path and returns the project spatial id.
 
         Args:
             current_spatial_id (str): The current spatial project id being checked.
-            raw_data_path (str): The raw data path to be searched in the dictionary.
+            absolute_file_path (str): The absolute data path to be searched in the dictionary.
         """
         # Find a corresponding project spatial ID in the data dictionary based on the raw data path
-        (found_match, _) = self.data.find_matching_data(raw_data_path=raw_data_path)
+        (found_match, _) = self.data.find_matching_data(absolute_file_path=absolute_file_path)
         if found_match is not None:
-            log(self.params.log, Colors.WARNING, f'Raw path: {raw_data_path} already exists in the data tracker! -  Current Spatial ID: {current_spatial_id} Matching Spatial ID: {found_match}', self.params.suppress, ps_script=self.params.ps_script, project_id=current_spatial_id)    
+            log(self.params.log, Colors.WARNING, f'Absolute Path: {absolute_file_path} already exists in the data tracker! -  Current Spatial ID: {current_spatial_id} Matching Spatial ID: {found_match}', self.params.suppress, ps_script=self.params.ps_script, project_id=current_spatial_id)    
             
     def extract_attachments(self) -> None:
         """
