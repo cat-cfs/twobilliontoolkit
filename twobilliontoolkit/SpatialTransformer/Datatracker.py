@@ -14,13 +14,13 @@ from twobilliontoolkit.SpatialTransformer.Database import Database
 class Datatracker:
     def __init__(self, data_traker_path: str, load_from: str = 'database', save_to: str = 'database', database_config: str = None, log_path: str = None) -> None:
         """
-        Initializes the Data class with input parameters. Used to store the data tracker information.
+        Initializes the Datatracker class with input parameters to store data tracker information.
 
         Args:
-            data_traker_path (str): Path to data tracker to load data if exists.
-            load_from (str): Flag to determine if loading dataframe should be done from the {database, datatracker}. Default: 'database'.
-            save_to (str): Flag to determine if saving the dataframe should be done to the {database, datatracker}. Default: 'database'.
-            log_path (str, optional): The path to the log file if you wish to keep any errors that occur.
+            data_traker_path (str): Path to data tracker file.
+            load_from (str): Source to load data from {'database', 'datatracker'}. Default: 'database'.
+            save_to (str): Destination to save data to {'database', 'datatracker'}. Default: 'database'.
+            log_path (str, optional): Path to log file for recording errors.
         """
         self.data_dict = {}
         self.datatracker = data_traker_path
@@ -46,7 +46,7 @@ class Datatracker:
 
         Args:
             key (str): Acts as key in dictionary.
-            **kwargs: Additional keyword arguments for project data.
+            **kwargs (any): Additional keyword arguments for project data.
         """
         self.data_dict[key] = kwargs
         
@@ -56,7 +56,7 @@ class Datatracker:
 
         Args:
             key (str): Acts as key in dictionary.
-            **kwargs: Keyword arguments for updating project data.
+            **kwargs (any): Keyword arguments for updating project data.
         """
         # Update specified parameters as sets
         project_data = self.data_dict.get(key, {})
@@ -84,7 +84,7 @@ class Datatracker:
         Search for a matching entry in the data based on given parameters.
 
         Args:
-            **kwargs: Keyword arguments for finding a matching key.
+            **kwargs (any): Keyword arguments for finding a matching key.
 
         Returns:
             str: A tuple of matching (key, data) if  the parameters passed already exists in the dataframe, otherwise return None.
@@ -98,13 +98,13 @@ class Datatracker:
             (None, None)
         )
             
-    def count_occurances(self, field: str, value) -> int:
+    def count_occurances(self, field: str, value: str) -> int:
         """
         Count the occurrences of a specified field in the data object.
 
         Args:
             field (str): Name of the parameter to count occurrences.
-            value: Value of the parameter to count occurrences.
+            value (str): Value of the parameter to count occurrences.
 
         Returns:
             int: Number of occurrences of the specified parameter.

@@ -22,7 +22,7 @@ Description:
     The script will transfer all files or any files specified from a source directory to a destination. It's main purpose will be used to transfer files from the local computers to a network drive with specific focus on the two billion trees toolkit processing.
 
 Usage:
-    python path/to/network_transfer.py <local_path> <network_path> [--files [...list of files...]] 
+    python path/to/network_transfer.py local_path source_path network_path destination_path [--files [...list of files...]] 
 
 """
 #========================================================
