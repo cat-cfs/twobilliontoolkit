@@ -12,7 +12,7 @@ from twobilliontoolkit.SpatialTransformer.Database import Database
 # Base Class
 #========================================================
 class Datatracker:
-    def __init__(self, data_traker_path: str, load_from: str = 'database', save_to: str = 'database', log_path: str = None) -> None:
+    def __init__(self, data_traker_path: str, load_from: str = 'database', save_to: str = 'database', database_config: str = None, log_path: str = None) -> None:
         """
         Initializes the Data class with input parameters. Used to store the data tracker information.
 
@@ -33,7 +33,7 @@ class Datatracker:
             self.database_connection = Database()
             
             # Read connection parameters from the configuration file
-            self.database_parameters = self.database_connection.get_params()
+            self.database_parameters = self.database_connection.get_params(config_path=database_config)
             self.database_connection.connect(self.database_parameters)
             self.database_pkey = self.database_connection.get_pkey(self.database_connection.schema, self.database_connection.table)
             self.database_connection.disconnect()
@@ -213,7 +213,7 @@ class Datatracker:
 # Inheritance Class
 #========================================================
 class Datatracker2BT(Datatracker):
-    def __init__(self, data_traker_path: str, load_from: str = 'database', save_to: str = 'database', log_path: str = None) -> None:
+    def __init__(self, data_traker_path: str, load_from: str = 'database', save_to: str = 'database', database_config: str = None, log_path: str = None) -> None:
         """
         Initializes the Data class with input parameters. Used to store the data tracker information.
 
@@ -223,7 +223,7 @@ class Datatracker2BT(Datatracker):
             save_to (str): Flag to determine if saving the dataframe should be done to the {database, datatracker}. Default: 'database'.
             log_path (str, optional): The path to the log file if you wish to keep any errors that occur.
         """
-        super().__init__(data_traker_path, load_from, save_to, log_path)
+        super().__init__(data_traker_path, load_from, save_to, database_config, log_path)
     
     def add_data(self, project_spatial_id: str, project_number: str, dropped: bool, raw_data_path: str, raw_gdb_path: str, absolute_file_path: str, in_raw_gdb: bool, contains_pdf: bool, contains_image: bool, extracted_attachments_path: str, editor_tracking_enabled: bool, processed: bool, entry_type: str) -> None:
         """
