@@ -67,6 +67,11 @@ def spatial_transformer(input_path: str, output_path: str, load_from: str, save_
     spatial_processor = None
     
     try:       
+        if database_config == "...":
+            database_config = None
+        elif database_config and not os.path.exists(database_config):
+            raise("The database config file path you provided does not exist.")
+            
         # Initialize Parameters class
         setup_parameters = Parameters(input_path, output_path, gdb_path, master_data_path, datatracker, attachments, load_from, save_to, database_config, log_file, debug, resume, suppress, ps_script)
         
