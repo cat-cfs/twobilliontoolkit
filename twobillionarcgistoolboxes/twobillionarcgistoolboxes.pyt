@@ -18,6 +18,7 @@ class Toolbox(object):
             BatchInsertDataTool,
             UpdateDataTool,
             BatchUpdateDataTool,
+            CheckSiteIDExists,
             CheckGeometryExists,
             CompleteProjectTool
         ]
@@ -665,6 +666,133 @@ class BatchUpdateDataTool(object):
             # Handle and log errors
             arcpy.AddError(f"Error: {str(e)}")
             
+        arcpy.AddMessage(f"This tool took {start - time.perf_counter():0.4f} seconds")
+
+class CheckSiteIDExists(object):
+    def __init__(self):
+        """Define the CheckSiteIDExists class."""
+        # Tool information
+        self.label = "Check Site ID Exists"
+        self.description = "Connect to an database and check if a Site ID already exists with geometries."
+        self.canRunInBackground = False
+
+    def getParameterInfo(self):
+        """Define input parameters for the tool."""
+        # Parameter 1: Enterprise Connection File
+        connection_file_param = arcpy.Parameter(
+            displayName="Enterprise Connection File",
+            name="connection_file",
+            datatype="DEFile",
+            parameterType="Required",
+            direction="Input"
+        )
+        connection_file_param.filter.list = ["SDE"]
+
+        # Parameter 2: Table Name
+        table_param = arcpy.Parameter(
+            displayName="Table Name",
+            name="table",
+            datatype="DETable",
+            parameterType="Required",
+            direction="Input"
+        )
+
+        # Parameter 3: Site ID
+        site_id_param = arcpy.Parameter(
+            displayName="Site ID",
+            name="site_id",
+            datatype="Variant",
+            parameterType="Required",
+            direction="Input"
+        )
+        
+        # Parameter 4: Output
+        output = arcpy.Parameter(
+            displayName="Output",
+            name="output",
+            datatype="Boolean",
+            parameterType="Derived",
+            direction="Output"
+        )
+
+        return [connection_file_param, table_param, site_id_param, output]
+
+    def isLicensed(self):
+        """Set whether the tool is licensed to execute."""
+        return True
+
+    def updateParameters(self, parameters):
+        """Update parameters based on the selected connection file."""
+        if parameters[0].value:
+            connection_file = parameters[0].valueAsText
+            arcpy.env.workspace = connection_file
+
+        return
+
+    def updateMessages(self, parameters):
+        """Modify messages created by internal validation."""
+        return
+
+    def execute(self, parameters, messages):
+        """
+        Connect to the database and check if a Site ID already exists with geometries.
+
+        Parameters:
+        - parameters: List of input parameters.
+        - messages: List to store messages or errors.
+        """
+        start = time.perf_counter()
+        try:
+            # Get parameters
+            connection_file = parameters[0].valueAsText
+            table = parameters[1].valueAsText
+            site_id = parameters[2].valueAsText
+            
+            # Connect to the enterprise geodatabase
+            arcpy.env.workspace = connection_file
+            egdb_conn = arcpy.ArcSDESQLExecute(connection_file)
+                
+            # Construct the SQL query for checking if a site_id exists
+            check_query = f"""
+                SELECT site_id
+                FROM {table}
+                WHERE site_id = '{site_id}' AND dropped = false;
+            """
+            
+            # Get the result of the query into a variable
+            try:
+                # Pass the SQL statement to the database.
+                result = egdb_conn.execute(check_query)
+                arcpy.AddMessage(f'Query Result: {result}, Type: {type(result)}')  # Log result type
+            except Exception as err:
+                arcpy.AddMessage(err)
+                        
+            exists = False
+            arcpy.AddMessage(f'Before Check: result={result}, type={type(result)}')
+            
+            # Check what is returned
+            if isinstance(result, (list, int)) and not isinstance(result, bool):
+                exists = True
+                arcpy.AddMessage('here1')  
+            else:
+                arcpy.AddMessage('here2')  
+                # If the return value was not a list, the statement was most likely a DDL statement. Check its status.
+                if result == True:
+                    arcpy.AddMessage('here3')  
+                    exists = False
+                else:
+                    arcpy.AddError(f"Error: SQL statement {check_query} FAILED")
+            arcpy.AddMessage(exists)                            
+            # Set the output parameter with the result data
+            arcpy.SetParameter(3, exists)
+
+            # Return the data
+            return exists
+                
+        except Exception as e:
+            # Handle and log errors
+            arcpy.AddError(f"Error: {str(e)}")
+
         arcpy.AddMessage(f"This tool took {start - time.perf_counter():0.4f} seconds")
 
 class CheckGeometryExists(object):
