@@ -2,11 +2,12 @@
 #========================================================
 # Imports
 #========================================================
+import os
 import arcpy
 import argparse
+import pandas as pd
 
-from twobilliontoolkit.SpatialTransformer.common import *
-from twobilliontoolkit.Logger.logger import log, Colors
+from twobilliontoolkit.Logger.Logger import Logger
 from twobilliontoolkit.SpatialTransformer.Database import Database
 from twobilliontoolkit.RippleUnzipple.ripple_unzipple import ripple_unzip
 
@@ -14,24 +15,22 @@ from twobilliontoolkit.RippleUnzipple.ripple_unzipple import ripple_unzip
 # Classes
 #========================================================
 class Parameters:
-    def __init__(self, input_path: str, output_path: str, gdb_path: str, master_data_path: str, datatracker: str, attachments: str, load_from: str = 'database', save_to: str = 'database', log_path: str = None, debug: bool = False, resume: bool = False, suppress: bool = False, ps_script: str = None) -> None:
+    def __init__(self, input_path: str, output_path: str, gdb_path: str, master_data_path: str, datatracker: str, attachments: str, logger: Logger, load_from: str = 'database', save_to: str = 'database', debug: bool = False, resume: bool = False) -> None:
         """
         Initializes the Parameters class with input parameters.
 
         Args:
-        - input_path (str): Path to input data.
-        - output_path (str): Path to output data.
-        - gdb_path (str): Path to save the GeoDatabase.
-        - master_data_path (str): Path to the aspatial master data.
-        - load_from (str): Either 'database' or 'datatracker' to determine what to load the data from.
-        - save_to (str): Either 'database' or 'datatracker' to determine what to save the data to.
-        - datatracker (str): Datatracker file name.
-        - attachments (str): Attachment folder name.
-        - log_path (str, optional): Path to log file. Defaults to an empty string.
-        - debug (bool, optional): Determines if the program is in debug mode.
-        - resume (bool, optional): Determines if the program should resume from where a crash happened.
-        - suppress (bool, optional): Determines if the program will suppress warnings to the command line.
-        - ps_script (str, optional): The path location of the script to run spatial transformer.
+            input_path (str): Path to input data.
+            output_path (str): Path to output data.
+            gdb_path (str): Path to save the GeoDatabase.
+            master_data_path (str): Path to the aspatial master data.
+            logger (Logger): The Logger object to store and write to log files and the command line uniformly.
+            load_from (str): Either 'database' or 'datatracker' to determine what to load the data from.
+            save_to (str): Either 'database' or 'datatracker' to determine what to save the data to.
+            datatracker (str): Datatracker file name.
+            attachments (str): Attachment folder name.
+            debug (bool, optional): Determines if the program is in debug mode.
+            resume (bool, optional): Determines if the program should resume from where a crash happened.
         """
         self.local_dir = r'C:\LocalTwoBillionToolkit'
         
@@ -69,11 +68,10 @@ class Parameters:
         self.save_to = save_to
         self.datatracker = datatracker
         self.attachments = attachments
-        self.log = log_path
         self.debug = debug
         self.resume = resume
-        self.suppress = suppress
-        self.ps_script = ps_script
+        
+        self.logger = logger
         
         self.project_numbers = self.get_project_numbers(master_data_path)
 
@@ -109,7 +107,7 @@ class Parameters:
         if self.resume:
             return
         
-        ripple_unzip(self.input, self.output, self.log)
+        ripple_unzip(self.input, self.output, self.logger)
         
     def create_gdb(self) -> None:
         """
@@ -133,9 +131,9 @@ class Parameters:
                 file = os.path.basename(self.local_gdb_path)
                 arcpy.management.CreateFileGDB(directory_path, file)
                 
-                log(None, Colors.INFO, f'Geodatabase: {file} created successfully')
+                self.logger.log(message=f'Geodatabase: {file} created successfully', tag='INFO')
             except arcpy.ExecuteError:
-                log(self.log, Colors.ERROR, arcpy.GetMessages(2), ps_script=self.ps_script)
+                self.logger.log(message=arcpy.GetMessages(2), tag='ERROR')
                 
     def get_project_numbers(self, master_datasheet: str = None) -> list[str]:
         """
@@ -155,7 +153,7 @@ class Parameters:
             return masterdata['BT_Legacy_Project_ID__c'].unique().tolist()
         
         # Create database object
-        database_connection = Database()
+        database_connection = Database(self.logger)
         
         # Read connection parameters from the configuration file
         database_parameters = database_connection.get_params()

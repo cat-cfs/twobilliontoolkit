@@ -53,7 +53,6 @@ python ./twobilliontoolkit/SpatialTransformer/spatial_transformer.py --input_pat
 
 You also have the option of calling this function from a module import with the following syntax (you may need to use relative or absolute paths depending on your environment and where you are calling from):
 ```
-from twobilliontoolkit.SpatialTransformer.common import *
 from twobilliontoolkit.Logger.logger import log, Colors
 from twobilliontoolkit.SpatialTransformer.Parameters import Parameters
 from twobilliontoolkit.SpatialTransformer.Processor import Processor

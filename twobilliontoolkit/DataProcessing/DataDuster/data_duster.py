@@ -19,74 +19,69 @@ Organization:     Natural Resources of Canada
 Team:             Carbon Accounting Team
 
 Description: 
-    The data_duster.py script is a Python tool for cleaning the geometry tables in the database by updating the 'site_geometry' 
-    tables duplicate_geometries field.
-    It connects to the database using configuration details, retrieves data, and updates duplicate geometries
-    by triggering a database function.
+    A tool for cleaning the geometry tables in the database by updating the 'site_geometry' table's duplicate_geometries field. 
+    It connects to the database using configuration details, retrieves data, and updates duplicate geometries by triggering a database function.
 
 Usage:
-    python path/to/data_duster.py --ini path/to/db_config.ini --log path/to/log.txt [--ps_script path/to/ps_script.ps1] [--debug]
+    python path/to/data_duster.py --ini <database_ini_path> --log <log_file_path> [--ps_script <script_path>] [--debug]
 
 Arguments:
-    --ini         : Path to the database configuration file.
-    --log         : Path to the output log file.
-    --ps_script   : Optional path to a PowerShell script used for additional commands.
-    --debug       : Optional flag to enable debug mode.
+    --ini           Path to the database configuration file (INI format).
+    --log           Path to the log file.
+    --ps_script     Optional path to a PowerShell script for additional operations.
+    --debug         Optional flag to enable debug mode.
 
 Example:
-    python ./data_duster.py --ini ../../SpatialTransformer/database.ini --log ./test_log.txt
+    python data_duster.py --ini database.ini --log data_duster.txt --debug
 """
 #========================================================
 # Imports
 #========================================================
-import os
 import sys
 import time
 import argparse
 import datetime
 import traceback
 
-from twobilliontoolkit.Logger.logger import log, Colors
+from twobilliontoolkit.Logger.Logger import Logger
 from twobilliontoolkit.SpatialTransformer.Database import Database
 
 #========================================================
 # Entry Function
 #========================================================  
-def data_duster(db_config: str, log_path: str = None, ps_script: str = None) -> None:
+def data_duster(db_config: str, logger: Logger) -> None:
     """
     Entry function for cleaning data in the database.
     
     Args:
         db_config (str): Path to the database configuration file.
-        log_path (str, Optional): Path to the log file to output any errors.
-        ps_script (str, Optional): Path to the powershell script that was used to call the script if applicable.
+        logger (Logger): The Logger object to store and write to log files and the command line uniformly.
     """      
     try:  
         # Create a database connection instance
-        database_connection = Database()
+        database_connection = Database(logger)
         
         # Retrieve database connection parameters from the configuration file
         database_parameters = database_connection.get_params(db_config)
         
         # Call the function to update duplicate geometries in the database
-        update_database_duplicate_geometries(database_connection, database_parameters, log_path, ps_script)
+        update_database_duplicate_geometries(database_connection, database_parameters, logger)
 
     except Exception as error:        
         # Log any exceptions that occur
-        log(file_path=log_path, type=Colors.ERROR, message=traceback.format_exc(), ps_script=ps_script, absolute_provided=True)
+        logger.log(message=traceback.format_exc(), tag='ERROR')
       
 #========================================================
 # Helper Functions
 #========================================================
-def update_database_duplicate_geometries(database_connection: Database, database_parameters: dict[str, str], log_path: str = None, ps_script: str = None) -> None:
+def update_database_duplicate_geometries(database_connection: Database, database_parameters: dict[str, str], logger: Logger) -> None:
     """
     Updates each row in the site_geometry table to trigger the update_duplicate_geometry_ids_trigger.
     
     Args:
         database_connection (Database): Instance of the Database class.
         database_parameters (dict[str, str]): Dictionary of database connection parameters.
-        log_path (str, Optional): Path to the log file to output any errors.
-        ps_script (str, Optional): Path to the powershell script that was used to call the script if applicable.
+        logger (Logger): The Logger object to store and write to log files and the command line uniformly.
     """
     try:
         # Connect to the database using the provided parameters
@@ -102,7 +97,7 @@ def update_database_duplicate_geometries(database_connection: Database, database
     
     except Exception as error:        
         # Log any exceptions that occur
-        log(file_path=log_path, type=Colors.ERROR, message=traceback.format_exc(), ps_script=ps_script, absolute_provided=True)
+        logger.log(message=traceback.format_exc(), tag='ERROR')
         
     finally:
         # Ensure the database connection is closed
@@ -112,38 +107,36 @@ def update_database_duplicate_geometries(database_connection: Database, database
 # Main
 #========================================================
 def main():
-    """ The main function of the data_duster.py script """
-    # Get the start time of the script
-    start_time = time.time()
-    log(None, Colors.INFO, f'Tool is starting... Time: {datetime.datetime.now().strftime("%H:%M:%S")}')
-    
+    """ The main function of the data_duster.py script """    
     # Initialize the argument parse
-    parser = argparse.ArgumentParser(description='Data Duster Tool')
+    parser = argparse.ArgumentParser(description='Data Duster Tool - A tool to clean duplicate geometries in the site_geometry table of the database.')
     
     # Define command-line arguments
-    parser.add_argument('--ini', required=True, help='Path to the database initilization file.')
-    parser.add_argument('--log', required=True, help='The location of the output log file for the tool.')
-    parser.add_argument('--ps_script', default='', help='The location of the script to run commands if used.')
-    parser.add_argument('--debug', action='store_true', default=False, help='Flag for enabling debug mode.')
-    
+    parser.add_argument('--ini', required=True, help='Path to the database configuration file (INI format).')
+    parser.add_argument('--log', required=True, help='Path to the log file.')
+    parser.add_argument('--ps_script', default='', help='Optional path to a PowerShell script for additional operations.')
+    parser.add_argument('--debug', action='store_true', default=False, help='Optional flag to enable debug mode.')
+        
     # Parse the command-line arguments
     args = parser.parse_args()
-    
-    log_path = None
-    if args.log:
-        log_path = args.log,
-    
-    ps_script = None
-    if args.ps_script:
-        ps_script = args.ps_script
+        
+    # Initialize the Logger
+    logger = Logger(log_file=args.log, script_path=args.ps_script, auto_commit=True, tool_name=os.path.abspath(__file__))
+        
+    # Get the start time of the script
+    start_time = time.time()
+    logger.log(message=f'Tool is starting... Time: {datetime.datetime.now().strftime("%H:%M:%S")}', tag='INFO')
         
     # Call the entry function
-    data_duster(args.ini, log_path, ps_script)
+    data_duster(args.ini, logger)
                         
     # Get the end time of the script and calculate the elapsed time
     end_time = time.time()
-    log(None, Colors.INFO, f'Tool has completed. Time: {datetime.datetime.now().strftime("%H:%M:%S")}')
-    log(None, Colors.INFO, f'Elapsed time: {end_time - start_time:.2f} seconds')
+    logger.log(message=f'Tool has completed. Time: {datetime.datetime.now().strftime("%H:%M:%S")}', tag='INFO')
+    logger.log(message=f'Elapsed time: {end_time - start_time:.2f} seconds', tag='INFO')
+    
+    # Commit all messages that have been posted to logger
+    logger.commit(close=True)
 
 #========================================================
 # Main Guard

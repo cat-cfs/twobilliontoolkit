@@ -2,23 +2,35 @@
 #========================================================
 # Imports
 #========================================================
-import arcpy
+import os
 import re
+import arcpy
 import fiona 
+import datetime
 import win32wnet
-import arcgisscripting
+import pandas as pd
 import geopandas as gpd
+import arcgisscripting
+
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-from twobilliontoolkit.SpatialTransformer.common import *
-from twobilliontoolkit.Logger.logger import log, Colors
+from twobilliontoolkit.Logger.Logger import Logger
 from twobilliontoolkit.GeoAttachmentSeeker.geo_attachment_seeker import find_attachments
 from twobilliontoolkit.SpatialTransformer.Datatracker import Datatracker2BT
 from twobilliontoolkit.SpatialTransformer.Parameters import Parameters
 
 fiona.drvsupport.supported_drivers['LIBKML'] = 'rw'
 fiona.drvsupport.supported_drivers['OpenFileGDB'] = 'rw'
+
+#========================================================
+# Globals
+#========================================================
+SPATIAL_FILE_EXTENSIONS = ('.shp', '.kml', '.kmz', '.geojson', '.gpkg', '.sqlite')
+DATA_SHEET_EXTENSIONS = ('.xlsx', '.csv', 'xls', 'docx')
+LAYOUT_FILE_EXTENSIONS = ('.mxd', '.aprx', '.pagx', '.qgs', '.qgz', '.qlr')
+IMAGE_FILE_EXTENSIONS = ('pdf', '.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tif','.tiff','.heic', '.mp4')
+IGNORE_EXTENSIONS = ('.lock', '.cpg', '.dbf', '.prj', '.sbn', '.sbx', '.shx', '.qpj', '.qix', '.shp.xml')
 
 #========================================================
 # Helper Class
@@ -34,7 +46,7 @@ class Processor:
         self.params = params
         
         # Create the Data class to hold any data tracker information
-        self.data = Datatracker2BT(params.datatracker, params.load_from, params.save_to)
+        self.data = Datatracker2BT(params.datatracker, params.logger, params.load_from, params.save_to)
        
     def del_gdb(self) -> None:
         """
@@ -49,12 +61,6 @@ class Processor:
 
         This function walks through the specified output directory, processes different file types, and creates entries in the data tracker. It handles geodatabases, shapefiles, KML/KMZ files,
         GeoJSON files, GeoPackages, and other file types, ensuring that they are correctly added to the data tracker.
-
-        Args:
-            None
-
-        Returns:
-            None
         """  
         # Step through unzip output path
         for root, dirs, files in os.walk(self.params.output):
@@ -105,13 +111,13 @@ class Processor:
                     project_spatial_id = self.create_entry(file_path, file_path, entry_type='Aspatial', processed=True)
                     
                     # Log it
-                    log(self.params.log, Colors.WARNING, f'Layout file: {file_path} will be added to data tracker but not resulting gdb.', self.params.suppress, ps_script=self.params.ps_script, project_id=project_spatial_id)    
+                    self.params.logger.log(message=f'- Project Spatial ID: {project_spatial_id} - Layout file: {file_path} will be added to data tracker but not resulting gdb.', tag='WARNING')   
                 
                 elif lowercase_file.endswith(DATA_SHEET_EXTENSIONS):
                     project_spatial_id = self.create_entry(file_path, file_path, entry_type='Aspatial', processed=True)
                                         
                     # Log it
-                    log(self.params.log, Colors.WARNING, f'Datasheet: {file_path} will be added to data tracker but not resulting gdb.', self.params.suppress, ps_script=self.params.ps_script, project_id=project_spatial_id)
+                    self.params.logger.log(message=f'- Project Spatial ID: {project_spatial_id} - Datasheet: {file_path} will be added to data tracker but not resulting gdb.', tag='WARNING')
                                                             
                 elif lowercase_file.endswith(IMAGE_FILE_EXTENSIONS):
                     if lowercase_file.endswith('.pdf'):
@@ -120,7 +126,7 @@ class Processor:
                         project_spatial_id = self.create_entry(file_path, file_path, contains_image=True, entry_type='Aspatial', processed=True)
                                            
                     # Log it
-                    log(self.params.log, Colors.WARNING, f'Image/PDF file: {file_path} will be added to data tracker but not resulting gdb.', self.params.suppress, ps_script=self.params.ps_script, project_id=project_spatial_id)
+                    self.params.logger.log(message=f'- Project Spatial ID: {project_spatial_id} - Image/PDF file: {file_path} will be added to data tracker but not resulting gdb.', tag='WARNING')
                      
                 elif lowercase_file.endswith('.shp'):
                     project_spatial_id = self.create_entry(file_path, file_path)
@@ -154,7 +160,10 @@ class Processor:
                         if contain_linestring:
                             project_spatial_id = self.create_entry(file_path, f"{file_path}\Lines")
                     except Exception as error:
-                        log(self.params.log, Colors.ERROR, f'KML/KMZ file: {file_path} has encountered an error when making a datatracker entry. {error}')
+                        message = f'KML/KMZ file: {file_path} has encountered an error when making a datatracker entry. {error}'
+                        if project_spatial_id:
+                            message = f'- Project Spatial ID: {project_spatial_id} - ' + message
+                        self.params.logger.log(message=message, tag='ERROR')
                                             
                 elif lowercase_file.endswith('.geojson'):
                     project_spatial_id = self.create_entry(file_path, file_path)
@@ -163,11 +172,11 @@ class Processor:
                     project_spatial_id = self.create_entry(file_path, file_path, processed=True)
                                         
                     # Log it
-                    log(self.params.log, Colors.WARNING, f'GeoPackage/SQLite file: {file_path} will be added to data tracker but not resulting gdb.', self.params.suppress, ps_script=self.params.ps_script, project_id=project_spatial_id)
+                    self.params.logger.log(message=f'- Project Spatial ID: {project_spatial_id} - GeoPackage/SQLite file: {file_path} will be added to data tracker but not resulting gdb.', tag='WARNING')
                     
                 else:                    
                     # Log it
-                    log(self.params.log, Colors.WARNING, f'Unsupported Filetype: {file_path} has been found and logged but not added to the datatracker or the geodatabase because it is not implemented or supported.', self.params.suppress, ps_script=self.params.ps_script)
+                    self.params.logger.log(message=f'Unsupported Filetype: {file_path} has been found and logged but not added to the datatracker or the geodatabase because it is not implemented or supported.', tag='WARNING')
     
     def create_entry(self, absolute_path: str, feature_path: str, in_raw_gdb: bool = False, contains_pdf: bool = False, contains_image: bool = False, entry_type: str = 'Spatial', processed: bool = False) -> str:
         """
@@ -196,8 +205,8 @@ class Processor:
 
         # Print file information if debugging is enabled
         if self.params.debug:
-            log(None, Colors.INFO, feature_path)
-            log(None, Colors.INFO, formatted_project_spatial_id)
+            self.params.logger.log(message=feature_path, tag='INFO')
+            self.params.logger.log(message=formatted_project_spatial_id, tag='INFO')
 
         # Convert the raw data path to a relative path           
         raw_data_path = os.path.relpath(feature_path, self.params.output)
@@ -206,7 +215,7 @@ class Processor:
         absolute_file_path = convert_drive_path(absolute_path)
 
         # Call a method to process raw data matching
-        self.call_raw_data_match(formatted_project_spatial_id, raw_data_path)
+        self.call_find_match(formatted_project_spatial_id, raw_data_path, absolute_file_path)
                 
         # Add data to the data class 
         self.data.add_data(
@@ -232,12 +241,6 @@ class Processor:
         Processes spatial data entries from a dictionary, converts them into a geodatabase format, and enables version control and editor tracking.
 
         The function iterates over the entries in the data dictionary, checks their file types, converts them to a geodatabase feature class, and updates their processing status.
-
-        Args:
-            None
-
-        Returns:
-            None
         """
         # Iterate over each entry in the data dictionary
         for index, entry in enumerate(self.data.data_dict):
@@ -339,11 +342,11 @@ class Processor:
                 )
                 
             except (arcpy.ExecuteError, arcgisscripting.ExecuteError) as error:
-                log(self.params.log, Colors.ERROR, f'An error occurred when processing the layer for {entry_absolute_path}, you can fix or remove it from the datatracker/database, then run the command again with --resume\n{error}', ps_script=self.params.ps_script, project_id=entry)
+                self.params.logger.log(message=f'- Project Spatial ID: {entry} - An error occurred when processing the layer for {entry_absolute_path}, you can fix or remove it from the datatracker/database, then run the command again with --resume\n{error}', tag='ERROR')
                 # Can remove the comment from below when being shipped so the tool stops when a excetption is caught instead of continue on
                 # raise Exception(error) 
             except Exception as error:
-                log(self.params.log, Colors.ERROR, f'An uncaught error occurred when processing the layer for {entry_absolute_path}', ps_script=self.params.ps_script, project_id=entry)
+                self.params.logger.log(message=f'- Project Spatial ID: {entry} - An uncaught error occurred when processing the layer for {entry_absolute_path}', tag='ERROR')
                 raise Exception(error)
                           
     def check_project_numbers(self, file_path: str) -> str:
@@ -362,7 +365,7 @@ class Processor:
         
         # If no match is found, log a warning and assign an arbitrary project number
         if not search:
-            log(self.params.log, Colors.WARNING, f'Could not find a project number for: {file_path} - Giving it an arbitrary project number "0000 XXX - 000"', self.params.suppress, ps_script=self.params.ps_script)
+            self.params.logger.log(message=f'Could not find a project number for: {file_path} - Giving it an arbitrary project number "0000 XXX - 000"', tag='WARNING')
             formatted_result = '0000 XXX - 000'
         else:
             # Format the result using the matched groups
@@ -377,22 +380,24 @@ class Processor:
                     break
 
             if not project_found:
-                log(self.params.log, Colors.WARNING, f'The project number {formatted_result} does not match any know project number in the master datasheet', self.params.suppress, ps_script=self.params.ps_script)
+                self.params.logger.log(message=f'The project number {formatted_result} does not match any know project number in the master datasheet', tag='WARNING')
             
         return formatted_result
         
-    def call_raw_data_match(self, current_spatial_id: str, raw_data_path: str) -> None:
+    def call_find_match(self, current_spatial_id: str, raw_data_path: str, absolute_file_path: str) -> None:
         """
         Call the method that finds a matching raw data path and returns the project spatial id.
 
         Args:
             current_spatial_id (str): The current spatial project id being checked.
             raw_data_path (str): The raw data path to be searched in the dictionary.
+            absolute_file_path (str): The absolute data path to be searched in the dictionary.
         """
         # Find a corresponding project spatial ID in the data dictionary based on the raw data path
-        (found_match, _) = self.data.find_matching_data(raw_data_path=raw_data_path)
-        if found_match is not None:
-            log(self.params.log, Colors.WARNING, f'Raw path: {raw_data_path} already exists in the data tracker! -  Current Spatial ID: {current_spatial_id} Matching Spatial ID: {found_match}', self.params.suppress, ps_script=self.params.ps_script, project_id=current_spatial_id)    
+        (found_match_raw, _) = self.data.find_matching_data(raw_data_path=raw_data_path)
+        (found_match_absolute, _) = self.data.find_matching_data(absolute_file_path=absolute_file_path)
+        if found_match_raw and found_match_absolute:
+            self.params.logger.log(message=f'- Project Spatial ID: {current_spatial_id} - Absolute Path: {absolute_file_path} already exists in the data tracker! -  Current Spatial ID: {current_spatial_id} Matching Spatial ID: {found_match_raw}', tag='WARNING')  
             
     def extract_attachments(self) -> None:
         """
@@ -403,7 +408,7 @@ class Processor:
         
         # Print file information if debugging is enabled
         if self.params.debug:
-            log(None, Colors.INFO, attachment_dict)
+            self.params.logger.log(message=attachment_dict, tag='INFO')
         
         # Iterating through key-value pairs using items()
         for key, value in attachment_dict.items():
@@ -415,7 +420,7 @@ class Processor:
             )
         
         # Log completion of this task
-        log(None, Colors.INFO, 'All attachments have been extracted from the result Geodatabase.')
+        self.params.logger.log(message='All attachments have been extracted from the result Geodatabase.', tag='INFO')
         
     def enable_version_control(self, feature_class) -> None:
         """
@@ -442,8 +447,7 @@ class Processor:
             )
         
         except Exception as error:
-            log(self.params.log, Colors.ERROR, f'An error has been caught while trying to enable editor tracking for {feature_class} in resulting gdb, {error}', ps_script=self.params.ps_script)
-
+            self.params.logger.log(message=f'An error has been caught while trying to enable editor tracking for {feature_class} in resulting gdb, {error}', tag='ERROR')
         
 def convert_drive_path(file_path):
     """
