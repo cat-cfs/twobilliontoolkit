@@ -19,16 +19,22 @@ Organization:     Natural Resources of Canada
 Team:             Carbon Accounting Team
 
 Description: 
-    The data_duster.py script is a Python tool for 
+    The data_duster.py script is a Python tool for cleaning the geometry tables in the database by updating the 'site_geometry' 
+    tables duplicate_geometries field.
+    It connects to the database using configuration details, retrieves data, and updates duplicate geometries
+    by triggering a database function.
 
 Usage:
-    python path/to/data_duster.py
+    python path/to/data_duster.py --ini path/to/db_config.ini --log path/to/log.txt [--ps_script path/to/ps_script.ps1] [--debug]
 
 Arguments:
-
+    --ini         : Path to the database configuration file.
+    --log         : Path to the output log file.
+    --ps_script   : Optional path to a PowerShell script used for additional commands.
+    --debug       : Optional flag to enable debug mode.
 
 Example:
-    python data_duster.py 
+    python ./data_duster.py --ini ../../SpatialTransformer/database.ini --log ./test_log.txt
 """
 #========================================================
 # Imports
@@ -36,50 +42,71 @@ Example:
 import os
 import sys
 import time
-import shutil
 import argparse
 import datetime
 import traceback
-import configparser
-import numpy as np
-import pandas as pd
-import geopandas as gpd
 
 from twobilliontoolkit.Logger.logger import log, Colors
-
-
-#========================================================
-# Globals
-#========================================================
-
-
-# The location of the log file
-log_path = None
-# To indicate if the tool was run by a script
-ps_script = None
+from twobilliontoolkit.SpatialTransformer.Database import Database
 
 #========================================================
 # Entry Function
 #========================================================  
-def data_duster() -> None:
+def data_duster(db_config: str, log_path: str = None, ps_script: str = None) -> None:
     """
-    The data_duster 
-
+    Entry function for cleaning data in the database.
+    
     Args:
-        
-    """    
+        db_config (str): Path to the database configuration file.
+        log_path (str, Optional): Path to the log file to output any errors.
+        ps_script (str, Optional): Path to the powershell script that was used to call the script if applicable.
+    """      
     try:  
-        pass
+        # Create a database connection instance
+        database_connection = Database()
+        
+        # Retrieve database connection parameters from the configuration file
+        database_parameters = database_connection.get_params(db_config)
+        
+        # Call the function to update duplicate geometries in the database
+        update_database_duplicate_geometries(database_connection, database_parameters, log_path, ps_script)
 
     except Exception as error:        
-        # Log the error
+        # Log any exceptions that occur
         log(file_path=log_path, type=Colors.ERROR, message=traceback.format_exc(), ps_script=ps_script, absolute_provided=True)
-        exit(1)
       
 #========================================================
 # Helper Functions
 #========================================================
-
+def update_database_duplicate_geometries(database_connection: Database, database_parameters: dict[str, str], log_path: str = None, ps_script: str = None) -> None:
+    """
+    Updates each row in the site_geometry table to trigger the update_duplicate_geometry_ids_trigger.
+    
+    Args:
+        database_connection (Database): Instance of the Database class.
+        database_parameters (dict[str, str]): Dictionary of database connection parameters.
+        log_path (str, Optional): Path to the log file to output any errors.
+        ps_script (str, Optional): Path to the powershell script that was used to call the script if applicable.
+    """
+    try:
+        # Connect to the database using the provided parameters
+        database_connection.connect(database_parameters)
+        
+        # Read rows from the site_geometry table where the 'dropped' field is false
+        rows = database_connection.read(database_connection.schema, 'site_geometry', condition="dropped = false")
+        
+        # Iterate over each row to update the 'id' field (to trigger the update trigger)
+        for row in rows:
+            update_query = f"UPDATE {database_connection.schema}.site_geometry SET id = {row[0]} WHERE id = {row[0]}"
+            database_connection.execute(update_query)
+    
+    except Exception as error:        
+        # Log any exceptions that occur
+        log(file_path=log_path, type=Colors.ERROR, message=traceback.format_exc(), ps_script=ps_script, absolute_provided=True)
+        
+    finally:
+        # Ensure the database connection is closed
+        database_connection.disconnect()
                        
 #========================================================
 # Main
@@ -94,6 +121,7 @@ def main():
     parser = argparse.ArgumentParser(description='Data Duster Tool')
     
     # Define command-line arguments
+    parser.add_argument('--ini', required=True, help='Path to the database initilization file.')
     parser.add_argument('--log', required=True, help='The location of the output log file for the tool.')
     parser.add_argument('--ps_script', default='', help='The location of the script to run commands if used.')
     parser.add_argument('--debug', action='store_true', default=False, help='Flag for enabling debug mode.')
@@ -101,15 +129,16 @@ def main():
     # Parse the command-line arguments
     args = parser.parse_args()
     
-    global log_path
-    global ps_script
-    log_path = args.log
+    log_path = None
+    if args.log:
+        log_path = args.log,
+    
+    ps_script = None
     if args.ps_script:
         ps_script = args.ps_script
         
     # Call the entry function
-    data_duster()
-    
+    data_duster(args.ini, log_path, ps_script)
                         
     # Get the end time of the script and calculate the elapsed time
     end_time = time.time()
