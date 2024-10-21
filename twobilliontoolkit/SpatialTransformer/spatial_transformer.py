@@ -22,7 +22,7 @@ Description:
     The spatial_transformer.py script is a Python tool for processing spatial data. It handles tasks like geodatabase creation, file validation, and checking project numbers against a master data sheet. 
 
 Usage:
-    python path/to/spatial_transformer.py [-h] --input_path input_path [--output_path output_path] --gdb_path gdb_path --master master_data_path --load {datatracker,database} --save {datatracker,database} [--datatracker datatracker_path] [--attachments attachments_path] [--debug] [--suppress] [--resume]
+    python path/to/spatial_transformer.py [-h] --input_path input_path --output_path output_path --gdb_path gdb_path --master master_data_path --load {datatracker,database} --save {datatracker,database} [--datatracker datatracker_path] [--attachments attachments_path] [--debug] [--suppress] [--resume]
 """
 #========================================================
 # Imports
@@ -42,7 +42,7 @@ from twobilliontoolkit.NetworkTransfer.network_transfer import transfer
 #========================================================
 # Entry Function
 #========================================================  
-def spatial_transformer(input_path: str, output_path: str, load_from: str, save_to: str, gdb_path: str, datatracker: str, attachments: str, master_data_path: str, debug: bool = False, resume: bool = False, suppress: bool = False, ps_script: str = None) -> None:
+def spatial_transformer(input_path: str, output_path: str, load_from: str, save_to: str, gdb_path: str, datatracker: str, attachments: str, master_data_path: str, database_config: str = None, debug: bool = False, resume: bool = False, suppress: bool = False, ps_script: str = None) -> None:
     """
     The spatial_transformer function serves as the main entry point for the spatial transformation script. Its primary purpose is to handle various tasks related to spatial data processing, such as starting the ripple_unzipple tool and geodatabase creation.
 
@@ -67,8 +67,13 @@ def spatial_transformer(input_path: str, output_path: str, load_from: str, save_
     spatial_processor = None
     
     try:       
+        if database_config == "...":
+            database_config = None
+        elif database_config and not os.path.exists(database_config):
+            raise("The database config file path you provided does not exist.")
+            
         # Initialize Parameters class
-        setup_parameters = Parameters(input_path, output_path, gdb_path, master_data_path, datatracker, attachments, load_from, save_to, log_file, debug, resume, suppress, ps_script)
+        setup_parameters = Parameters(input_path, output_path, gdb_path, master_data_path, datatracker, attachments, load_from, save_to, database_config, log_file, debug, resume, suppress, ps_script)
         
         # Start the unzip tool 
         setup_parameters.handle_unzip()
@@ -94,10 +99,11 @@ def spatial_transformer(input_path: str, output_path: str, load_from: str, save_
         
         # Move the local files to the specified output
         success = transfer(
-            spatial_processor.params.local_dir,
-            os.path.dirname(spatial_processor.params.gdb_path),
-            [os.path.basename(spatial_processor.params.gdb_path), os.path.basename(spatial_processor.params.datatracker), os.path.basename(spatial_processor.params.attachments), spatial_processor.params.log[:-4] + '_WARNING.txt', spatial_processor.params.log[:-4] + '_ERROR.txt'],
-            spatial_processor.params.log
+            local_path=spatial_processor.params.local_dir,
+            network_path=os.path.dirname(spatial_processor.params.gdb_path),
+            list_files=[os.path.basename(spatial_processor.params.gdb_path), os.path.basename(spatial_processor.params.datatracker), os.path.basename(spatial_processor.params.attachments), spatial_processor.params.log[:-4] + '_WARNING.txt', spatial_processor.params.log[:-4] + '_ERROR.txt'],
+            datatracker_2bt=spatial_processor.data,
+            log_path=spatial_processor.params.log
         )
         log(None, Colors.INFO, f'The Network Transfer has completed moving the files from local to the network. Now saving the data. Time: {datetime.datetime.now().strftime("%H:%M:%S")}')
                                       
@@ -140,24 +146,25 @@ def main():
     parser = argparse.ArgumentParser(description='Spatial Transformer Tool')
     
     # Define command-line arguments
-    parser.add_argument('--input_path', required=True, help='Directory or Compressed file location that will be handed to Ripple Unzipple')
+    parser.add_argument('--input_path', required=True, help='Directory or Compressed file location that will be handed to Ripple Unzipple.')
     parser.add_argument('--output_path', required=True, help='Where the final output of Ripple Unzipple will extract to.')
-    parser.add_argument('--load', choices=['datatracker', 'database'], required=True, default='database', help='Specify what to load from (datatracker or database)')
-    parser.add_argument('--save', choices=['datatracker', 'database'], required=True, default='database', help='Specify what to save to (datatracker or database)')
+    parser.add_argument('--load', choices=['datatracker', 'database'], required=True, default='database', help='Specify what to load from (datatracker or database).')
+    parser.add_argument('--save', choices=['datatracker', 'database'], required=True, default='database', help='Specify what to save to (datatracker or database).')
     parser.add_argument('--gdb_path', required=True, default='', help='Path of where the geodatabase will be saved, if it does not already exist, it will be created.')
-    parser.add_argument('--datatracker', default='', help='Name of the datatracker file that will be saved adjacent to the geodatabase if provided')
-    parser.add_argument('--attachments', default='', help='Name of the attachments folder that will be saved adjacent to the geodatabase')
-    parser.add_argument('--master', default='', help='The location of the master aspatial datasheet')
-    parser.add_argument('--debug', action='store_true', default=False, help='Enable debug mode')
-    parser.add_argument('--resume', action='store_true', default=False, help='Resume from where a crash happened')
-    parser.add_argument('--suppress', action='store_true', default=False, help='Suppress Warnings in the command-line and only show Errors')
+    parser.add_argument('--datatracker', default='', help='Name of the datatracker file that will be saved adjacent to the geodatabase if provided.')
+    parser.add_argument('--attachments', default='', help='Name of the attachments folder that will be saved adjacent to the geodatabase.')
+    parser.add_argument('--master', default='', help='The location of the master aspatial datasheet.')
+    parser.add_argument('--ini', default='', help='Path to the database initilization file. If not provided, then it will use the one provided in the repository.')
+    parser.add_argument('--debug', action='store_true', default=False, help='Enable debug mode.')
+    parser.add_argument('--resume', action='store_true', default=False, help='Resume from where a crash happened.')
+    parser.add_argument('--suppress', action='store_true', default=False, help='Suppress Warnings in the command-line and only show Errors.')
     parser.add_argument('--ps_script', default='', help='The location of the script to run commands if used.')
     
     # Parse the command-line arguments
     args = parser.parse_args()
         
     # Call the entry function
-    spatial_transformer(args.input_path, args.output_path, args.load, args.save, args.gdb_path, args.datatracker, args.attachments, args.master, args.debug, args.resume, args.suppress, args.ps_script)
+    spatial_transformer(args.input_path, args.output_path, args.load, args.save, args.gdb_path, args.datatracker, args.attachments, args.master, args.ini, args.debug, args.resume, args.suppress, args.ps_script)
                         
     # Get the end time of the script and calculate the elapsed time
     end_time = time.time()

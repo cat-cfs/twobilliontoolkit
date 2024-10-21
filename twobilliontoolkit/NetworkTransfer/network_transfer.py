@@ -22,7 +22,7 @@ Description:
     The script will transfer all files or any files specified from a source directory to a destination. It's main purpose will be used to transfer files from the local computers to a network drive with specific focus on the two billion trees toolkit processing.
 
 Usage:
-    python path/to/network_transfer.py <local_path> <network_path> [--files [...list of files...]] 
+    python path/to/network_transfer.py local_path source_path network_path destination_path [--files [...list of files...]] 
 
 """
 #========================================================
@@ -36,17 +36,19 @@ import shutil
 import argparse
  
 from twobilliontoolkit.Logger.logger import log, Colors
+from twobilliontoolkit.SpatialTransformer.Datatracker import Datatracker2BT
 
 #========================================================
 # Functions
 #========================================================
-def merge_gdbs(src_gdb: str, dest_gdb: str, log_path: str = None) -> bool:
+def merge_gdbs(src_gdb: str, dest_gdb: str, datatracker_2bt: Datatracker2BT = None, log_path: str = None) -> bool:
     """
     Merge source Geodatabase into destination Geodatabase.
  
     Args:
         src_gdb (str): Path to the source Geodatabase.
         dest_gdb (str): Path to the destination Geodatabase.
+        datatracker_2bt (Datatracker2BT): Optional. A variable for the 2bt data processing that allows the tool to make changes in this step of the process.
         log_path (str): path to the log file.
         
     Return:
@@ -79,19 +81,26 @@ def merge_gdbs(src_gdb: str, dest_gdb: str, log_path: str = None) -> bool:
         try:
             # Skip if already exists in destination
             if arcpy.Exists(os.path.join(dest_gdb, feature_class)):
-                continue      
+                continue  
              
             # Copy over the specified feature
             arcpy.management.Copy(
                 os.path.join(src_gdb, feature_class),
                 os.path.join(dest_gdb, feature_class)
             )
-       
-            log(None, Colors.INFO, f'Merging to {dest_gdb} has completed.')
+                        
         except Exception as error:
             log(log_path, Colors.ERROR, f'An error has been caught while trying to merge the geodatabase to {dest_gdb}: {error}')
+            
+            if datatracker_2bt:
+                datatracker_2bt.set_data(
+                    project_spatial_id=feature_class.replace("proj_", ""), 
+                    in_raw_gdb=False
+                )
+            
             return False
-        
+       
+    log(None, Colors.INFO, f'Merging to {dest_gdb} has completed.')   
     return True
 
 def merge_directories(src_dir, dst_dir, log_path):
@@ -122,7 +131,7 @@ def merge_directories(src_dir, dst_dir, log_path):
     except Exception as error:
         log(log_path, Colors.ERROR, f'An error has been caught while trying to merge the {src_dir} to {dst_dir}: {error}')
                         
-def transfer(local_path: str, network_path: str, list_files: list[str] = None, log_path: str = None) -> bool:
+def transfer(local_path: str, network_path: str, list_files: list[str] = None, datatracker_2bt: Datatracker2BT = None, log_path: str = None) -> bool:
     """
     Transfer files from local directory to network directory.
     
@@ -130,6 +139,7 @@ def transfer(local_path: str, network_path: str, list_files: list[str] = None, l
         local_path (str): Path to the local directory.
         network_path (str): Path to the network directory.
         list_files (list): Optional. A provided list of files to transfew instead of all.
+        datatracker_2bt (Datatracker2BT): Optional. A variable for the 2bt data processing that allows the tool to make changes in this step of the process.
         log_path (str): path to the log file.
         
     Return:
@@ -156,7 +166,7 @@ def transfer(local_path: str, network_path: str, list_files: list[str] = None, l
             if os.path.isdir(src_path):
                 # Merge Geodatabases if destination exists
                 if item.endswith(".gdb"):
-                    success = merge_gdbs(src_path, dest_path, log_path)
+                    success = merge_gdbs(src_path, dest_path, datatracker_2bt, log_path)
                     if not success:
                         return False
                 else:
