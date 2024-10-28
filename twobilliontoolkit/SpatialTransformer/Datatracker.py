@@ -13,15 +13,16 @@ from twobilliontoolkit.SpatialTransformer.Database import Database
 # Base Class
 #========================================================
 class Datatracker:
-    def __init__(self, data_traker_path: str, logger: Logger, load_from: str = 'database', save_to: str = 'database') -> None:
+    def __init__(self, data_traker_path: str, logger: Logger, load_from: str = 'database', save_to: str = 'database', database_config: str = None) -> None:
         """
-        Initializes the Data class with input parameters. Used to store the data tracker information.
+        Initializes the Datatracker class with input parameters to store data tracker information.
 
         Args:
             data_traker_path (str): Path to data tracker to load data if exists.
             logger (Logger): The Logger object to store and write to log files and the command line uniformly.
             load_from (str): Flag to determine if loading dataframe should be done from the {database, datatracker}. Default: 'database'.
             save_to (str): Flag to determine if saving the dataframe should be done to the {database, datatracker}. Default: 'database'.
+            database_config (str): Path to the database configuration file.
         """
         self.data_dict = {}
         self.datatracker = data_traker_path
@@ -34,7 +35,7 @@ class Datatracker:
             self.database_connection = Database(self.logger)
             
             # Read connection parameters from the configuration file
-            self.database_parameters = self.database_connection.get_params()
+            self.database_parameters = self.database_connection.get_params(config_path=database_config)
             self.database_connection.connect(self.database_parameters)
             self.database_pkey = self.database_connection.get_pkey(self.database_connection.schema, self.database_connection.table)
             self.database_connection.disconnect()
@@ -47,7 +48,7 @@ class Datatracker:
 
         Args:
             key (str): Acts as key in dictionary.
-            **kwargs: Additional keyword arguments for project data.
+            **kwargs (any): Additional keyword arguments for project data.
         """
         self.data_dict[key] = kwargs
         
@@ -57,7 +58,7 @@ class Datatracker:
 
         Args:
             key (str): Acts as key in dictionary.
-            **kwargs: Keyword arguments for updating project data.
+            **kwargs (any): Keyword arguments for updating project data.
         """
         # Update specified parameters as sets
         project_data = self.data_dict.get(key, {})
@@ -85,7 +86,7 @@ class Datatracker:
         Search for a matching entry in the data based on given parameters.
 
         Args:
-            **kwargs: Keyword arguments for finding a matching key.
+            **kwargs (any): Keyword arguments for finding a matching key.
 
         Returns:
             str: A tuple of matching (key, data) if  the parameters passed already exists in the dataframe, otherwise return None.
@@ -99,13 +100,13 @@ class Datatracker:
             (None, None)
         )
             
-    def count_occurances(self, field: str, value) -> int:
+    def count_occurances(self, field: str, value: str) -> int:
         """
         Count the occurrences of a specified field in the data object.
 
         Args:
             field (str): Name of the parameter to count occurrences.
-            value: Value of the parameter to count occurrences.
+            value (str): Value of the parameter to count occurrences.
 
         Returns:
             int: Number of occurrences of the specified parameter.
@@ -213,7 +214,7 @@ class Datatracker:
 # Inheritance Class
 #========================================================
 class Datatracker2BT(Datatracker):
-    def __init__(self, data_traker_path: str, logger: Logger, load_from: str = 'database', save_to: str = 'database') -> None:
+    def __init__(self, data_traker_path: str, logger: Logger, load_from: str = 'database', save_to: str = 'database', database_config: str = None) -> None:
         """
         Initializes the Data class with input parameters. Used to store the data tracker information.
 
@@ -222,8 +223,9 @@ class Datatracker2BT(Datatracker):
             logger (Logger): The Logger object to store and write to log files and the command line uniformly.
             load_from (str): Flag to determine if loading dataframe should be done from the {database, datatracker}. Default: 'database'.
             save_to (str): Flag to determine if saving the dataframe should be done to the {database, datatracker}. Default: 'database'.
+            database_config (str): Path to the database configuration file.
         """
-        super().__init__(data_traker_path, logger, load_from, save_to)
+        super().__init__(data_traker_path, logger, load_from, save_to, database_config)
     
     def add_data(self, project_spatial_id: str, project_number: str, dropped: bool, raw_data_path: str, raw_gdb_path: str, absolute_file_path: str, in_raw_gdb: bool, contains_pdf: bool, contains_image: bool, extracted_attachments_path: str, editor_tracking_enabled: bool, processed: bool, entry_type: str) -> None:
         """
@@ -314,21 +316,21 @@ class Datatracker2BT(Datatracker):
         """
         return self.data_dict[project_spatial_id]
     
-    def find_matching_spatial_id(self, raw_data_path: str) -> str:
+    def find_matching_spatial_id(self, absolute_file_path: str) -> str:
         """
-        Search for a matching entry for the raw data path.
+        Search for a matching entry for the absolute data path.
 
         Args:
-            raw_data_path (str): The path of the raw data.
+            absolute_file_path (str): The absolute path of the data.
 
         Returns:
-            str: A matching project_spatial_id if it the raw data path already exists in the dataframe, otherwise return None.
+            str: A matching project_spatial_id if it the absolute data path already exists in the dataframe, otherwise return None.
         """        
         return next(
             (
                 project_spatial_id
                 for project_spatial_id, project_data in self.data_dict.items()
-                if project_data.get('raw_data_path') == raw_data_path
+                if project_data.get('absolute_file_path') == absolute_file_path
             ),
             None
         )

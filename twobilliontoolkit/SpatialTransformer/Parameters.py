@@ -15,7 +15,7 @@ from twobilliontoolkit.RippleUnzipple.ripple_unzipple import ripple_unzip
 # Classes
 #========================================================
 class Parameters:
-    def __init__(self, input_path: str, output_path: str, gdb_path: str, master_data_path: str, datatracker: str, attachments: str, logger: Logger, load_from: str = 'database', save_to: str = 'database', debug: bool = False, resume: bool = False) -> None:
+    def __init__(self, input_path: str, output_path: str, gdb_path: str, master_data_path: str, datatracker: str, attachments: str, logger: Logger, load_from: str = 'database', save_to: str = 'database', database_config: str = None, debug: bool = False, resume: bool = False) -> None:
         """
         Initializes the Parameters class with input parameters.
 
@@ -27,6 +27,7 @@ class Parameters:
             logger (Logger): The Logger object to store and write to log files and the command line uniformly.
             load_from (str): Either 'database' or 'datatracker' to determine what to load the data from.
             save_to (str): Either 'database' or 'datatracker' to determine what to save the data to.
+            database_config (str): Path to the database configuration file.
             datatracker (str): Datatracker file name.
             attachments (str): Attachment folder name.
             debug (bool, optional): Determines if the program is in debug mode.
@@ -68,6 +69,7 @@ class Parameters:
         self.save_to = save_to
         self.datatracker = datatracker
         self.attachments = attachments
+        self.database_config = database_config
         self.debug = debug
         self.resume = resume
         
@@ -156,7 +158,7 @@ class Parameters:
         database_connection = Database(self.logger)
         
         # Read connection parameters from the configuration file
-        database_parameters = database_connection.get_params()
+        database_parameters = database_connection.get_params(config_path=self.database_config)
         database_connection.connect(database_parameters)
         self.project_numbers = database_connection.read(
             database_connection.schema,

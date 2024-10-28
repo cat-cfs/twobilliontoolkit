@@ -12,6 +12,7 @@ This tool is designed to identify and process attachment tables within specified
 - [Configuration](#configuration)
 - [Contributing](#contributing)
 - [License](#license)
+- [Contact](#contact)
 
 ## Installation
 

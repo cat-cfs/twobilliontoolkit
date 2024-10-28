@@ -22,7 +22,7 @@ Description:
     The spatial_transformer.py script is a Python tool for processing spatial data. It handles tasks like geodatabase creation, file validation, and checking project numbers against a master data sheet. 
 
 Usage:
-    python path/to/spatial_transformer.py [-h] --input_path input_path [--output_path output_path] --gdb_path gdb_path --master master_data_path --load {datatracker,database} --save {datatracker,database} [--datatracker datatracker_path] [--attachments attachments_path] [--debug] [--suppress] [--resume]
+    python path/to/spatial_transformer.py [-h] --input_path input_path --output_path output_path --gdb_path gdb_path --master master_data_path --load {datatracker,database} --save {datatracker,database} [--datatracker datatracker_path] [--attachments attachments_path] [--debug] [--suppress] [--resume]
 """
 #========================================================
 # Imports
@@ -44,7 +44,7 @@ from twobilliontoolkit.NetworkTransfer.network_transfer import network_transfer
 #========================================================
 # Entry Function
 #========================================================  
-def spatial_transformer(input_path: str, output_path: str, load_from: str, save_to: str, gdb_path: str, datatracker: str, attachments: str, master_data_path: str, logger: Logger, debug: bool = False, resume: bool = False) -> None:
+def spatial_transformer(input_path: str, output_path: str, load_from: str, save_to: str, gdb_path: str, datatracker: str, attachments: str, master_data_path: str, logger: Logger, database_config: str = None, debug: bool = False, resume: bool = False) -> None:
     """
     The spatial_transformer function serves as the main entry point for the spatial transformation script. Its primary purpose is to handle various tasks related to spatial data processing, such as starting the ripple_unzipple tool and geodatabase creation.
 
@@ -58,6 +58,7 @@ def spatial_transformer(input_path: str, output_path: str, load_from: str, save_
         attachments (str): Attachment folder name.
         master_data_path (str): Path to the aspatial master data.
         logger (Logger): The Logger object to store and write to log files and the command line uniformly.
+        database_config (str): Path to the database configuration file.
         debug (bool, optional): Determines if the program is in debug mode. Defaults False.
         resume (bool, optional): Determines if the program should resume from where a crash happened. Defaults False.
     """
@@ -65,8 +66,13 @@ def spatial_transformer(input_path: str, output_path: str, load_from: str, save_
     spatial_processor = None
     
     try:       
+        if database_config == "...":
+            database_config = None
+        elif database_config and not os.path.exists(database_config):
+            raise("The database config file path you provided does not exist.")
+            
         # Initialize Parameters class
-        setup_parameters = Parameters(input_path, output_path, gdb_path, master_data_path, datatracker, attachments, logger, load_from, save_to, debug, resume)
+        setup_parameters = Parameters(input_path, output_path, gdb_path, master_data_path, datatracker, attachments, logger, load_from, save_to, database_config, debug, resume)
         
         # Start the unzip tool 
         setup_parameters.handle_unzip()
@@ -148,17 +154,18 @@ def main():
     parser = argparse.ArgumentParser(description='Spatial Transformer Tool')
     
     # Define command-line arguments
-    parser.add_argument('--input_path', required=True, help='Directory or Compressed file location that will be handed to Ripple Unzipple')
+    parser.add_argument('--input_path', required=True, help='Directory or Compressed file location that will be handed to Ripple Unzipple.')
     parser.add_argument('--output_path', required=True, help='Where the final output of Ripple Unzipple will extract to.')
-    parser.add_argument('--load', choices=['datatracker', 'database'], required=True, default='database', help='Specify what to load from (datatracker or database)')
-    parser.add_argument('--save', choices=['datatracker', 'database'], required=True, default='database', help='Specify what to save to (datatracker or database)')
+    parser.add_argument('--load', choices=['datatracker', 'database'], required=True, default='database', help='Specify what to load from (datatracker or database).')
+    parser.add_argument('--save', choices=['datatracker', 'database'], required=True, default='database', help='Specify what to save to (datatracker or database).')
     parser.add_argument('--gdb_path', required=True, default='', help='Path of where the geodatabase will be saved, if it does not already exist, it will be created.')
-    parser.add_argument('--datatracker', default='', help='Name of the datatracker file that will be saved adjacent to the geodatabase if provided')
-    parser.add_argument('--attachments', default='', help='Name of the attachments folder that will be saved adjacent to the geodatabase')
-    parser.add_argument('--master', default='', help='The location of the master aspatial datasheet')
-    parser.add_argument('--debug', action='store_true', default=False, help='Enable debug mode')
-    parser.add_argument('--resume', action='store_true', default=False, help='Resume from where a crash happened')
-    parser.add_argument('--suppress', action='store_true', default=False, help='Suppress Warnings in the command-line and only show Errors')
+    parser.add_argument('--datatracker', default='', help='Name of the datatracker file that will be saved adjacent to the geodatabase if provided.')
+    parser.add_argument('--attachments', default='', help='Name of the attachments folder that will be saved adjacent to the geodatabase.')
+    parser.add_argument('--master', default='', help='The location of the master aspatial datasheet.')
+    parser.add_argument('--ini', default='', help='Path to the database initilization file. If not provided, then it will use the one provided in the repository.')
+    parser.add_argument('--debug', action='store_true', default=False, help='Enable debug mode.')
+    parser.add_argument('--resume', action='store_true', default=False, help='Resume from where a crash happened.')
+    parser.add_argument('--suppress', action='store_true', default=False, help='Suppress Warnings in the command-line and only show Errors.')
     parser.add_argument('--ps_script', default='', help='The location of the script to run commands if used.')
     
     # Parse the command-line arguments
@@ -175,8 +182,8 @@ def main():
     logger.log(message=f'Tool is starting... Time: {datetime.datetime.now().strftime("%H:%M:%S")}', tag='INFO')
         
     # Call the entry function
-    spatial_transformer(input_path=args.input_path, output_path=args.output_path, load_from=args.load, save_to=args.save, gdb_path=args.gdb_path, datatracker=args.datatracker, attachments=args.attachments, master_data_path=args.master, logger=logger, debug=args.debug, resume=args.resume)
-                        
+    spatial_transformer(input_path=args.input_path, output_path=args.output_path, load_from=args.load, save_to=args.save, gdb_path=args.gdb_path, datatracker=args.datatracker, attachments=args.attachments, master_data_path=args.master, logger=logger, database_config=args.ini, debug=args.debug, resume=args.resume)
+    
     # Get the end time of the script and calculate the elapsed time
     end_time = time.time()
     logger.log(message=f'Tool has completed. Time: {datetime.datetime.now().strftime("%H:%M:%S")}', tag='INFO')
