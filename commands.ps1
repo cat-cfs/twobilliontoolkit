@@ -155,9 +155,9 @@ do {
         }
         "8" {
             Write-Host "Running Record Reviser Independently..."
-            Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\RecordReviser\record_reviser.py" --gdb "$gdb_path" --load $load --save $save --datatracker "$datatracker_path" --log "$log_path" --ps_script "$script_location"
+            Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\RecordReviser\record_reviser.py" --gdb "$gdb_path" --load $load --save $save --datatracker "$datatracker_path" --ini "$database_config" --log "$log_path" --ps_script "$script_location"
             Write-Host
-            & $python_exe "$toolkit_dir\twobilliontoolkit\RecordReviser\record_reviser.py" --gdb "$gdb_path" --load $load --save $save --datatracker "$datatracker_path" --log "$log_path" --ps_script "$script_location"
+            & $python_exe "$toolkit_dir\twobilliontoolkit\RecordReviser\record_reviser.py" --gdb "$gdb_path" --load $load --save $save --datatracker "$datatracker_path" --ini "$database_config" --log "$log_path" --ps_script "$script_location"
             Write-Host
             Write-Host "Record Reviser has completed its processing!"
             Pause
