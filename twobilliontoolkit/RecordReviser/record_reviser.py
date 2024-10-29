@@ -446,13 +446,14 @@ def update_records(data: Datatracker2BT, changes_dict: dict, gdb: str = None) ->
     # Save the updated data
     data.save_data(update=True)
     
-def record_reviser(logger: Logger, data: Datatracker2BT = None, gdb: str = None, load_from: str = 'database', save_to: str = 'database', datatracker: str = None, filter: dict = None, changes: str = None) -> None:
+def record_reviser(logger: Logger, data: Datatracker2BT = None, database_config: str = None, gdb: str = None, load_from: str = 'database', save_to: str = 'database', datatracker: str = None, filter: dict = None, changes: str = None) -> None:
     """
     Handles calling the record reviser parts so the tool can be used outside of command-line as well.
 
     Args:
         logger (Logger): The Logger object to store and write to log files and the command line uniformly.
         data (Datatracker2BT, optional): An instance of Datatracker2BT.
+        database_config (str): Path to the database configuration file.
         gdb (str, optional): The geodatabase path. If provided, updates are applied to the geodatabase.
         load_from (str, optional): Specifies where to retrieve the data from if it is not passed in. Default is 'database'.
         save_to (str, optional): Specifies where to save the data to. Default is 'database'.
@@ -461,6 +462,11 @@ def record_reviser(logger: Logger, data: Datatracker2BT = None, gdb: str = None,
         changes (str, optional): A string dictionary containing changes for each project. If provided, no GUI will appear and only process the changes in the dictionary, else a GUI will appear and the user can alter the data as they see fit.
     """
     try:
+        if database_config == "...":
+            database_config = None
+        elif database_config and not os.path.exists(database_config):
+            raise ValueError("The database config file path you provided does not exist.")
+        
         if not data:
             # Datatracker validation if data is not passed in
             if (load_from == 'datatracker' or save_to == 'datatracker'):
@@ -475,7 +481,7 @@ def record_reviser(logger: Logger, data: Datatracker2BT = None, gdb: str = None,
             
                 
             # Create an instance of the Datatracker2BT class
-            data = Datatracker2BT(datatracker, logger, load_from, save_to)
+            data = Datatracker2BT(datatracker, logger, load_from, save_to, database_config)
         
         if changes:
             # Parse the changes argument and update records
@@ -486,6 +492,8 @@ def record_reviser(logger: Logger, data: Datatracker2BT = None, gdb: str = None,
             app = QApplication([])
             window = DataTableApp(data=data, gdb=gdb, filter=filter, logger=logger)
             app.exec_()  
+    except ValueError as error:
+        logger.log(message=f"{error}", tag='ERROR')
     except Exception as error:
         logger.log(message=f"An unnexpected error has occured when running record_reviser: {error}", tag='ERROR')
             
@@ -503,6 +511,7 @@ def main():
     parser.add_argument('--save', choices=['datatracker', 'database'], required=True, default='database', help='Specify what to save to (datatracker or database)')
     parser.add_argument('--datatracker', required=False, default=None, help='The new location or where an exsiting data tracker is located')
     parser.add_argument('--changes', required=False, default=None, help='The changes that you want to update, in form "{project_spaital_id: {field: newvalue, field2:newvalue2...}, project_spatial_id: {field: newfield}..."')
+    parser.add_argument('--ini', default='', help='Path to the database initilization file.')
     parser.add_argument('--log', required=True, help='The location of the output log file for the tool.')
     parser.add_argument('--ps_script', default='', help='The location of the script to run commands if used.')
     
@@ -517,7 +526,7 @@ def main():
     logger.log(message=f'Tool is starting... Time: {datetime.datetime.now().strftime("%H:%M:%S")}', tag='INFO')
     
     # Call the entry function
-    record_reviser(logger=logger, gdb=args.gdb, load_from=args.load, save_to=args.save, datatracker=args.datatracker, changes=args.changes)
+    record_reviser(logger=logger, database_config=args.ini, gdb=args.gdb, load_from=args.load, save_to=args.save, datatracker=args.datatracker, changes=args.changes)
          
     # Get the end time of the script and calculate the elapsed time
     end_time = time.time()
