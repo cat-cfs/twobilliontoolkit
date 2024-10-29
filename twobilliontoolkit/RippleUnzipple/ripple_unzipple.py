@@ -77,7 +77,7 @@ def ripple_unzip(input_path: str, output_path: str, logger: Logger) -> None:
         if os.path.isdir(input_path):
             # First copy the directory to the new location 
             copy_tree(input_path, output_path)
-            recursive_unzip(output_path, output_path, logger)
+            recursive_unzip(output_path, output_path, input_path, logger)
         
         elif input_path.endswith((".zip", ".7z")):
             os.makedirs(output_path, exist_ok=True)
