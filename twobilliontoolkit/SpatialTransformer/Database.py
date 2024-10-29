@@ -6,7 +6,7 @@ import os
 import psycopg2
 from configparser import ConfigParser
 
-from twobilliontoolkit.Logger.logger import log, Colors
+from twobilliontoolkit.Logger.Logger import Logger
 
 #========================================================
 # Class
@@ -14,12 +14,19 @@ from twobilliontoolkit.Logger.logger import log, Colors
 class Database:
     """A class for interacting with a PostgreSQL database."""
     
-    def __init__(self) -> None:
-        """Initialize the Database instance."""
+    def __init__(self, logger: Logger) -> None:
+        """
+        Initialize the Database instance.
+        
+        Args:
+            logger (Logger): The Logger object to store and write to log files and the command line uniformly.
+        """
         self.connection = None
         self.cursor = None
         self.schema = None
         self.table = None
+        
+        self.logger = logger
     
     def connect(self, params: dict[str, str]) -> None:
         """
@@ -31,7 +38,7 @@ class Database:
         try:
             self.connection = psycopg2.connect(**params)
             self.cursor = self.connection.cursor()
-            log(None, Colors.INFO, 'Opened a connection to the database...')
+            self.logger.log(message='Opened a connection to the database...', tag='INFO')
         except Exception as error:
             raise Exception(error)
             
@@ -40,7 +47,7 @@ class Database:
         try:
             if self.connection is not None:
                 self.connection.close()
-                log(None, Colors.INFO, 'Database connection closed.')
+                self.logger.log(message='Database connection closed.', tag='INFO')
         except Exception as error:
             raise Exception(error)
     

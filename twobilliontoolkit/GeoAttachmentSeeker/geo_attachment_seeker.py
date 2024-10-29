@@ -19,10 +19,21 @@ Organization:     Natural Resources of Canada
 Team:             Carbon Accounting Team
 
 Description: 
-    The script identifies and processes attachment tables within the specified GDB, filtering out non-attachment tables. It then extracts attachment files from each table and exports them to a specified output directory. The attachments are exported to a directory structure organized by project IDs. Each attachment file is named with a prefix (e.g., "ATT{attachment_id}_") to distinguish them.
+    A tool to identify and process attachment tables within the specified GDB, filtering out non-attachment tables. It extracts 
+    attachment files from each table and exports them to a specified output directory. Attachments are organized by project IDs and 
+    exported with a prefix (e.g., "ATT{attachment_id}_") to distinguish them.
 
 Usage:
-    python path/to/geo_attachment_seeker.py gdb_path output_path
+    python path/to/geo_attachment_seeker.py --gdb <gdb_path> --output <output_path> --log <log_file_path> [--ps_script <script_path>]
+
+Arguments:
+    --gdb           Path to the input GDB.
+    --output        Path to the directory where attachments will be exported.
+    --log           Path to the log file.
+    --ps_script     Optional path to a PowerShell script for additional operations.
+
+Example:
+    python geo_attachment_seeker.py --gdb my_geodatabase.gdb --output output_dir --log geo_attachment_seeker.txt
 """
 
 #========================================================
@@ -33,8 +44,9 @@ import sys
 import time
 import arcpy
 import argparse
+import datetime
  
-from twobilliontoolkit.Logger.logger import log, Colors
+from twobilliontoolkit.Logger.Logger import Logger
 
 #========================================================
 # Functions
@@ -111,31 +123,35 @@ def process_attachment(output_project_path: str, table_path : str) -> None:
 #========================================================
 def main():#
     """ The main function of the geo_attachment_seeker.py script """
-    # Get the start time of the script
-    start_time = time.time()
-    log(None, Colors.INFO, 'Tool is starting...')
-    
     # Initialize the argument parse
-    parser = argparse.ArgumentParser(description='')
+    parser = argparse.ArgumentParser(description='GeoAttachment Seeker Tool - A tool to extract attachment files from GDB attachment tables and export them to a specified directory.')
     
     # Define command-line arguments
-    parser.add_argument('gdb_path', help='Input GDB path')
-    parser.add_argument('output_path', help='Where to export the attachments to')
+    parser.add_argument('--gdb', help='Path to the input GDB.')
+    parser.add_argument('--output', help='Path to the directory where attachments will be exported.')
+    parser.add_argument('--log', required=True, help='Path to the log file.')
+    parser.add_argument('--ps_script', default='', help='Optional path to a PowerShell script for additional operations.')
     
     # Parse the command-line arguments
     args = parser.parse_args()
-
-    # Access the values using the attribute notation
-    gdb_path = args.gdb_path
-    output_path = args.output_path
+    
+    # Initialize the Logger
+    logger = Logger(log_file=args.log, script_path=args.ps_script, auto_commit=True, tool_name=os.path.abspath(__file__))
+    
+    # Get the start time of the script
+    start_time = time.time()
+    logger.log(message=f'Tool is starting... Time: {datetime.datetime.now().strftime("%H:%M:%S")}', tag='INFO')
     
     # Call the function to perform the processing
-    find_attachments(gdb_path, output_path)
+    find_attachments(args.gdb, args.output)
         
     # Get the end time of the script and calculate the elapsed time
     end_time = time.time()
-    log(None, Colors.INFO, 'Tool has completed')
-    log(None, Colors.INFO, f'Elapsed time: {end_time - start_time:.2f} seconds')
+    logger.log(message=f'Tool has completed. Time: {datetime.datetime.now().strftime("%H:%M:%S")}', tag='INFO')
+    logger.log(message=f'Elapsed time: {end_time - start_time:.2f} seconds', tag='INFO')
+    
+    # Commit all messages that have been posted to logger
+    logger.commit(close=True)
 
 #========================================================
 # Main Guard

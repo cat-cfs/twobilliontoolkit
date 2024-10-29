@@ -27,6 +27,7 @@ $master_data = "..."
 $database_config = "..."
 $load = "database"
 $save = "database"
+$log_path = "..." # Not for spatial transformer, for running individual tools seperately 
 $gdb_output = "..."
 $gdb_name = "Output"
 $gdb = "${gdb_name}.gdb"
@@ -127,36 +128,36 @@ do {
         }
         "5" {
             Write-Host "Running Ripple Unzipple Independently..."
-            Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\RippleUnzipple\ripple_unzipple.py" --input "$input_path" --output "$output_path"
+            Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\RippleUnzipple\ripple_unzipple.py" --input "$input_path" --output "$output_path" --log "$log_path" --ps_script "$script_location"
             Write-Host
-            & $python_exe "$toolkit_dir\twobilliontoolkit\RippleUnzipple\ripple_unzipple.py" --input "$input_path" --output "$output_path"
+            & $python_exe "$toolkit_dir\twobilliontoolkit\RippleUnzipple\ripple_unzipple.py" --input "$input_path" --output "$output_path" --log "$log_path" --ps_script "$script_location"
             Write-Host
             Write-Host "Ripple Unzipple has completed its processing!"
             Pause
         }
         "6" {
             Write-Host "Running Geo Attachment Seeker Independently..."
-            Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\GeoAttachmentSeeker\geo_attachment_seeker.py" "$gdb_path" "$gdb_path"
+            Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\GeoAttachmentSeeker\geo_attachment_seeker.py" --gdb "$gdb_path" --output "$gdb_path" --log "$log_path" --ps_script "$script_location"
             Write-Host
-            & $python_exe "$toolkit_dir\twobilliontoolkit\GeoAttachmentSeeker\geo_attachment_seeker.py" "$gdb_path" "$gdb_path"
+            & $python_exe "$toolkit_dir\twobilliontoolkit\GeoAttachmentSeeker\geo_attachment_seeker.py" --gdb "$gdb_path" --output "$gdb_path" --log "$log_path" --ps_script "$script_location"
             Write-Host
             Write-Host "Geo Attachment Seeker has completed its processing!"
             Pause
         }
         "7" {
             Write-Host "Running Network Transfer Independently..."
-            Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\NetworkTransfer\network_transfer.py" "$local_dir_path" "$gdb_output" --files $transfer_files
+            Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\NetworkTransfer\network_transfer.py" --source "$local_dir_path" --destination "$gdb_output" --log "$log_path" --ps_script "$script_location" --files $transfer_files
             Write-Host
-            & $python_exe "$toolkit_dir\twobilliontoolkit\NetworkTransfer\network_transfer.py" "$local_dir_path" "$gdb_output" --files $transfer_files
+            & $python_exe "$toolkit_dir\twobilliontoolkit\NetworkTransfer\network_transfer.py" --source "$local_dir_path" --destination "$gdb_output" --log "$log_path" --ps_script "$script_location" --files $transfer_files
             Write-Host
             Write-Host "Network Transfer has completed its processing!"
             Pause
         }
         "8" {
             Write-Host "Running Record Reviser Independently..."
-            Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\RecordReviser\record_reviser.py" --gdb "$gdb_path" --load $load --save $save --datatracker "$datatracker_path"
+            Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\RecordReviser\record_reviser.py" --gdb "$gdb_path" --load $load --save $save --datatracker "$datatracker_path" --log "$log_path" --ps_script "$script_location"
             Write-Host
-            & $python_exe "$toolkit_dir\twobilliontoolkit\RecordReviser\record_reviser.py" --gdb "$gdb_path" --load $load --save $save --datatracker "$datatracker_path"
+            & $python_exe "$toolkit_dir\twobilliontoolkit\RecordReviser\record_reviser.py" --gdb "$gdb_path" --load $load --save $save --datatracker "$datatracker_path" --log "$log_path" --ps_script "$script_location"
             Write-Host
             Write-Host "Record Reviser has completed its processing!"
             Pause

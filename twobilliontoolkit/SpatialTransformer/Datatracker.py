@@ -2,35 +2,37 @@
 #========================================================
 # Imports
 #========================================================
+import os
 import psycopg2
+import pandas as pd
 
-from twobilliontoolkit.SpatialTransformer.common import *
-from twobilliontoolkit.Logger.logger import log, Colors
+from twobilliontoolkit.Logger.Logger import Logger
 from twobilliontoolkit.SpatialTransformer.Database import Database
 
 #========================================================
 # Base Class
 #========================================================
 class Datatracker:
-    def __init__(self, data_traker_path: str, load_from: str = 'database', save_to: str = 'database', database_config: str = None, log_path: str = None) -> None:
+    def __init__(self, data_traker_path: str, logger: Logger, load_from: str = 'database', save_to: str = 'database', database_config: str = None) -> None:
         """
         Initializes the Datatracker class with input parameters to store data tracker information.
 
         Args:
-            data_traker_path (str): Path to data tracker file.
-            load_from (str): Source to load data from {'database', 'datatracker'}. Default: 'database'.
-            save_to (str): Destination to save data to {'database', 'datatracker'}. Default: 'database'.
-            log_path (str, optional): Path to log file for recording errors.
+            data_traker_path (str): Path to data tracker to load data if exists.
+            logger (Logger): The Logger object to store and write to log files and the command line uniformly.
+            load_from (str): Flag to determine if loading dataframe should be done from the {database, datatracker}. Default: 'database'.
+            save_to (str): Flag to determine if saving the dataframe should be done to the {database, datatracker}. Default: 'database'.
+            database_config (str): Path to the database configuration file.
         """
         self.data_dict = {}
         self.datatracker = data_traker_path
         self.load_from = load_from
         self.save_to = save_to
-        self.log_path = log_path
+        self.logger = logger
         
         if load_from == 'database' or save_to == 'database':
             # Create database object
-            self.database_connection = Database()
+            self.database_connection = Database(self.logger)
             
             # Read connection parameters from the configuration file
             self.database_parameters = self.database_connection.get_params(config_path=database_config)
@@ -206,24 +208,24 @@ class Datatracker:
 
         if not df.empty:
             df.to_excel(self.datatracker, index=False)
-            log(None, Colors.INFO, f'The data tracker "{self.datatracker}" has been created/updated successfully.')
-    
+            self.logger.log(message=f'The data tracker "{self.datatracker}" has been created/updated successfully.', tag='INFO')
          
 #========================================================
 # Inheritance Class
 #========================================================
 class Datatracker2BT(Datatracker):
-    def __init__(self, data_traker_path: str, load_from: str = 'database', save_to: str = 'database', database_config: str = None, log_path: str = None) -> None:
+    def __init__(self, data_traker_path: str, logger: Logger, load_from: str = 'database', save_to: str = 'database', database_config: str = None) -> None:
         """
         Initializes the Data class with input parameters. Used to store the data tracker information.
 
         Args:
             data_traker_path (str): Path to data tracker to load data if exists.
+            logger (Logger): The Logger object to store and write to log files and the command line uniformly.
             load_from (str): Flag to determine if loading dataframe should be done from the {database, datatracker}. Default: 'database'.
             save_to (str): Flag to determine if saving the dataframe should be done to the {database, datatracker}. Default: 'database'.
-            log_path (str, optional): The path to the log file if you wish to keep any errors that occur.
+            database_config (str): Path to the database configuration file.
         """
-        super().__init__(data_traker_path, load_from, save_to, database_config, log_path)
+        super().__init__(data_traker_path, logger, load_from, save_to, database_config)
     
     def add_data(self, project_spatial_id: str, project_number: str, dropped: bool, raw_data_path: str, raw_gdb_path: str, absolute_file_path: str, in_raw_gdb: bool, contains_pdf: bool, contains_image: bool, extracted_attachments_path: str, editor_tracking_enabled: bool, processed: bool, entry_type: str) -> None:
         """
@@ -481,7 +483,7 @@ class Datatracker2BT(Datatracker):
                     ) 
                     
             except psycopg2.errors.ForeignKeyViolation as error:
-                log(self.log_path, Colors.ERROR, error)
+                self.logger.log(message=error, tag='ERROR')
             
         self.database_connection.disconnect()
 
@@ -511,4 +513,4 @@ class Datatracker2BT(Datatracker):
         # Convert dataframe to excel
         df.to_excel(self.datatracker, index=False)
         
-        log(None, Colors.INFO, f'The data tracker "{self.datatracker}" has been created/updated successfully.')
+        self.logger.log(message=f'The data tracker "{self.datatracker}" has been created/updated successfully.', tag='INFO')

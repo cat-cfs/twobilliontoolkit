@@ -50,7 +50,7 @@ You also have the option of calling this tool from a module import with the foll
 ```
 from twobilliontoolkit.Logger.logger import log, Colors
 from twobilliontoolkit.SpatialTransformer.Datatracker import Datatracker2BT # !!May need to import Datatracker instead of Datatracker2BT if your data columns are different from the default 2BT columns
-from twobilliontoolkit.RecordReviser.record_reviser import call_record_reviser
+from twobilliontoolkit.RecordReviser.record_reviser import record_reviser
 
 def main():
     load_from = 'database'
@@ -59,12 +59,13 @@ def main():
     gdb_path = 'path/to/geodatabase.gdb'
     log_path = 'path/to/log.txt'
     changes = '{'testkey': {'parameter': 'value'}}'
-    data = Datatracker2BT(datatracker_path, load_from, save_to, log_path)
+    logger = Logger(log_path)
+    data = Datatracker2BT(datatracker_path, logger, load_from, save_to, log_path)
     
     # Call the handler function
-    call_record_reviser(data=data, gdb=gdb_path, changes=changes or None)
+    record_reviser(data=data, gdb=gdb_path, changes=changes or None)
 ```
-**Note**: providing call_record_reviser a value for changes will not open the GUI and just process everything in the background, if changes are not provided a popup GUI will appear and the user will need to make their changes, save and close the GUI before continuing on. An image of what that GUI looks like is below.
+**Note**: providing record_reviser a value for changes will not open the GUI and just process everything in the background, if changes are not provided a popup GUI will appear and the user will need to make their changes, save and close the GUI before continuing on. An image of what that GUI looks like is below.
 
 ![Record Reviser GUI](../../images/record_reviser.png)
 
