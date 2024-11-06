@@ -327,7 +327,7 @@
                 </Border>
 
                 <Border x:Name="SiteMapper_ErrorStatus" Visibility="Collapsed" Style="{StaticResource FailureLabelBorder}">
-                    <Label Content="An error occured while inserting." HorizontalContentAlignment="Center" Foreground="White"/>
+                    <Label x:Name="SiteMapper_ErrorStatusLabel" Content="An error occured while inserting." HorizontalContentAlignment="Center" Foreground="White"/>
                 </Border>
 
                 <Grid x:Name="HiddenCat2" Margin="0,10,0,0" Style="{StaticResource Found}">

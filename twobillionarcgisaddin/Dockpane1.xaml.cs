@@ -1,7 +1,9 @@
-﻿using ArcGIS.Core.CIM;
+﻿using ActiproSoftware.Windows.Extensions;
+using ArcGIS.Core.CIM;
 using ArcGIS.Core.Data;
 using ArcGIS.Core.Data.UtilityNetwork.Trace;
 using ArcGIS.Core.Geometry;
+using ArcGIS.Core.Internal.CIM;
 using ArcGIS.Desktop.Core;
 using ArcGIS.Desktop.Core.Geoprocessing;
 using ArcGIS.Desktop.Framework.Dialogs;
@@ -532,7 +534,7 @@ namespace twobillionarcgisaddin
         }
 
         // Method to handle the click event of the Send Data button
-        private void SendButtonClicked(object sender, RoutedEventArgs e)
+        private async void SendButtonClicked(object sender, RoutedEventArgs e)
         {
             try
             {
@@ -548,19 +550,75 @@ namespace twobillionarcgisaddin
                 if (mapView == null)
                 {
                     ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("No active map view found.");
+                    this.SendDataButton.IsEnabled = true;
                     return;
                 }
 
-                if (SiteMapper_IsBatch)
+                // Get the first selected feature layer from the active map view
+                FeatureLayer featureLayer = mapView.GetSelectedLayers().OfType<FeatureLayer>().FirstOrDefault();
+                if (featureLayer == null)
                 {
-                    SiteMapperSendDataBatch(mapView);
+                    ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Please select a feature layer in the Drawing Order and try again.");
+                    SendDataButton.IsEnabled = true;
+                    return;
+                }
+
+                // Check if any features are selected in any layer
+                if (featureLayer.SelectionCount == 0)
+                {
+                    ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("No features on the map are selected, please select a feature you want to process and try again!");
+                    SendDataButton.IsEnabled = true;
+                    return;
+                }
+
+                string siteID = this.SiteID_Dropdown.SelectedItem.ToString();
+                bool isOverwrite = (bool)this.OverwriteToggle.IsChecked;
+                bool foundSiteID = await SiteMapperCheckSiteIDExistInDB(siteID);
+
+                if (isOverwrite)
+                {
+                    bool foundGeometryOrCanceled = await SiteMapperCheckGeometryExistInDB(featureLayer);
+                    if (foundGeometryOrCanceled)
+                    {
+                        this.SendDataButton.IsEnabled = true;
+                        return;
+                    }
+
+                    if (foundSiteID)
+                    {
+                        // Overwrite existing geometries for this SiteID
+                        DirectToSiteMapperOrBatchSiteMapper(featureLayer, true);
+                    }
+                    else
+                    {
+                        // SiteID does not exist, add new geometries without error
+                        DirectToSiteMapperOrBatchSiteMapper(featureLayer, false);
+                    }
                 }
                 else
                 {
-                    SiteMapperSendData(mapView);
+                    if (foundSiteID)
+                    {
+                        // Throw error as polygons already exist for this SiteID and overwrite is off
+                        ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show(
+                            $"Geometries already exist for Site ID {siteID}. Cannot add new geometries when overwrite is off.",
+                            "ArcGIS Site Mapper Error",
+                            MessageBoxButton.OK
+                        );
+                    }
+                    else
+                    {
+                        bool foundGeometryOrCanceled = await SiteMapperCheckGeometryExistInDB(featureLayer);
+                        if (foundGeometryOrCanceled)
+                        {
+                            this.SendDataButton.IsEnabled = true;
+                            return;
+                        }
+
+                        // SiteID does not exist, so add new polygons
+                        DirectToSiteMapperOrBatchSiteMapper(featureLayer, false);
+                    }
                 }
-
-
             }
             catch (Exception ex)
             {
@@ -660,10 +718,10 @@ namespace twobillionarcgisaddin
                     this.Secondary_Filter.Visibility = Visibility.Visible;
                 }
 
-            if (SiteMapper_IsBatch)
-            {
-                this.Secondary_Filter.Visibility = Visibility.Collapsed; 
-            }
+                if (SiteMapper_IsBatch)
+                {
+                    this.Secondary_Filter.Visibility = Visibility.Collapsed; 
+                }
 
                 // Refresh the list of data entries for other functionalities
                 dataEntries = dataContainer.GetDataEntriesByProjectNumber(this.ProjectNumber_Dropdown.SelectedItem.ToString());
@@ -680,6 +738,9 @@ namespace twobillionarcgisaddin
                 // Show an error message if an exception occurs
                 ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
             }
+
+            // Toggle the overwrite switch off
+            this.OverwriteToggle.IsChecked = false;
         }
 
         // Method to handle the change event of the filters
@@ -712,6 +773,9 @@ namespace twobillionarcgisaddin
                 // Show an error message if an exception occurs
                 ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
             }
+
+            // Toggle the overwrite switch off
+            this.OverwriteToggle.IsChecked = false;
         }
 
         // Method to handle the change event of the filters
@@ -890,7 +954,7 @@ namespace twobillionarcgisaddin
                     }
 
                     // Iterate through the selected rows and update the "bt_site_id" field
-                    QueryFilter queryFilter = new QueryFilter()
+                    ArcGIS.Core.Data.QueryFilter queryFilter = new ArcGIS.Core.Data.QueryFilter()
                     {
                         ObjectIDs = selectedOids
                     };
@@ -1035,44 +1099,26 @@ namespace twobillionarcgisaddin
         }
 
         //
-        private async void SiteMapperSendData(MapView mapView)
+        private async void DirectToSiteMapperOrBatchSiteMapper(FeatureLayer featureLayer, bool overwrite)
         {
-            SelectionSet selectedFeatures = null;
-            FeatureLayer featureLayer = null;
-            GeometryType geometryType = GeometryType.Unknown;
-            await QueuedTask.Run(() =>
+            //
+            if (SiteMapper_IsBatch)
             {
-                // Get the currently selected features in the map
-                selectedFeatures = mapView.Map.GetSelection();
+                SiteMapperSendDataBatch(featureLayer, true);
+            }
+            else
+            {
+                SiteMapperSendData(featureLayer, true);
+            }
+        }
 
-                // Check if any features are selected in any layer
-                if (selectedFeatures.Count == 0)
-                {
-                    ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("No features on the map are selected, please select a feature you want to process and try again!");
-                    this.SendDataButton.IsEnabled = true;
-                    this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
-                    return;
-                }
-
-                // Get the first layer and its corresponding selected feature OIDs
-                var selectionSet = selectedFeatures.ToDictionary().First();
-                featureLayer = selectionSet.Key as FeatureLayer;
-
-                // Check if the feature layer is not null
-                if (featureLayer != null)
-                {
-                    // Access the feature class of the feature layer
-                    FeatureClass featureClass = featureLayer.GetFeatureClass();
-
-                    // Get the geometry type of the feature class
-                    geometryType = featureClass.GetDefinition().GetShapeType();
-                }
-            });
-
+        //
+        private async void SiteMapperSendData(FeatureLayer featureLayer, bool overwrite)
+        {
             // Check if the selected layer is a polygon or not
-            if (geometryType != GeometryType.Polygon)
+            if (featureLayer.ShapeType != esriGeometryType.esriGeometryPolygon)
             {
-                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("You currently have a " + geometryType.ToString() + " geometry selected. The tool does not currently accept anything other than Polygons.");
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("You currently have a " + featureLayer.ShapeType.ToString() + " geometry selected. The tool does not currently accept anything other than Polygons.");
 
                 // Disable the button (spam prevention)
                 this.SendDataButton.IsEnabled = true;
@@ -1082,7 +1128,7 @@ namespace twobillionarcgisaddin
                 // Get the selected Site ID from the logistics dropdown
                 string selectedSiteID = this.SiteID_Dropdown.SelectedItem.ToString();
 
-                if ((bool)this.OverwriteToggle.IsChecked)
+                if (overwrite)
                 {
                     await ExecuteUpdateDataToolAsync(selectedSiteID, featureLayer);
                 }
@@ -1094,18 +1140,9 @@ namespace twobillionarcgisaddin
         }
 
         //
-        private async void SiteMapperSendDataBatch(MapView mapView)
+        private async void SiteMapperSendDataBatch(FeatureLayer featureLayer, bool overwrite)
         {
-            // Get the first selected feature layer from the active map view
-            FeatureLayer featureLayer = mapView.GetSelectedLayers().OfType<FeatureLayer>().FirstOrDefault();
-            if (featureLayer == null)
-            {
-                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Please select a feature layer in the Drawing Order and try again.");
-                this.MatchButton.IsEnabled = true;
-                return;
-            }
-
-            if ((bool)this.OverwriteToggle.IsChecked)
+            if (overwrite)
             {
                 await ExecuteBatchUpdateDataToolAsync(featureLayer);
             }
@@ -1113,6 +1150,20 @@ namespace twobillionarcgisaddin
             {
                 await ExecuteBatchInsertDataToolAsync(featureLayer);
             }
+        }
+
+        //
+        private async Task<bool> SiteMapperCheckSiteIDExistInDB(string siteID)
+        {
+            bool foundSiteID = await ExecuteCheckSiteIDExistsToolAsync(siteID);
+            return foundSiteID;
+        }
+
+        //
+        private async Task<bool> SiteMapperCheckGeometryExistInDB(FeatureLayer featureLayer)
+        {
+            bool foundGeometry = await ExecuteCheckGeometryExistsToolAsync(featureLayer);
+            return foundGeometry;
         }
 
         //
@@ -1290,19 +1341,23 @@ namespace twobillionarcgisaddin
 
                 if (!returnValue.IsFailed)
                 {
+                    
                     this.SiteMapper_ErrorStatus.Visibility = Visibility.Collapsed;
                     this.SiteMapper_SuccessStatus.Visibility = Visibility.Visible;
                     return true;
-                }                
+                }
+                else
+                {
+                    this.SiteMapper_SuccessStatus.Visibility = Visibility.Collapsed;
+                    this.SiteMapper_ErrorStatusLabel.Content = '_' + returnValue?.ErrorMessages.FirstOrDefault()?.Text ?? "Error occurred";
+                    this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
+                }
             }
             catch (Exception ex)
             {
                 // Handle any exceptions that occur during tool execution
                 ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
             }
-
-            this.SiteMapper_SuccessStatus.Visibility = Visibility.Collapsed;
-            this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
 
             return false;
         }
@@ -1327,15 +1382,18 @@ namespace twobillionarcgisaddin
                     this.SiteMapper_SuccessStatus.Visibility = Visibility.Visible;
                     return true;
                 }
+                else
+                {
+                    this.SiteMapper_SuccessStatus.Visibility = Visibility.Collapsed;
+                    this.SiteMapper_ErrorStatusLabel.Content = '_' + returnValue?.ErrorMessages.FirstOrDefault()?.Text ?? "Error occurred";
+                    this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
+                }
             }
             catch (Exception ex)
             {
                 // Handle any exceptions that occur during tool execution
                 ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
             }
-
-            this.SiteMapper_SuccessStatus.Visibility = Visibility.Collapsed;
-            this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
 
             return false;
         }
@@ -1360,6 +1418,12 @@ namespace twobillionarcgisaddin
                     this.SiteMapper_SuccessStatus.Visibility = Visibility.Visible;
                     return true;
                 }
+                else
+                {
+                    this.SiteMapper_SuccessStatus.Visibility = Visibility.Collapsed;
+                    this.SiteMapper_ErrorStatusLabel.Content = '_' + returnValue?.ErrorMessages.FirstOrDefault()?.Text ?? "Error occurred";
+                    this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
+                }
             }
             catch (Exception ex)
             {
@@ -1367,8 +1431,6 @@ namespace twobillionarcgisaddin
                 ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
             }
 
-            this.SiteMapper_SuccessStatus.Visibility = Visibility.Collapsed;
-            this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
             return false;
         }
 
@@ -1392,6 +1454,12 @@ namespace twobillionarcgisaddin
                     this.SiteMapper_SuccessStatus.Visibility = Visibility.Visible;
                     return true;
                 }
+                else
+                {
+                    this.SiteMapper_SuccessStatus.Visibility = Visibility.Collapsed;
+                    this.SiteMapper_ErrorStatusLabel.Content = '_' + returnValue?.ErrorMessages.FirstOrDefault()?.Text ?? "Error occurred";
+                    this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
+                }
             }
             catch (Exception ex)
             {
@@ -1399,9 +1467,174 @@ namespace twobillionarcgisaddin
                 ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
             }
 
-            this.SiteMapper_SuccessStatus.Visibility = Visibility.Collapsed;
-            this.SiteMapper_ErrorStatus.Visibility = Visibility.Visible;
             return false;
+        }
+
+        // Method to execute the Check Site ID Exists tool asynchronously, returns false if no issues arise
+        private async Task<bool> ExecuteCheckSiteIDExistsToolAsync(string siteID)
+        {
+            try
+            {
+                // Set the parameters
+                string toolboxPath = this.ArcPythonToolboxPath.Text + "\\CheckSiteIDExists";
+                string connectionFile = this.ArcConnectionFilePath.Text;
+                string tableName = this.DatabaseSchema.Text + ".site_geometry";
+
+                // Execute the Python tool and get the result
+                var parameters = Geoprocessing.MakeValueArray(connectionFile, tableName, siteID);
+                var returnValue = await Geoprocessing.ExecuteToolAsync(toolboxPath, parameters);
+
+                if (returnValue.IsFailed)
+                {
+                    throw new Exception("The CheckSiteIDExists Python tool failed");
+                }
+
+                // A return value of "0" indicates no duplicate site_ids were found
+                if (returnValue.ReturnValue == "0")
+                {
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions that occur during tool execution
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
+            }
+
+            return false;
+        }
+
+        // Method to execute the Check Geomtry Exists tool asynchronously, returns false if no issues arise
+        private async Task<bool> ExecuteCheckGeometryExistsToolAsync(FeatureLayer featureLayer)
+        {
+            try
+            {
+                // Set the parameters
+                string toolboxPath = this.ArcPythonToolboxPath.Text + "\\CheckGeometryExists";
+                string connectionFile = this.ArcConnectionFilePath.Text;
+                string tableName = this.DatabaseSchema.Text + ".site_geometry";
+
+                // Execute the Python tool and get the result
+                var parameters = Geoprocessing.MakeValueArray(connectionFile, tableName, featureLayer);
+                var returnValue = await Geoprocessing.ExecuteToolAsync(toolboxPath, parameters);
+
+                if (returnValue.IsFailed)
+                {
+                    throw new Exception("The CheckGeometryExists Python tool failed");
+                }
+
+                // A return value of "1" indicates no duplicates were found
+                if (returnValue.ReturnValue == "1")
+                {
+                    return false;
+                }
+
+                // Split by semicolon to get individual groups
+                string[] listGroups = returnValue.ReturnValue.Split(';');
+
+                // Convert array to list for easier manipulation
+                List<string> listGroupList = new List<string>(listGroups);
+
+                for (int index = 0; index < listGroupList.Count; index++)
+                {
+                    string group = listGroupList[index];
+                    if (group == "1")
+                    {
+                        continue;
+                    }
+
+                    // Trim trailing ellipses if present
+                    string trimmedGroup = group.Trim('[', ']', ' ', '.', ',');
+
+                    // Split by semicolon to get individual lists within the group
+                    string[] lists = trimmedGroup.Split("], [");
+
+                    // Initialize variables to store parsed values
+                    string numberOfOccurrences = "";
+                    List<string> allIds = new List<string>();
+                    List<string> allSiteIds = new List<string>();
+
+                    foreach (string listStr in lists)
+                    {
+                        // Trim brackets and split by comma
+                        string trimmedListStr = listStr.Trim('[', ']');
+                        string[] parts = trimmedListStr.Split(',');
+
+                        // Ensure at least three parts (assuming format [number, id, siteId])
+                        if (parts.Length >= 3)
+                        {
+                            // Extract values
+                            numberOfOccurrences = parts[0].Trim();
+                            allIds.Add(parts[1].Trim());
+                            allSiteIds.Add(parts[2].Trim());                           
+                        }
+                    }
+
+                    // Join multiple IDs and SiteIDs with commas
+                    string joinedIds = string.Join(", ", allIds);
+                    string joinedSiteIds = string.Join(", ", allSiteIds);
+
+                    // Construct the message for each feature
+                    string message = $"{numberOfOccurrences} Duplicate geometries have been found in the database for the geometry selected:\n" +
+                                     $"     Database ID's: {joinedIds}\n" +
+                                     $"     Database SiteID's: {joinedSiteIds}\n\n" +
+                                     "Do you still want to commit this geometry to the database?";
+
+                    IReadOnlyList<long> list = new List<long>();
+                    Selection selection = null;
+                    string objectIdField = null;
+
+                    // Get the selected entries object ID's
+                    await QueuedTask.Run(() =>
+                    {
+                        list = featureLayer.GetSelection().GetObjectIDs();
+                        selection = featureLayer.GetSelection();
+
+                        // Get the default Object ID field name
+                        var featureClass = featureLayer.GetFeatureClass();
+                        var definition = featureClass.GetDefinition();
+                        objectIdField = definition.GetObjectIDField(); // This gets the default object ID field name
+
+                    });
+
+                    // Show message box for each feature
+                    MessageBoxResult buttonResult = ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show(
+                        message, $"ArcGIS {objectIdField}: {list[index]} Warning", MessageBoxButton.YesNo);
+
+                    // Checking the result of the message box
+                    if (buttonResult != MessageBoxResult.Yes) // OK button was clicked
+                    {
+                        // Remove the selected entry from the map
+                        await QueuedTask.Run(() =>
+                        {
+                            selection.Remove(new List<long> { list[index] });
+                            featureLayer.SetSelection(selection);
+                        });
+
+                        // Remove the group from listGroups and decrement index
+                        listGroupList.RemoveAt(index);
+                        index--;
+                    }
+                    
+                }
+
+                if (listGroupList.Count == 0)
+                {
+                    return true;
+                }
+
+                return false;
+                
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions that occur during tool execution
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
+            }
+
+            return true;
         }
 
         // Method to execute the Insert Data tool asynchronously
