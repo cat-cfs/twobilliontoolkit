@@ -3,10 +3,12 @@
 # Imports
 #========================================================
 import unittest
-import sys
 import os
+import pandas as pd
+import datetime
 
-from twobilliontoolkit.SpatialTransformer.common import *
+import arcpy
+
 from twobilliontoolkit.SpatialTransformer.Parameters import Parameters
 from twobilliontoolkit.SpatialTransformer.Processor import Processor
 from twobilliontoolkit.SpatialTransformer.Datatracker import Datatracker

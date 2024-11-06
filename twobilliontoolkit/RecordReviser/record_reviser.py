@@ -19,7 +19,7 @@ Organization:     Natural Resources of Canada
 Team:             Carbon Accounting Team
 
 Description: 
-    The script will be used to revise any records that have been created in the 2BT Spatial Tools. It provides a graphical user interface (GUI) for viewing and updating records in the Data Tracker. The GUI allows users to make changes to various fields, including 'project_spatial_id', 'project_number', 'in_raw_gdb', 'contains_pdf', 'contains_image', and 'contains_attachment'. Additionally, the script supports the creation of duplicate records when updating 'project_number', ensuring data integrity. Changes made through the GUI can be committed to either the Data Tracker Excel file or a Postgres DB table. The script also offers functionality to update associated Raw Data GDB layers and attachment folders.
+    The script will be used to revise any records that have been created in the 2BT Spatial Tools. It provides a graphical user interface (GUI) for viewing and updating records in the Data Tracker. The GUI allows users to make changes to various fields, including 'project_spatial_id', 'project_number', 'in_raw_gdb', 'absolute_path', and 'entry_type'. Additionally, the script supports the creation of duplicate records when updating 'project_number', ensuring data integrity. Changes made through the GUI can be committed to either the Data Tracker Excel file or a Postgres DB table. The script also offers functionality to update associated Raw Data GDB layers and attachment folders.
 
 Usage:
     python path/to/record_reviser.py --gdb /path/to/geodatabase --load [datatracker/database] --save [datatracker/database] --datatracker /path/to/datatracker.xlsx --changes "{key: {field: newvalue, field2: newvalue2...}, key2: {field: newfield}...}"
@@ -37,32 +37,44 @@ import argparse
 import datetime
 import pandas as pd
 
-from PyQt5.QtWidgets import QApplication, QTableWidget, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QTableWidgetItem, QMessageBox
+from PyQt5.QtWidgets import QApplication, QTableWidget, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QTableWidgetItem
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QIcon
 
-from twobilliontoolkit.Logger.logger import log, Colors
+from twobilliontoolkit.Logger.Logger import Logger
 from twobilliontoolkit.SpatialTransformer.Datatracker import Datatracker2BT
+
+
+#========================================================
+# Globals
+#========================================================
+session_added_entries = []
 
 #========================================================
 # Classes
 #========================================================
 class DataTableApp(QWidget):
-    def __init__(self, data: Datatracker2BT, gdb: str = None) -> None:
+    def __init__(self, data: Datatracker2BT, logger: Logger, gdb: str = None, filter: dict = None) -> None:
         """
         Initialize the DataTableApp with the provided data.
 
         Args:
-            data (Datatracker2BT): An instance of the Datatracker2BT class.
+            data (Datatracker2BT): An instance of the Datatracker2BT class. 
+            logger (Logger): The Logger object to store and write to log files and the command line uniformly.
             gdb (str, optional): The path to the gdb that changes will be made to if applicable.
+            filter (dict, optional): The dictionary of filters for the display data.
         """        
         super().__init__()
+        
+        self.logger = logger
 
         # Columns that are not editable and the key
-        self.columns_noedit = ['project_spatial_id', 'dropped', 'raw_data_path']
+        self.columns_noedit = ['project_spatial_id', 'created_at']
+        self.columns_to_add = ['project_spatial_id', 'project_number', 'in_raw_gdb', 'absolute_file_path', 'entry_type']
         self.key = 'project_spatial_id'
 
         # Store the original and current dataframes
+        self.filter = filter
         self.refresh_data(data)
         self.gdb = gdb
         
@@ -73,12 +85,15 @@ class DataTableApp(QWidget):
         """
         Initialize the user interface components.
         """
-         # Create the main layout
+        # Create the main layout
         self.layout = QVBoxLayout()
 
         # Create the table and populate it
         self.table = QTableWidget()
         self.populate_table()
+        
+        # Enable sorting for the columns
+        self.table.setSortingEnabled(True)
 
         # Create a QHBoxLayout for buttons
         button_layout = QHBoxLayout()
@@ -119,9 +134,47 @@ class DataTableApp(QWidget):
         self.data = data
         formatted_data = self.format_data(data)
         self.original_dataframe = formatted_data[formatted_data['dropped'] != True]
+  
+        conditions = []
+
+        # Filter out the data if there was a filter given
+        if self.filter is not None:
+            for key, value in self.filter.items():
+                if key == "created_at":
+                    if 'created_at' not in self.original_dataframe:
+                        self.original_dataframe['created_at'] = pd.Series([pd.NaT] * len(self.original_dataframe), dtype='datetime64[ns]')
+                    date = value.date()
+                    condition = (
+                        (self.original_dataframe.created_at.dt.date == date) | 
+                        (pd.isna(self.original_dataframe.created_at))
+                    )
+                else:
+                    condition = (self.original_dataframe[key] == value)
+                
+                conditions.append(condition)
+
+            # Combine all conditions using & (and) operator
+            combined_condition = conditions[0]
+            for condition in conditions[1:]:
+                combined_condition &= condition
+
+        # If the variable does not exist (no filter was provided)
+        if 'combined_condition' not in locals():
+            combined_condition = pd.Series([True] * len(self.original_dataframe), index=self.original_dataframe.index) 
+
+        # If there has been a change create the combined conition
+        if session_added_entries:
+            # Always add the condition for project_spatial_id
+            combined_condition |= self.original_dataframe.project_spatial_id.isin(session_added_entries)
+
+        # Apply the combined condition to the DataFrame
+        self.original_dataframe = self.original_dataframe[combined_condition]
+        
+        # Make a working copy of the original dataframe
         self.dataframe = self.original_dataframe.copy()
 
     def format_data(self, data: Datatracker2BT) -> pd.DataFrame:
+        
         """
         Format the raw data into a pandas DataFrame.
 
@@ -144,21 +197,24 @@ class DataTableApp(QWidget):
         """
         Populate the table with data from the dataframe.
         """
+        # Filter the dataframe to include only the columns_to_add
+        dataframe_filtered = self.dataframe[self.columns_to_add]
+        
         # Set the number of columns and rows in the table
-        self.table.setColumnCount(len(self.dataframe.columns))
-        self.table.setRowCount(len(self.dataframe))
+        self.table.setColumnCount(len(dataframe_filtered.columns))
+        self.table.setRowCount(len(dataframe_filtered))
         
         # Set headers in the table
-        headers = [str(header) for header in self.dataframe.columns]
+        headers = [str(header) for header in dataframe_filtered.columns]
         self.table.setHorizontalHeaderLabels(headers)
 
         # Populate each cell in the table with corresponding data
-        for i in range(len(self.dataframe.index)):
-            for j in range(len(self.dataframe.columns)):
-                item = QTableWidgetItem(str(self.dataframe.iloc[i, j]))
+        for i in range(len(dataframe_filtered.index)):
+            for j in range(len(dataframe_filtered.columns)):
+                item = QTableWidgetItem(str(dataframe_filtered.iloc[i, j]))
 
                 # Set flags for non-editable columns
-                if self.dataframe.columns[j] in self.columns_noedit:
+                if dataframe_filtered.columns[j] in self.columns_noedit:
                     item.setFlags(item.flags() & ~Qt.ItemIsEditable | Qt.ItemIsSelectable)
 
                 self.table.setItem(i, j, item) 
@@ -176,14 +232,18 @@ class DataTableApp(QWidget):
         Args:
             item (QTableWidgetItem): The changed item in the table.
         """
-        # Check if the changed value is different from the original value
+        # Get the project_spatial_id of the row changed
         row = item.row()
-        col = item.column()
-        edited_value = item.text()
-        original_value = str(self.original_dataframe.iloc[row, col])
+        project_spatial_id = self.table.item(row, 0).text()
+
+        # Get the column name from the horizontal header
+        column_name = self.table.horizontalHeaderItem(item.column()).text()
+
+        # Fetch the original value using project_spatial_id
+        original_value = str(self.original_dataframe.loc[self.original_dataframe[self.key] == project_spatial_id, column_name].values[0])
 
         # Highlight the cell if the value is different
-        if edited_value != original_value:
+        if item.text() != original_value:
             item.setForeground(QColor('red'))
         else:
             item.setForeground(QColor('black'))
@@ -195,49 +255,48 @@ class DataTableApp(QWidget):
         # Dictionary to store changes made in the GUI
         changes_dict = {}
 
-        # Iterate over rows and columns to identify changes
+        # Iterate over rows to identify changes
         for row in range(len(self.dataframe.index)):
+            project_spatial_id = self.table.item(row, 0).text()
             row_changes = {}
 
             for column in range(len(self.dataframe.columns)):
                 item = self.table.item(row, column)
                 if item is not None:
                     edited_value = item.text()
-                    original_value = str(self.original_dataframe.iloc[row, column])
+                    column_name = self.table.horizontalHeaderItem(column).text()
+                    original_value = str(self.original_dataframe.loc[self.original_dataframe[self.key] == project_spatial_id, column_name].values[0])
 
                     # Record changes if the value is different
                     if edited_value != original_value:
-                        row_changes[self.dataframe.columns[column]] = edited_value
+                        row_changes[column_name] = edited_value
 
             if row_changes:
-                # Store changes with project_spatial_id as key
-                project_spatial_id_value = self.dataframe.iat[row, 0]
-                changes_dict[project_spatial_id_value] = row_changes
+                changes_dict[project_spatial_id] = row_changes
 
         # Log the changes
-        log(None, Colors.INFO, f'The changes made in the GUI were: {changes_dict}')
+        self.logger.log(message=f'The changes made in the GUI were: {changes_dict}', tag='INFO')
 
         # Update the original data with the changes
         for project_spatial_id, changes in changes_dict.items():
-            row_index = self.dataframe[self.dataframe[self.key] == project_spatial_id].index[0]
             for column, value in changes.items():
                 # Explicitly convert 'value' to the appropriate data type
                 if self.original_dataframe[column].dtype == bool:
                     if value in ['True', 'False']:
                         value = bool(value)
                     else:
-                        log(self.data.log_path, Colors.ERROR, f'The value {value} must be a bool in {column}')
+                        self.logger.log(message=f'The value {value} must be a bool in {column}', tag='ERROR')
                         return
                 elif self.original_dataframe[column].dtype == int:
                     value = int(value)
                 elif self.original_dataframe[column].dtype == float:
                     value = float(value)
 
-                self.original_dataframe.at[row_index, column] = value
+                self.original_dataframe.loc[self.original_dataframe[self.key] == project_spatial_id, column] = value
 
         # Update the records in the original data class
         update_records(self.data, changes_dict, self.gdb)
-        
+
         # Refresh the data being put into the table and reset the table to the current state
         self.refresh_data(self.data)
         self.reset_changes()
@@ -251,10 +310,13 @@ class DataTableApp(QWidget):
 
         # Clear the table
         self.table.clear()
-        
+
         # Reset the dataframe to the original state
         self.dataframe = self.original_dataframe.copy()
 
+        # Reset table sort so no confusion between dataframe and table occurs
+        self.table.sortByColumn(0, Qt.AscendingOrder)
+         
         # Repopulate the table with the original data
         self.populate_table()
 
@@ -262,7 +324,7 @@ class DataTableApp(QWidget):
         self.table.itemChanged.connect(self.item_changed)
 
         # Print a message or perform any other necessary actions
-        log(None, Colors.INFO, f'GUI data has been reset to original state')
+        self.logger.log(message=f'GUI data has been reset to original state', tag='INFO')
 
 #========================================================
 # Functions
@@ -301,7 +363,10 @@ def create_duplicate(data: Datatracker2BT, project_spatial_id: str, new_project_
         processed=entry_to_duplicate.get('processed'),
         entry_type=entry_to_duplicate.get('entry_type'),
     )
-
+    
+    # Add new project spatial id's to be included in the table
+    session_added_entries.append(new_project_spatial_id)
+        
     # Set the 'dropped' attribute to True for the original project
     data.set_data(project_spatial_id, dropped=True)
 
@@ -374,46 +439,69 @@ def update_records(data: Datatracker2BT, changes_dict: dict, gdb: str = None) ->
         data.set_data(
             project_spatial_id,
             in_raw_gdb=value.get('in_raw_gdb'),
-            contains_pdf=value.get('contains_pdf'),
-            contains_image=value.get('contains_image')
+            absolute_file_path=value.get('absolute_file_path'),
+            entry_type=value.get('entry_type')
         )
 
     # Save the updated data
     data.save_data(update=True)
     
-def call_record_reviser(data: Datatracker2BT, gdb: str = None, changes: str = None) -> None:
+def record_reviser(logger: Logger, data: Datatracker2BT = None, database_config: str = None, gdb: str = None, load_from: str = 'database', save_to: str = 'database', datatracker: str = None, filter: dict = None, changes: str = None) -> None:
     """
     Handles calling the record reviser parts so the tool can be used outside of command-line as well.
 
     Args:
-        data (Datatracker2BT): An instance of Datatracker2BT.
+        logger (Logger): The Logger object to store and write to log files and the command line uniformly.
+        data (Datatracker2BT, optional): An instance of Datatracker2BT.
+        database_config (str): Path to the database configuration file.
         gdb (str, optional): The geodatabase path. If provided, updates are applied to the geodatabase.
-        changes (dict, optional): A dictionary containing changes for each project. If provided, no GUI will appear and only process the changes in the dictionary, else a GUI will appear and the user can alter the data as they see fit.
+        load_from (str, optional): Specifies where to retrieve the data from if it is not passed in. Default is 'database'.
+        save_to (str, optional): Specifies where to save the data to. Default is 'database'.
+        datatracker (str, optional): Path to the datatracker if load_from or save_to is specified as 'datatracker'.
+        filter (dict, optional): A dictionary containing filters for the data to be displayed.
+        changes (str, optional): A string dictionary containing changes for each project. If provided, no GUI will appear and only process the changes in the dictionary, else a GUI will appear and the user can alter the data as they see fit.
     """
-    if changes:
-        try:
+    try:
+        if database_config == "...":
+            database_config = None
+        elif database_config and not os.path.exists(database_config):
+            raise ValueError("The database config file path you provided does not exist.")
+        
+        if not data:
+            # Datatracker validation if data is not passed in
+            if (load_from == 'datatracker' or save_to == 'datatracker'):
+                if not datatracker:
+                    raise argparse.ArgumentTypeError("If --load or --save is 'datatracker', --datatracker_path must be specified.")
+                if not isinstance(datatracker, str) or not datatracker.strip():
+                    raise ValueError(f'datatracker_path: {datatracker} must be a non-empty string.')
+                if not datatracker.endswith('.xlsx'):
+                    raise ValueError(f'datatracker_path: {datatracker} must be of type .xlsx.')
+                if not os.path.exists(datatracker):
+                    raise ValueError(f'datatracker_path: {datatracker} path does not exist.')
+            
+                
+            # Create an instance of the Datatracker2BT class
+            data = Datatracker2BT(datatracker, logger, load_from, save_to, database_config)
+        
+        if changes:
             # Parse the changes argument and update records
             changes_dict = ast.literal_eval(changes)
-            update_records(data, changes_dict, gdb)
-        except (ValueError, SyntaxError) as e:
-            log(None, Colors.INFO, f'Error parsing changes argument: {e}')
-    else:
-        # If no changes dict is provided, open a PyQt application for data visualization
-        try:
+            update_records(data=data, changes_dict=changes_dict, gdb=gdb)
+        else:
+            # If no changes dict is provided, open a PyQt application for data visualization
             app = QApplication([])
-            window = DataTableApp(data, gdb)
+            window = DataTableApp(data=data, gdb=gdb, filter=filter, logger=logger)
             app.exec_()  
-        except RuntimeWarning as error:
-            log(None, Colors.INFO, error)
+    except ValueError as error:
+        logger.log(message=f"{error}", tag='ERROR')
+    except Exception as error:
+        logger.log(message=f"An unnexpected error has occured when running record_reviser: {error}", tag='ERROR')
+            
 #========================================================
 # Main
 #========================================================
 def main():
-    """ The main function of the record_reviser.py script """
-    # Get the start time of the script
-    start_time = time.time()
-    log(None, Colors.INFO, 'Tool is starting...')
-    
+    """ The main function of the record_reviser.py script """    
     # Initialize the argument parse
     parser = argparse.ArgumentParser(description='')
     
@@ -423,41 +511,30 @@ def main():
     parser.add_argument('--save', choices=['datatracker', 'database'], required=True, default='database', help='Specify what to save to (datatracker or database)')
     parser.add_argument('--datatracker', required=False, default=None, help='The new location or where an exsiting data tracker is located')
     parser.add_argument('--changes', required=False, default=None, help='The changes that you want to update, in form "{project_spaital_id: {field: newvalue, field2:newvalue2...}, project_spatial_id: {field: newfield}..."')
+    parser.add_argument('--ini', default='', help='Path to the database initilization file.')
+    parser.add_argument('--log', required=True, help='The location of the output log file for the tool.')
+    parser.add_argument('--ps_script', default='', help='The location of the script to run commands if used.')
     
     # Parse the command-line arguments
     args = parser.parse_args()
-
-    # Access the values using the attribute notation
-    load_from = args.load
-    save_to = args.save
-    datatracker_path = args.datatracker
-    gdb_path = args.gdb
-    changes = args.changes
-    
-    # Ensure that if a datatracker is specified for loading or saving, then a path must be passed
-    if (load_from == 'datatracker' or save_to == 'datatracker') and datatracker_path == None:
-        raise argparse.ArgumentTypeError("If --load or --save is 'datatracker', --datatracker_path must be specified.")
-    elif (load_from == 'datatracker' or save_to == 'datatracker') and datatracker_path != None:
-        if not isinstance(datatracker_path, str) or not datatracker_path.strip():
-            raise ValueError(f'datatracker_path: {datatracker_path} must be a non-empty string.')
-        if not datatracker_path.endswith('.xlsx'):
-            raise ValueError(f'datatracker_path: {datatracker_path} must be of type .xlsx.')
-        if not os.path.exists(datatracker_path):
-            raise ValueError(f'datatracker_path: {datatracker_path} path does not exist.')
-    
-    # Create the logfile path
-    log_path = gdb_path.replace('.gdb', f"{datetime.datetime.now().strftime('%Y-%m-%d')}.txt")
-    
-    # Create an instance of the Datatracker2BT class
-    data = Datatracker2BT(datatracker_path, load_from, save_to, log_path)
         
-    # Call the handler function
-    call_record_reviser(data=data, gdb=gdb_path, changes=changes or None)
+    # Initialize the Logger
+    logger = Logger(log_file=args.log, script_path=args.ps_script, auto_commit=True, tool_name=os.path.abspath(__file__))
+    
+    # Get the start time of the script
+    start_time = time.time()
+    logger.log(message=f'Tool is starting... Time: {datetime.datetime.now().strftime("%H:%M:%S")}', tag='INFO')
+    
+    # Call the entry function
+    record_reviser(logger=logger, database_config=args.ini, gdb=args.gdb, load_from=args.load, save_to=args.save, datatracker=args.datatracker, changes=args.changes)
          
     # Get the end time of the script and calculate the elapsed time
     end_time = time.time()
-    log(None, Colors.INFO, 'Tool has completed')
-    log(None, Colors.INFO, f'Elapsed time: {end_time - start_time:.2f} seconds')
+    logger.log(message=f'Tool has completed. Time: {datetime.datetime.now().strftime("%H:%M:%S")}', tag='INFO')
+    logger.log(message=f'Elapsed time: {end_time - start_time:.2f} seconds', tag='INFO')
+    
+    # Commit all messages that have been posted to logger
+    logger.commit(close=True)
 
 #========================================================
 # Main Guard

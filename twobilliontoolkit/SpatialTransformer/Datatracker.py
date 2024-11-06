@@ -2,38 +2,40 @@
 #========================================================
 # Imports
 #========================================================
+import os
 import psycopg2
+import pandas as pd
 
-from twobilliontoolkit.SpatialTransformer.common import *
-from twobilliontoolkit.Logger.logger import log, Colors
+from twobilliontoolkit.Logger.Logger import Logger
 from twobilliontoolkit.SpatialTransformer.Database import Database
 
 #========================================================
 # Base Class
 #========================================================
 class Datatracker:
-    def __init__(self, data_traker_path: str, load_from: str = 'database', save_to: str = 'database', log_path: str = None) -> None:
+    def __init__(self, data_traker_path: str, logger: Logger, load_from: str = 'database', save_to: str = 'database', database_config: str = None) -> None:
         """
-        Initializes the Data class with input parameters. Used to store the data tracker information.
+        Initializes the Datatracker class with input parameters to store data tracker information.
 
         Args:
             data_traker_path (str): Path to data tracker to load data if exists.
+            logger (Logger): The Logger object to store and write to log files and the command line uniformly.
             load_from (str): Flag to determine if loading dataframe should be done from the {database, datatracker}. Default: 'database'.
             save_to (str): Flag to determine if saving the dataframe should be done to the {database, datatracker}. Default: 'database'.
-            log_path (str, optional): The path to the log file if you wish to keep any errors that occur.
+            database_config (str): Path to the database configuration file.
         """
         self.data_dict = {}
         self.datatracker = data_traker_path
         self.load_from = load_from
         self.save_to = save_to
-        self.log_path = log_path
+        self.logger = logger
         
         if load_from == 'database' or save_to == 'database':
             # Create database object
-            self.database_connection = Database()
+            self.database_connection = Database(self.logger)
             
             # Read connection parameters from the configuration file
-            self.database_parameters = self.database_connection.get_params()
+            self.database_parameters = self.database_connection.get_params(config_path=database_config)
             self.database_connection.connect(self.database_parameters)
             self.database_pkey = self.database_connection.get_pkey(self.database_connection.schema, self.database_connection.table)
             self.database_connection.disconnect()
@@ -46,7 +48,7 @@ class Datatracker:
 
         Args:
             key (str): Acts as key in dictionary.
-            **kwargs: Additional keyword arguments for project data.
+            **kwargs (any): Additional keyword arguments for project data.
         """
         self.data_dict[key] = kwargs
         
@@ -56,7 +58,7 @@ class Datatracker:
 
         Args:
             key (str): Acts as key in dictionary.
-            **kwargs: Keyword arguments for updating project data.
+            **kwargs (any): Keyword arguments for updating project data.
         """
         # Update specified parameters as sets
         project_data = self.data_dict.get(key, {})
@@ -84,7 +86,7 @@ class Datatracker:
         Search for a matching entry in the data based on given parameters.
 
         Args:
-            **kwargs: Keyword arguments for finding a matching key.
+            **kwargs (any): Keyword arguments for finding a matching key.
 
         Returns:
             str: A tuple of matching (key, data) if  the parameters passed already exists in the dataframe, otherwise return None.
@@ -98,13 +100,13 @@ class Datatracker:
             (None, None)
         )
             
-    def count_occurances(self, field: str, value) -> int:
+    def count_occurances(self, field: str, value: str) -> int:
         """
         Count the occurrences of a specified field in the data object.
 
         Args:
             field (str): Name of the parameter to count occurrences.
-            value: Value of the parameter to count occurrences.
+            value (str): Value of the parameter to count occurrences.
 
         Returns:
             int: Number of occurrences of the specified parameter.
@@ -206,24 +208,24 @@ class Datatracker:
 
         if not df.empty:
             df.to_excel(self.datatracker, index=False)
-            log(None, Colors.INFO, f'The data tracker "{self.datatracker}" has been created/updated successfully.')
-    
+            self.logger.log(message=f'The data tracker "{self.datatracker}" has been created/updated successfully.', tag='INFO')
          
 #========================================================
 # Inheritance Class
 #========================================================
 class Datatracker2BT(Datatracker):
-    def __init__(self, data_traker_path: str, load_from: str = 'database', save_to: str = 'database', log_path: str = None) -> None:
+    def __init__(self, data_traker_path: str, logger: Logger, load_from: str = 'database', save_to: str = 'database', database_config: str = None) -> None:
         """
         Initializes the Data class with input parameters. Used to store the data tracker information.
 
         Args:
             data_traker_path (str): Path to data tracker to load data if exists.
+            logger (Logger): The Logger object to store and write to log files and the command line uniformly.
             load_from (str): Flag to determine if loading dataframe should be done from the {database, datatracker}. Default: 'database'.
             save_to (str): Flag to determine if saving the dataframe should be done to the {database, datatracker}. Default: 'database'.
-            log_path (str, optional): The path to the log file if you wish to keep any errors that occur.
+            database_config (str): Path to the database configuration file.
         """
-        super().__init__(data_traker_path, load_from, save_to, log_path)
+        super().__init__(data_traker_path, logger, load_from, save_to, database_config)
     
     def add_data(self, project_spatial_id: str, project_number: str, dropped: bool, raw_data_path: str, raw_gdb_path: str, absolute_file_path: str, in_raw_gdb: bool, contains_pdf: bool, contains_image: bool, extracted_attachments_path: str, editor_tracking_enabled: bool, processed: bool, entry_type: str) -> None:
         """
@@ -314,24 +316,41 @@ class Datatracker2BT(Datatracker):
         """
         return self.data_dict[project_spatial_id]
     
-    def find_matching_spatial_id(self, raw_data_path: str) -> str:
+    def find_matching_spatial_id(self, absolute_file_path: str) -> str:
         """
-        Search for a matching entry for the raw data path.
+        Search for a matching entry for the absolute data path.
 
         Args:
-            raw_data_path (str): The path of the raw data.
+            absolute_file_path (str): The absolute path of the data.
 
         Returns:
-            str: A matching project_spatial_id if it the raw data path already exists in the dataframe, otherwise return None.
+            str: A matching project_spatial_id if it the absolute data path already exists in the dataframe, otherwise return None.
         """        
         return next(
             (
                 project_spatial_id
                 for project_spatial_id, project_data in self.data_dict.items()
-                if project_data.get('raw_data_path') == raw_data_path
+                if project_data.get('absolute_file_path') == absolute_file_path
             ),
             None
         )
+        
+    def get_highest_suffix(self, project_number: str) -> int:
+        """
+        Get the highest suffix for the given project number in the spatial_project_id field.
+
+        Args:
+            project_number (str): The project number to find the highest suffix for.
+
+        Returns:
+            int: The highest suffix found, or 0 if none are found.
+        """
+        suffixes = [
+            int(key.split('_')[-1])
+            for key in self.data_dict.keys()
+            if self.data_dict[key].get('project_number') == project_number
+        ]
+        return max(suffixes, default=0)
         
     def create_project_spatial_id(self, project_number: str) -> str:
         """
@@ -343,13 +362,13 @@ class Datatracker2BT(Datatracker):
         Returns:
             str: The project spatial id next in line.
         """
-        # Get the number of entries with the specified project number, add one because this is for the next entry
-        result_occurrences = self.count_occurances('project_number', project_number) + 1
+        # Get the next suffix from the project spatial ids from the data entries
+        results_next_id = self.get_highest_suffix(project_number) + 1
         
         # Clean the project number and format to the correct project_spatial_id format
         clean_project_number = project_number.replace('- ', '').replace(' ', '_')
 
-        return clean_project_number + '_' + str(result_occurrences).zfill(2)
+        return clean_project_number + '_' + str(results_next_id).zfill(2)
     
     def load_from_database(self) -> None:
         """
@@ -357,7 +376,7 @@ class Datatracker2BT(Datatracker):
         """
         self.database_connection.connect(self.database_parameters)
 
-        columns = ['project_spatial_id', 'project_number', 'dropped', 'raw_data_path','raw_gdb_path','absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image','extracted_attachments_path', 'editor_tracking_enabled', 'processed', 'entry_type']
+        columns = ['project_spatial_id', 'project_number', 'dropped', 'raw_data_path','raw_gdb_path','absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image','extracted_attachments_path', 'editor_tracking_enabled', 'processed', 'entry_type', 'created_at']
 
         rows = self.database_connection.read(schema=self.database_connection.schema, table=self.database_connection.table, columns=columns)
 
@@ -464,7 +483,7 @@ class Datatracker2BT(Datatracker):
                     ) 
                     
             except psycopg2.errors.ForeignKeyViolation as error:
-                log(self.log_path, Colors.ERROR, error)
+                self.logger.log(message=error, tag='ERROR')
             
         self.database_connection.disconnect()
 
@@ -494,4 +513,4 @@ class Datatracker2BT(Datatracker):
         # Convert dataframe to excel
         df.to_excel(self.datatracker, index=False)
         
-        log(None, Colors.INFO, f'The data tracker "{self.datatracker}" has been created/updated successfully.')
+        self.logger.log(message=f'The data tracker "{self.datatracker}" has been created/updated successfully.', tag='INFO')

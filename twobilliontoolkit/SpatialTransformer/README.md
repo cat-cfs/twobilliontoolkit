@@ -14,6 +14,7 @@ The SpatialTransformer tool is a crucial component of the 2BT Data pipeline, it 
 - [Configuration](#configuration)
 - [Contributing](#contributing)
 - [License](#license)
+- [Contact](#contact)
 
 ## Installation
 
@@ -27,13 +28,13 @@ You should then be set up to use the tool!
 
 To use the Spatial Transformer, run the script from the command line with the following syntax:
 ```
-arcpy_environment_python_path /path/to/spatial_transformer.py [-h] --input_path input_path --output_path output_path --gdb_path gdb_path --master master_data_path --load {datatracker,database} --save {datatracker,database} [--datatracker datatracker_path] [--attachments attachments_path] [--debug] [--suppress] [--resume]
+arcpy_environment_python_path path/to/spatial_transformer.py [-h] --input_path input_path --output_path output_path --gdb_path gdb_path [--master master_data_path] --load {datatracker,database} --save {datatracker,database} [--datatracker datatracker_path] [--attachments attachments_path] [--debug] [--suppress] [--resume]
 ```
 - [-h, --help] (optional): List all of the available commands and a description for help.
 - --input_path input_path : Path to the input directory or compressed file.
 - --output_path output_path: Path for output of Ripple unzipple. If not provided.
 - --gdb_path gdb_path: The GeoDatabase path where it will be saved. It will be either created or merged into an exisiting GeoDatabase if it already exists.
-- --master master_data_path: Path to where the aspatial master datasheet is located.
+- [--master master_data_path] (conditional): Path to where the aspatial master datasheet is located. Only required if the --load is set to 'datatracker'.
 - --load {datatracker,database}: Specify wheather the tool loads the data from an exisiting datatracker or a database connection. 
 - --save {datatracker,database}: Specify wheather the tool saves the data to a specified datatracker or a database connection. 
 - [--datatracker datatracker] (conditional): Name of the resulting Data Tracker Excell sheet to be stored, it can be an existing datasheet, else it will create it when it is complete.
@@ -53,7 +54,6 @@ python ./twobilliontoolkit/SpatialTransformer/spatial_transformer.py --input_pat
 
 You also have the option of calling this function from a module import with the following syntax (you may need to use relative or absolute paths depending on your environment and where you are calling from):
 ```
-from twobilliontoolkit.SpatialTransformer.common import *
 from twobilliontoolkit.Logger.logger import log, Colors
 from twobilliontoolkit.SpatialTransformer.Parameters import Parameters
 from twobilliontoolkit.SpatialTransformer.Processor import Processor
@@ -66,15 +66,13 @@ load_from = "database"
 save_to = "datatracker"
 gdb_path ="./Testing/geodatabase.gdb"
 datatracker = "datatracker.xlsx"
-attachments = "attachmentsfolder"
-master_data_path = "/path/to/master_data.xlsx"
 debug = True
 resume = False
 suppress = True
 
 # Call the spatial_transformer function
 spatial_transformer(
-    input_path, output_path, load_from, save_to, gdb_path, datatracker, attachments, master_data_path, debug, resume, suppress
+    input_path=input_path, output_path=output_path, load=load_from, save=save_to, gdb_path=gdb_path, datatracker=datatracker, debug=debug, resume=resume, suppress=suppress
 )
 ```
 

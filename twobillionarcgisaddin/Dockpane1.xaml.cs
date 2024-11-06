@@ -233,6 +233,26 @@ namespace twobillionarcgisaddin
             this.EstablishConnectionButton.IsEnabled = true;
         }
 
+        // Method to handle the click event of the Establish Connection button
+        private void ButtonListBackButtonClicked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Toggle visibility of UI elements
+                if (this.ButtonToolist.Visibility == Visibility.Visible)
+                {
+                    this.ButtonToolist.Visibility = Visibility.Collapsed;
+                    this.UserForm.Visibility = Visibility.Visible;
+                    
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions that occur during tool execution
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
+            }
+        }
+
         // Method to handle the click event of the Browse button
         private void BrowseButtonClicked(object sender, RoutedEventArgs e)
         {
@@ -1149,7 +1169,7 @@ namespace twobillionarcgisaddin
         //
         private async void MatchSiteToEntry(Row row, string columnName)
         {
-            string value = (string)row[columnName];
+            string value = row[columnName].ToString();
 
             foreach (DataEntry entry in dataEntries)
             {
@@ -1198,7 +1218,7 @@ namespace twobillionarcgisaddin
             dataLayersToAdd.Clear(); // Clear the ObservableCollection first
             dataLayersToAdd.Add(new DataLayer()
             {
-                Table = "site_points",
+                Table = "valid_points",
                 Name = "2BT Site Points",
                 GeomType = esriGeometryType.esriGeometryPoint,
                 ObjectIDColumn = "id",
@@ -1209,7 +1229,7 @@ namespace twobillionarcgisaddin
 
             dataLayersToAdd.Add(new DataLayer()
             {
-                Table = "site_buffered_points",
+                Table = "valid_buffered_points",
                 Name = "2BT Site Buffered Points",
                 GeomType = esriGeometryType.esriGeometryPolygon,
                 ObjectIDColumn = "id",
@@ -1244,7 +1264,7 @@ namespace twobillionarcgisaddin
                 // Set the parameters
                 string toolboxPath = this.ArcPythonToolboxPath.Text + "\\EstablishConnectionTool";
                 string connectionFile = this.ArcConnectionFilePath.Text;
-                string tableName = this.DatabaseSchema.Text + ".site_mapping";
+                string tableName = this.DatabaseSchema.Text.Trim() + ".site_mapping";
 
                 // Execute the Python tool and get the result
                 var parameters = Geoprocessing.MakeValueArray(connectionFile, tableName);
@@ -1272,7 +1292,7 @@ namespace twobillionarcgisaddin
                 // Set the parameters
                 string toolboxPath = this.ArcPythonToolboxPath.Text + "\\ReadDataTool";
                 string connectionFile = this.ArcConnectionFilePath.Text;
-                string tableName = this.DatabaseSchema.Text + ".site_mapping";
+                string tableName = this.DatabaseSchema.Text.Trim() + ".site_mapping";
 
                 // Execute the Python tool and get the result
                 var parameters = Geoprocessing.MakeValueArray(connectionFile, tableName);
@@ -1313,7 +1333,7 @@ namespace twobillionarcgisaddin
                 // Set the parameters
                 string toolboxPath = this.ArcPythonToolboxPath.Text + "\\InsertDataTool";
                 string connectionFile = this.ArcConnectionFilePath.Text;
-                string tableName = this.DatabaseSchema.Text + ".site_geometry";
+                string tableName = this.DatabaseSchema.Text.Trim() + ".site_geometry";
 
                 // Execute the Python tool and get the result
                 var parameters = Geoprocessing.MakeValueArray(connectionFile, tableName, siteID, featureLayer);
@@ -1350,7 +1370,7 @@ namespace twobillionarcgisaddin
                 // Set the parameters
                 string toolboxPath = this.ArcPythonToolboxPath.Text + "\\BatchInsertDataTool";
                 string connectionFile = this.ArcConnectionFilePath.Text;
-                string tableName = this.DatabaseSchema.Text + ".site_geometry";
+                string tableName = this.DatabaseSchema.Text.Trim() + ".site_geometry";
 
                 // Execute the Python tool and get the result
                 var parameters = Geoprocessing.MakeValueArray(connectionFile, tableName, featureLayer);
@@ -1386,7 +1406,7 @@ namespace twobillionarcgisaddin
                 // Set the parameters
                 string toolboxPath = this.ArcPythonToolboxPath.Text + "\\UpdateDataTool";
                 string connectionFile = this.ArcConnectionFilePath.Text;
-                string tableName = this.DatabaseSchema.Text + ".site_geometry";
+                string tableName = this.DatabaseSchema.Text.Trim() + ".site_geometry";
 
                 // Execute the Python tool and get the result
                 var parameters = Geoprocessing.MakeValueArray(connectionFile, tableName, siteID, featureLayer);
@@ -1422,7 +1442,7 @@ namespace twobillionarcgisaddin
                 // Set the parameters
                 string toolboxPath = this.ArcPythonToolboxPath.Text + "\\BatchUpdateDataTool";
                 string connectionFile = this.ArcConnectionFilePath.Text;
-                string tableName = this.DatabaseSchema.Text + ".site_geometry";
+                string tableName = this.DatabaseSchema.Text.Trim() + ".site_geometry";
 
                 // Execute the Python tool and get the result
                 var parameters = Geoprocessing.MakeValueArray(connectionFile, tableName, featureLayer);
@@ -1625,7 +1645,7 @@ namespace twobillionarcgisaddin
                 // Set the parameters
                 string toolboxPath = this.ArcPythonToolboxPath.Text + "\\CompleteProjectTool";
                 string connectionFile = this.ArcConnectionFilePath.Text;
-                string tableName = this.DatabaseSchema.Text + ".raw_data_tracker";
+                string tableName = this.DatabaseSchema.Text.Trim() + ".raw_data_tracker";
 
                 // Execute the Python tool and get the result
                 var parameters = Geoprocessing.MakeValueArray(connectionFile, tableName, projectSpatialID);

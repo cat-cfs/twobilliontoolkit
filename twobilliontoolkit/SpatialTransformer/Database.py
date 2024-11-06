@@ -6,7 +6,7 @@ import os
 import psycopg2
 from configparser import ConfigParser
 
-from twobilliontoolkit.Logger.logger import log, Colors
+from twobilliontoolkit.Logger.Logger import Logger
 
 #========================================================
 # Class
@@ -14,12 +14,19 @@ from twobilliontoolkit.Logger.logger import log, Colors
 class Database:
     """A class for interacting with a PostgreSQL database."""
     
-    def __init__(self) -> None:
-        """Initialize the Database instance."""
+    def __init__(self, logger: Logger) -> None:
+        """
+        Initialize the Database instance.
+        
+        Args:
+            logger (Logger): The Logger object to store and write to log files and the command line uniformly.
+        """
         self.connection = None
         self.cursor = None
         self.schema = None
         self.table = None
+        
+        self.logger = logger
     
     def connect(self, params: dict[str, str]) -> None:
         """
@@ -31,7 +38,7 @@ class Database:
         try:
             self.connection = psycopg2.connect(**params)
             self.cursor = self.connection.cursor()
-            log(None, Colors.INFO, 'Opened a connection to the database...')
+            self.logger.log(message='Opened a connection to the database...', tag='INFO')
         except Exception as error:
             raise Exception(error)
             
@@ -40,16 +47,16 @@ class Database:
         try:
             if self.connection is not None:
                 self.connection.close()
-                log(None, Colors.INFO, 'Database connection closed.')
+                self.logger.log(message='Database connection closed.', tag='INFO')
         except Exception as error:
             raise Exception(error)
     
-    def get_params(self, filename: str = None, section: str = 'postgresql') -> dict[str, str]:
+    def get_params(self, config_path: str = None, section: str = 'postgresql') -> dict[str, str]:
         """
         Get database connection parameters from a configuration file.
 
         Args:
-            filename (str, optional): Path to the configuration file.
+            config_path (str, optional): Path to the configuration file.
             section (str, optional): Section in the configuration file.
 
         Returns:
@@ -59,17 +66,17 @@ class Database:
         script_directory = os.path.dirname(os.path.abspath(__file__))
         
         # Join the script directory with the relative path to database.ini
-        if filename == None:
-            filename = os.path.join(script_directory, 'database.ini')
+        if config_path == None:
+            config_path = os.path.join(script_directory, 'database.ini')
             
-            if not os.path.exists(filename):
+            if not os.path.exists(config_path):
                 raise FileExistsError(f'The database.ini file is not in the correct place/does not exist in {script_directory}')
         
         # create a parser
         parser = ConfigParser()
         
         # read config file
-        parser.read(filename)
+        parser.read(config_path)
         
         # get section, default to postgresql
         db = {}
@@ -77,7 +84,7 @@ class Database:
             params = parser.items(section)
             for param in params:
                 if not param[1]:
-                    raise ValueError(f'The [{param[0]}] field in {filename} was not filled out.')
+                    raise ValueError(f'The [{param[0]}] field in {config_path} was not filled out.')
                 
                 if param[0] == 'schema':
                     self.schema = param[1]
@@ -88,7 +95,7 @@ class Database:
                 
                 db[param[0]] = param[1]
         else:
-            raise Exception(f'Section {section} not found in the {filename} file')
+            raise Exception(f'Section {section} not found in the {config_path} file')
 
         return db
                 
