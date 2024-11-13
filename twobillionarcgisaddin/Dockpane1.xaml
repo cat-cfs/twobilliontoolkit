@@ -64,7 +64,7 @@
 
             <!-- DockPanel for Button Tool List -->
             <DockPanel x:Name="ButtonToolist" LastChildFill="False" Margin="20,12,20,12" Visibility="Collapsed">
-                
+
 
                 <Grid DockPanel.Dock="Top">
                     <Grid.RowDefinitions>
@@ -90,30 +90,13 @@
                         <Button x:Name="ButtonListBackButton" Grid.Row="0" Content="Back To Connection Details" Click="ButtonListBackButtonClicked" HorizontalAlignment="Left" VerticalAlignment="Center" Style="{DynamicResource Esri_ButtonBackSmall}" ToolTip="Back to Tool list"/>
                         <Label Content="Two Billion Trees Tool List" Grid.Row="0" HorizontalAlignment="Center" FontSize="17" FontWeight="Normal"  Style="{StaticResource LabelStyle}"/>
                     </Grid>
-                    
+
                     <Border Style="{StaticResource SuccessLabelBorder}" Margin="0,3,0,12" Grid.Row="1" Height="Auto">
                         <Label x:Name="ConnectedMessage" HorizontalContentAlignment="Center" Foreground="#FFFFFA">
                             <TextBlock TextWrapping="Wrap">
                                 You are connected to the database!
                             </TextBlock>
                         </Label>
-                    </Border>
-
-                    <Border Style="{StaticResource OutlineBorder}" Grid.Row="2">
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" MinWidth="100">
-                            <Button x:Name="PreviousWorkingProjectButton" Style="{DynamicResource Esri_ButtonBackSmall}" ToolTip="Go to previous working project"/>
-
-                            <StackPanel Orientation="Vertical" Margin="20,0,20,0" MaxWidth="125">
-                                <Label Content="Working Project:" HorizontalAlignment="Center" FontSize="15" FontWeight="Normal" Style="{StaticResource LabelStyle}"/>
-                                <Label HorizontalAlignment="Center" FontSize="13" FontWeight="Bold" Style="{StaticResource LabelStyle}">
-                                    <TextBlock TextWrapping="Wrap">
-                                        proj_0000_XXX_000_01
-                                    </TextBlock>
-                                </Label>
-                            </StackPanel>
-
-                            <Button x:Name="NextWorkingProjectButton" Style="{DynamicResource Esri_ButtonForwardSmall}" ToolTip="Go to next working project"/>
-                        </StackPanel>
                     </Border>
 
                     <StackPanel Grid.Row="3" Orientation="Vertical">
@@ -128,27 +111,11 @@
                         <Separator Style="{StaticResource SeperatorStyle}"/>
                     </StackPanel>
 
-                    <Button x:Name="xx" Grid.Row="6" Content="Placeholder" Height="55" Click="SiteMapperButtonClicked" DockPanel.Dock="Top" Template="{StaticResource ButtonTemplate}" Style="{StaticResource ButtonStyle}" IsEnabled="False"/>
-
-                    <StackPanel Grid.Row="7" Orientation="Vertical">
-                        <Label Content="Step 3" Style="{StaticResource LabelStyle}"/>
-                        <Separator Style="{StaticResource SeperatorStyle}"/>
-                    </StackPanel>
-
-                    <Button x:Name="xxx" Grid.Row="8" Content="Placeholder" Height="55" Click="SiteMapperButtonClicked" DockPanel.Dock="Top" Template="{StaticResource ButtonTemplate}" Style="{StaticResource ButtonStyle}" IsEnabled="False"/>
-
-                    <StackPanel Grid.Row="9" Orientation="Vertical">
-                        <Label Content="Step 4" Style="{StaticResource LabelStyle}"/>
-                        <Separator Style="{StaticResource SeperatorStyle}"/>
-                    </StackPanel>
-
-                    <Button x:Name="SiteMapperButton" Grid.Row="10" Content="Site Mapper Tool" Height="55" Click="SiteMapperButtonClicked" DockPanel.Dock="Top" Template="{StaticResource ButtonTemplate}" Style="{StaticResource ButtonStyle}" ToolTip="Open the view for the Site Mapper tool"/>
+                    <Button x:Name="SiteMapperButton" Grid.Row="6" Content="Site Mapper Tool" Height="55" Click="SiteMapperButtonClicked" DockPanel.Dock="Top" Template="{StaticResource ButtonTemplate}" Style="{StaticResource ButtonStyle}" ToolTip="Open the view for the Site Mapper tool"/>
                     <Button x:Name="BatchSiteMapperButton" Grid.Row="11" Click="SiteMapperButtonClicked" ToolTip="Open the Site Mapper with extra features to support Batch processing" Style="{StaticResource ButtonStyle2}" Template="{StaticResource ButtonTemplate2}" IsEnabled="True">
                         <TextBlock><Underline>Batch Site Mapper</Underline></TextBlock>
                     </Button>
                 </Grid>
-
-                <Button x:Name="CompleteProjectButton" Content="Finish Working Project" Height="55" Margin="0,10,0,0" Click="CompleteProjectButtonClicked" Template="{StaticResource ButtonTemplate}" Style="{StaticResource ButtonStyle}" DockPanel.Dock="Bottom"/>
             </DockPanel>
 
             <!-- DockPanel for 2BT Data Add logistics -->
@@ -253,7 +220,8 @@
                     <Label Content="Filter Project Number" Style="{StaticResource LabelStyle}"/>
                     <Button x:Name="SiteMapperProjectNumberClearButton" Content="Clear" Click="SiteMapperClearButtonClicked" ToolTip="Clear the below dropdown" Style="{StaticResource ButtonStyle2}" Template="{StaticResource ButtonTemplate2}"  Width="55" HorizontalAlignment="Right" IsEnabled="True"/>
                 </Grid>
-                <ComboBox x:Name="ProjectNumber_Dropdown" Background="{DynamicResource Esri_ControlBackgroundBrush}" Foreground="{DynamicResource Esri_TextMenuBrush}" SelectionChanged="SiteMapperProjectNumberFilterChanged" DockPanel.Dock="Top" Height="55" FontWeight="Normal">
+
+                <ComboBox x:Name="ProjectNumber_Dropdown" Background="{DynamicResource Esri_ControlBackgroundBrush}" Foreground="{DynamicResource Esri_TextMenuBrush}" SelectionChanged="SiteMapperProjectNumberFilterChanged" DockPanel.Dock="Top" Height="55" FontWeight="Normal" IsEditable="True" KeyUp="SiteMapperProjectNumberFilterKeyUp" StaysOpenOnEdit="True">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding}" Padding="10,0,0,0" Foreground="{DynamicResource Esri_TextStyleEmphasisBrush}"/>
@@ -261,23 +229,40 @@
                     </ComboBox.ItemTemplate>
                 </ComboBox>
 
-                <Grid x:Name="Secondary_Filter" Visibility="Collapsed" DockPanel.Dock="Top">
+                <Grid x:Name="PlantingYear_Filter" Visibility="Collapsed" DockPanel.Dock="Top">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <Grid DockPanel.Dock="Top">
-                        <Label Grid.Row="0" Content="Filter Site ID" Style="{StaticResource LabelStyle}"/>
-                        <Button x:Name="SiteMapperSiteIDClearButton" Content="Clear" Click="SiteMapperClearButtonClicked" ToolTip="Clear the below dropdown" Style="{StaticResource ButtonStyle2}" Template="{StaticResource ButtonTemplate2}"  Width="55" HorizontalAlignment="Right" IsEnabled="True"/>
-                    </Grid>
-                    <ComboBox x:Name="SiteID_Dropdown" Grid.Row="1" Background="{DynamicResource Esri_ControlBackgroundBrush}" Foreground="{DynamicResource Esri_TextMenuBrush}" SelectionChanged="SiteMapperSiteIDFilterChanged" DockPanel.Dock="Top" Height="55" FontWeight="Normal">
+                    <Label Grid.Row="0" Content="Filter Planting Year" Style="{StaticResource LabelStyle}" />
+                    <ComboBox x:Name="PlantingYear_Dropdown" Grid.Row="1" Background="{DynamicResource Esri_ControlBackgroundBrush}" Foreground="{DynamicResource Esri_TextMenuBrush}" SelectionChanged="SiteMapperPlantingYearFilterChanged" Height="55" FontWeight="Normal">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding}" Padding="10,0,0,0" Foreground="{DynamicResource Esri_TextStyleEmphasisBrush}"/>
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
+                </Grid>
+
+                <Grid x:Name="SiteID_Filter" Visibility="Collapsed" DockPanel.Dock="Top">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid>
+                        <Label Grid.Row="0" Content="Filter Site ID" Style="{StaticResource LabelStyle}"/>
+                        <Button x:Name="SiteMapperSiteIDClearButton" Content="Clear" Click="SiteMapperClearButtonClicked" ToolTip="Clear the below dropdown" Style="{StaticResource ButtonStyle2}" Template="{StaticResource ButtonTemplate2}"  Width="55" HorizontalAlignment="Right" IsEnabled="True"/>
+                    </Grid>
+                    <ComboBox x:Name="SiteID_Dropdown" Grid.Row="1" Background="{DynamicResource Esri_ControlBackgroundBrush}" Foreground="{DynamicResource Esri_TextMenuBrush}" SelectionChanged="SiteMapperSiteIDFilterChanged" Height="55" FontWeight="Normal">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" Padding="10,0,0,0" Foreground="{DynamicResource Esri_TextStyleEmphasisBrush}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+
                 </Grid>
 
                 <Border DockPanel.Dock="Top" Margin="0,5,0,0">

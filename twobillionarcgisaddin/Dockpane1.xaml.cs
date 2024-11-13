@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -25,6 +26,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Threading;
@@ -51,6 +53,9 @@ namespace twobillionarcgisaddin
 
         // Global variable flag to bypass double triggering events
         private bool _noise = false;
+
+        // Used to determine if a user stops tryping for a certain amount of time
+        private DispatcherTimer debounceTimer;
 
         //
         private bool SiteMapper_IsBatch = false;
@@ -170,6 +175,8 @@ namespace twobillionarcgisaddin
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
             }
         }
+
+        // TODO: Make the whole filtering and interactions into its own class or somethign smarter than it is doing right now.
 
         #endregion
         // ******************************************************
@@ -508,6 +515,10 @@ namespace twobillionarcgisaddin
                 {
                     this.BatchSiteMapperSection.Visibility = Visibility.Visible;
                     SiteMapper_IsBatch = true;
+                    this.PlantingYear_Dropdown.SelectedItem = "";
+                    this.SiteID_Dropdown.SelectedItem = "";
+                    this.ProjectNumber_Dropdown.SelectedItem = "";
+                    this.ProjectNumber_Dropdown.Text = "";
                 }
             }
             catch (Exception ex)
@@ -681,11 +692,13 @@ namespace twobillionarcgisaddin
                 if (sender == this.SiteMapperProjectNumberClearButton)
                 {
                     this.ProjectNumber_Dropdown.SelectedItem = "";
+                    this.PlantingYear_Dropdown.SelectedItem = "";
+
+                    this.SiteID_Filter.Visibility = Visibility.Collapsed;
+                    this.PlantingYear_Filter.Visibility = Visibility.Collapsed;
                 }
-                else if (sender == this.SiteMapperSiteIDClearButton)
-                {
-                    this.SiteID_Dropdown.SelectedItem = "";
-                }
+
+                this.SiteID_Dropdown.SelectedItem = "";
             }
             catch (Exception ex)
             {
@@ -694,53 +707,102 @@ namespace twobillionarcgisaddin
             }
         }
 
+        private void SiteMapperProjectNumberFilterKeyUp(object sender, KeyEventArgs e)
+        {
+            if (debounceTimer == null)
+            {
+                debounceTimer = new DispatcherTimer
+                {
+                    Interval = TimeSpan.FromMilliseconds(100)
+                };
+                debounceTimer.Tick += (s, args) =>
+                {
+                    debounceTimer.Stop();
+                    FilterDropdownItems();
+                };
+            }
+
+            debounceTimer.Stop();
+            debounceTimer.Start();
+        }
+
+        private void FilterDropdownItems()
+        {
+            string filterValue = this.ProjectNumber_Dropdown.Text;
+
+            if (this.ProjectNumber_Dropdown.ItemsSource == null) return;
+
+            CollectionView itemsViewOriginal = (CollectionView)CollectionViewSource.GetDefaultView(this.ProjectNumber_Dropdown.ItemsSource);
+
+            itemsViewOriginal.Filter = (o) =>
+            {
+                if (o == null) return false;
+                if (string.IsNullOrEmpty(filterValue)) return true;
+                return o.ToString().Contains(filterValue, StringComparison.OrdinalIgnoreCase);
+            };
+
+            itemsViewOriginal.Refresh();
+        }
+
         // Method to handle the change event of the filters
         private void SiteMapperProjectNumberFilterChanged(object sender, SelectionChangedEventArgs e)
         {
             try
-            { 
+            {
                 this.SiteID_Dropdown.SelectedIndex = 0;
                 Dictionary<string, string> filter = GetSiteMapperFilter();
 
                 // Create a DataContainer instance to process the JSON string
                 dataContainer = new DataContainer(siteMapperToolOutput);
 
-                // 
+                // Populate filters with the dataContainer
                 PopulateFilters(dataContainer, true);
 
+                SiteMapperDataGridView dockpane2 = SiteMapperDataGridView.MySiteMapperDataGridView;
+
+                // Handle empty or null selection
                 if (this.ProjectNumber_Dropdown.SelectedItem == null || this.ProjectNumber_Dropdown.SelectedItem.ToString() == "")
                 {
-                    this.Secondary_Filter.Visibility = Visibility.Collapsed;
+                    this.SiteID_Filter.Visibility = Visibility.Collapsed;
+                    this.PlantingYear_Filter.Visibility = Visibility.Collapsed;
                     this.SendDataButton.IsEnabled = false;
-                }
-                else
+
+                    // Clear the data grid if no project is selected
+                    dockpane2.ClearDataGrid(); // Add this method to handle clearing the grid
+                    /*return;*/
+                } else
                 {
-                    this.Secondary_Filter.Visibility = Visibility.Visible;
+                    // Show the other filters if a project is selected
+                    this.SiteID_Filter.Visibility = Visibility.Visible;
+                    this.PlantingYear_Filter.Visibility = Visibility.Visible;
                 }
 
                 if (SiteMapper_IsBatch)
                 {
-                    this.Secondary_Filter.Visibility = Visibility.Collapsed; 
+                    this.SiteID_Filter.Visibility = Visibility.Collapsed;
                 }
 
-                // Refresh the list of data entries for other functionalities
-                dataEntries = dataContainer.GetDataEntriesByProjectNumber(this.ProjectNumber_Dropdown.SelectedItem.ToString());
-
-                // Filter map layers based on the selected project number
-                SelectMapLayers(filter["ProjectNumber"]);
-
                 // Repopulate the data grid with the filtered data
-                SiteMapperDataGridView dockpane2 = SiteMapperDataGridView.MySiteMapperDataGridView;
                 dockpane2.PopulateDataGrid(dataContainer, filter);
+
+                // Refresh the list of data entries for other functionalities
+                // Ensure you are checking for null or empty before passing the selected item to the method
+                string selectedProjectNumber = this.ProjectNumber_Dropdown.SelectedItem?.ToString();
+                if (!string.IsNullOrEmpty(selectedProjectNumber))
+                {
+                    dataEntries = dataContainer.GetDataEntriesByProjectNumber(selectedProjectNumber);
+                }
             }
             catch (Exception ex)
             {
                 // Show an error message if an exception occurs
                 ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
             }
-
-            // Toggle the overwrite switch off
-            this.OverwriteToggle.IsChecked = false;
+            finally
+            {
+                // Toggle the overwrite switch off
+                this.OverwriteToggle.IsChecked = false;
+            }
         }
 
         // Method to handle the change event of the filters
@@ -763,6 +825,27 @@ namespace twobillionarcgisaddin
                 {
                     this.SendDataButton.IsEnabled = true;
                 }
+
+                // Repopulate the data grid with the filtered data
+                SiteMapperDataGridView dockpane2 = SiteMapperDataGridView.MySiteMapperDataGridView;
+                dockpane2.PopulateDataGrid(dataContainer, filter);
+            }
+            catch (Exception ex)
+            {
+                // Show an error message if an exception occurs
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
+            }
+
+            // Toggle the overwrite switch off
+            this.OverwriteToggle.IsChecked = false;
+        }
+
+        // Method to handle the change event of the filters
+        private void SiteMapperPlantingYearFilterChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                Dictionary<string, string> filter = GetSiteMapperFilter();
 
                 // Repopulate the data grid with the filtered data
                 SiteMapperDataGridView dockpane2 = SiteMapperDataGridView.MySiteMapperDataGridView;
@@ -1007,11 +1090,13 @@ namespace twobillionarcgisaddin
             // Get the selected dropdown project number
             string projectNumberSelected = this.ProjectNumber_Dropdown.SelectedItem as string;
             string siteIdSelected = this.SiteID_Dropdown.SelectedItem as string;
+            string yearSelected = this.PlantingYear_Dropdown.SelectedItem as string;
 
             return new Dictionary<string, string>
             {
                 { "ProjectNumber", projectNumberSelected },
                 { "SiteID", siteIdSelected },
+                { "Year", yearSelected },
             };
         }
 
@@ -1023,6 +1108,7 @@ namespace twobillionarcgisaddin
             // Initialize filter lists with an empty string as the default value
             List<string> filterProjNumberList = new List<string>() { "" };
             List<string> filterSiteIDList = new List<string>() { "" };
+            List<string> filterPlantYearList = new List<string>() { "" };
 
             foreach (DataEntry dataEntry in container.Data)
             {
@@ -1043,10 +1129,16 @@ namespace twobillionarcgisaddin
                     }
                 }
 
-                // Common for both primary and secondary filters
+                // Common for both primary and other filters
                 if (!filterSiteIDList.Contains(dataEntry.SiteID))
                 {
                     filterSiteIDList.Add(dataEntry.SiteID);
+                }
+
+                string PlantYear = "202" + dataEntry.SiteID[0];
+                if (!filterPlantYearList.Contains(PlantYear))
+                {
+                    filterPlantYearList.Add(PlantYear);
                 }
             }
 
@@ -1060,6 +1152,10 @@ namespace twobillionarcgisaddin
             filterSiteIDList.Sort(StringComparer.OrdinalIgnoreCase);
             _noise = true;
             this.SiteID_Dropdown.ItemsSource = filterSiteIDList;
+
+            filterPlantYearList.Sort(StringComparer.OrdinalIgnoreCase);
+            _noise = true;
+            this.PlantingYear_Dropdown.ItemsSource = filterPlantYearList;
         }
 
         // Method to select map layers based on the selected project number

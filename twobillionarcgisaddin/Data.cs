@@ -98,6 +98,12 @@ namespace twobillionarcgisaddin
             }
         }
 
+        public DataEntry GetDataEntryByPlantingYear(string year)
+        {
+            // Find the DataEntry with the given planting year
+            return Data.Find(entry => entry.SiteID.StartsWith(year[year.Length - 1]));
+        }
+
         public DataEntry GetDataEntryBySiteID(string siteID)
         {
             // Find the DataEntry with the given SiteID
