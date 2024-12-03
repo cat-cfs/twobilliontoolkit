@@ -98,26 +98,30 @@ namespace twobillionarcgisaddin
             }
         }
 
-        public DataEntry GetDataEntryByPlantingYear(string year)
-        {
-            // Find the DataEntry with the given planting year
-            return Data.Find(entry => entry.SiteID.StartsWith(year[year.Length - 1]));
-        }
-
         public DataEntry GetDataEntryBySiteID(string siteID)
         {
             // Find the DataEntry with the given SiteID
             return Data.Find(entry => entry.SiteID == siteID);
         }
 
-        public List<DataEntry> GetDataEntriesByProjectNumber(string projectNumber)
+        public List<DataEntry> GetDataEntriesByProjectNumber(string projectNumber, string year = "")
         {
             // Return all entries if projectNumber is an empty string, otherwise filter by projectNumber
             if (string.IsNullOrEmpty(projectNumber))
             {
                 return Data;
             }
-            return Data.Where(entry => entry.ProjectNumber == projectNumber).ToList();
+
+            var filteredData = Data.Where(entry => entry.ProjectNumber == projectNumber);
+
+            if (string.IsNullOrEmpty(year))
+            {
+                return filteredData.ToList();
+            }
+
+            var filteredYearData = filteredData.Where(entry => entry.SiteID.StartsWith(year[year.Length - 1]));
+
+            return filteredYearData.ToList();
         }
     }
 }

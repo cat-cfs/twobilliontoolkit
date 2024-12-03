@@ -750,6 +750,7 @@ namespace twobillionarcgisaddin
             try
             {
                 this.SiteID_Dropdown.SelectedIndex = 0;
+                this.PlantingYear_Dropdown.SelectedIndex = 0;
                 Dictionary<string, string> filter = GetSiteMapperFilter();
 
                 // Create a DataContainer instance to process the JSON string
@@ -850,6 +851,15 @@ namespace twobillionarcgisaddin
                 // Repopulate the data grid with the filtered data
                 SiteMapperDataGridView dockpane2 = SiteMapperDataGridView.MySiteMapperDataGridView;
                 dockpane2.PopulateDataGrid(dataContainer, filter);
+
+                // Refresh the list of data entries for other functionalities
+                // Ensure you are checking for null or empty before passing the selected item to the method
+                string projectNumber = this.ProjectNumber_Dropdown.SelectedItem?.ToString();
+                string selectedYear = this.PlantingYear_Dropdown.SelectedItem?.ToString();
+                if (!string.IsNullOrEmpty(selectedYear))
+                {
+                    dataEntries = dataContainer.GetDataEntriesByProjectNumber(projectNumber, selectedYear);
+                }
             }
             catch (Exception ex)
             {
@@ -1156,7 +1166,7 @@ namespace twobillionarcgisaddin
             filterPlantYearList.Sort(StringComparer.OrdinalIgnoreCase);
             _noise = true;
             this.PlantingYear_Dropdown.ItemsSource = filterPlantYearList;
-        }
+}
 
         // Method to select map layers based on the selected project number
         private void SelectMapLayers(string projectNumber)
