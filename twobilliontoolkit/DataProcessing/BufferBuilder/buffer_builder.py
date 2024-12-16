@@ -80,32 +80,49 @@ AREA_TOLERANCE = 1.0
 #========================================================
 # Entry Function
 #========================================================  
-def buffer_builder(data_sheet: str, database_ini: str, logger: Logger, debug: bool = False) -> None:
+def buffer_builder(database_ini: str, logger: Logger, data_sheet: str = None, debug: bool = False) -> None:
     """
     Processes spatial geometries, buffers the points, and integrates them with a database.
 
     Args:
-        data_sheet (str): Path to the datasheet (CSV or Excel) to process.
         database_ini (str): Path to the database configuration file (INI).
         logger (Logger): Logger object for logging actions and errors.
+        data_sheet (str, optional): Path to the datasheet (CSV or Excel) to process. Defaults to None.
         debug (bool, optional): If True, saves intermediate shapefiles for debugging. Defaults to False.
     """   
+    if data_sheet == '...':
+        data_sheet = None
+    
     try:  
         # Perform some validation     
-        if not os.path.exists(data_sheet):
+        if data_sheet and not os.path.exists(data_sheet):
             raise Exception(f"The Datasheet: {data_sheet} passed to Buffer Builder does not exist.")
-        if not data_sheet.endswith('.xlsx') and not data_sheet.endswith('.csv'):
+        if data_sheet and not data_sheet.endswith('.xlsx') and not data_sheet.endswith('.csv'):
             raise Exception(f"The Datasheet: {data_sheet} passed to Buffer Builder must be an '.csv' or '.xlsx' file.")
         if not os.path.exists(database_ini):
             raise Exception(f"The database.ini file: {database_ini} passed to Buffer Builder does not exist.")
         
+        # Read database configuration
+        config_parse = configparser.ConfigParser()
+        config_parse.read(database_ini)
+        connection = get_connection(config_parse, logger)
+        schema = config_parse['postgresql']['schema']
+        
         # Load the data into an initialized dataframe
         dataframe = pd.DataFrame()
-        if data_sheet.endswith('.xlsx'):
-            dataframe = pd.read_excel(data_sheet, usecols=aliases.values())
-        elif data_sheet.endswith('.csv'):
-            dataframe = pd.read_csv(data_sheet, usecols=aliases.values())
-            
+        if data_sheet:
+            if data_sheet.endswith('.xlsx'):
+                dataframe = pd.read_excel(data_sheet, usecols=aliases.values())
+            elif data_sheet.endswith('.csv'):
+                dataframe = pd.read_csv(data_sheet, usecols=aliases.values())
+        else:
+            result = query_database_full_table(
+                connection, 
+                schema, 
+                'bt_site__c'
+            )
+            dataframe  = pd.DataFrame(result)
+                
         # Clean the dataframe
         dataframe = clean_dataframe(dataframe)
 
@@ -132,12 +149,6 @@ def buffer_builder(data_sheet: str, database_ini: str, logger: Logger, debug: bo
             if os.path.exists(os.path.dirname(points_shapefile)):
                 shutil.rmtree(os.path.dirname(points_shapefile)) 
 
-        # Read database configuration
-        config_parse = configparser.ConfigParser()
-        config_parse.read(database_ini)
-        connection = get_connection(config_parse, logger)
-        schema = config_parse['postgresql']['schema']
-
         # Query site points from database
         databasePoints = query_database(connection, schema, 'valid_points', 'database_geom_points')
         
@@ -163,7 +174,7 @@ def buffer_builder(data_sheet: str, database_ini: str, logger: Logger, debug: bo
         
         # Convert the master dataframe into a geodataframe and add additional useful fields
         geodataframe_master = build_master_geodataframe(dataframe_master)
-                
+
         # Initialize the cursor 
         cursor = connection.cursor()
         
@@ -199,8 +210,14 @@ def clean_dataframe(dataframe: pd.DataFrame):
     # Create a copy of the input dataframe
     result_dataframe = dataframe.copy()
     
-    # Invert the dictionary to use for renaming columns
-    aliases_inverted = {v: k for k, v in aliases.items()}
+    # Convert aliases dictionary keys and values to lowercase
+    aliases_lower = {k.lower(): v.lower() for k, v in aliases.items()}
+
+    # Invert the lowercase dictionary for renaming columns
+    aliases_inverted = {v: k for k, v in aliases_lower.items()}
+
+    # Rename dataframe columns to lowercase for comparison
+    result_dataframe.columns = result_dataframe.columns.str.lower()
 
     # Renaming the columns using the inverted aliases dictionary
     result_dataframe = result_dataframe.rename(columns=aliases_inverted)
@@ -334,15 +351,15 @@ def add_entries_to_database(cursor: psycopg2.extensions.cursor, geodataframe: gp
             # If the distance between the points is larger than the tolerance (in metres)
             if row.site in point_sites and not np.isnan(row.point_distance) and row.point_distance > DISTANCE_TOLERANCE:        
                 # If the point location different, update the existing point's dropped status to True
-                update_database_entry(cursor, schema + '.site_points', row.site)
+                update_database_entry(cursor, schema + '.site_points', row.site, logger)
             
                 # Then insert the point into the database
-                insert_database_entry(cursor, schema + '.site_points', row.site, row.aspatial_geom_points.wkt)
+                insert_database_entry(cursor, schema + '.site_points', row.site, row.aspatial_geom_points.wkt, logger)
                 
                 num_points_altered += 1
             elif row.site not in point_sites:
                 # Insert the point into the database
-                insert_database_entry(cursor, schema + '.site_points', row.site, row.aspatial_geom_points.wkt)
+                insert_database_entry(cursor, schema + '.site_points', row.site, row.aspatial_geom_points.wkt, logger)
                 
                 num_points_added += 1
            
@@ -350,15 +367,15 @@ def add_entries_to_database(cursor: psycopg2.extensions.cursor, geodataframe: gp
             # If the area difference between the buffered points is larger than the tolerance (1.0 hectares)
             if row.site in buffered_sites and not np.isnan(row.area_difference) and row.area_difference > AREA_TOLERANCE:
                 # Update the previous buffered point entry to dropped
-                update_database_entry(cursor, schema + '.site_buffered_points', row.site)
+                update_database_entry(cursor, schema + '.site_buffered_points', row.site, logger)
             
                 # Then insert the new buffered point into the database
-                insert_database_entry(cursor, schema + '.site_buffered_points', row.site, MultiPolygon([wkt.loads(row.aspatial_geom_buffered.wkt)]).wkt)
+                insert_database_entry(cursor, schema + '.site_buffered_points', row.site, MultiPolygon([wkt.loads(row.aspatial_geom_buffered.wkt)]).wkt, logger)
                 
                 num_buffered_points_altered += 1
             elif row.site not in buffered_sites:
                 # Insert the point into the database
-                insert_database_entry(cursor, schema + '.site_buffered_points', row.site, MultiPolygon([wkt.loads(row.aspatial_geom_buffered.wkt)]).wkt)
+                insert_database_entry(cursor, schema + '.site_buffered_points', row.site, MultiPolygon([wkt.loads(row.aspatial_geom_buffered.wkt)]).wkt, logger)
                 
                 num_buffered_points_added += 1
     
@@ -394,6 +411,25 @@ def get_connection(config: configparser.ConfigParser, logger: Logger) -> psycopg
         logger.log(message=f"Error connecting to PostgreSQL: {error}" + traceback.format_exc(), tag='ERROR')
         return None
       
+def query_database_full_table(connection: psycopg2.extensions.connection, schema: str, table: str):
+    """
+    Queries a PostgreSQL database to retrieve geometry data from a specified table 
+    and column, returning the result as a GeoDataFrame.
+
+    Args:
+        connection (psycopg2.extensions.connection): The connection to the PostgreSQL database.
+        schema (str): The schema where the table is located.
+        table (str): The name of the table to query.
+        column_name (str): The name of the geometry column to retrieve.
+
+    Returns:
+        pd.DataFrame: A DataFrame with 'site' and the specified geometry column.
+    """
+    # Query table from database to get geometry
+    result = pd.read_sql_query(f'select * from {schema}.{table}', connection)
+    
+    return result
+    
 def query_database(connection: psycopg2.extensions.connection, schema: str, table: str, column_name: str):
     """
     Queries a PostgreSQL database to retrieve geometry data from a specified table 
@@ -464,9 +500,9 @@ def main():
     parser = argparse.ArgumentParser(description='Buffer Builder Tool - A tool to create buffer zones around points and integrate them into a PostgreSQL/PostGIS database for spatial analysis.')
     
     # Define command-line arguments
-    parser.add_argument('--datasheet', required=True, help='Path to the aspatial data sheet (CSV or Excel).')
     parser.add_argument('--ini', required=True, help='Path to the database configuration file (INI format).')
     parser.add_argument('--log', required=True, help='Path to the log file.')
+    parser.add_argument('--datasheet', default='', help='Optional path to an aspatial data sheet (CSV or Excel).')
     parser.add_argument('--ps_script', default='', help='Optional path to a PowerShell script for additional operations.')
     parser.add_argument('--debug', action='store_true', help='Optional flag to enable debug mode, saving intermediate shapefiles.')
      
@@ -481,7 +517,7 @@ def main():
     logger.log(message=f'Tool is starting... Time: {datetime.datetime.now().strftime("%H:%M:%S")}', tag='INFO')
         
     # Call the entry function
-    buffer_builder(args.datasheet, args.ini, logger, args.debug)
+    buffer_builder(args.ini, logger, args.datasheet, args.debug)
                         
     # Get the end time of the script and calculate the elapsed time
     end_time = time.time()
