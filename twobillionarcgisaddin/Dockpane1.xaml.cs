@@ -1210,11 +1210,11 @@ namespace twobillionarcgisaddin
             //
             if (SiteMapper_IsBatch)
             {
-                SiteMapperSendDataBatch(featureLayer, true);
+                SiteMapperSendDataBatch(featureLayer, overwrite);
             }
             else
             {
-                SiteMapperSendData(featureLayer, true);
+                SiteMapperSendData(featureLayer, overwrite);
             }
         }
 
@@ -1606,7 +1606,10 @@ namespace twobillionarcgisaddin
             catch (Exception ex)
             {
                 // Handle any exceptions that occur during tool execution
-                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
+                /*ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");*/
+                string errorDetails = $"An error occurred: {ex.Message}\n{ex.StackTrace}";
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show(errorDetails, "Execution Error");
+
             }
 
             return false;
@@ -1627,120 +1630,100 @@ namespace twobillionarcgisaddin
                 var returnValue = await Geoprocessing.ExecuteToolAsync(toolboxPath, parameters);
 
                 if (returnValue.IsFailed)
-                {
                     throw new Exception("The CheckGeometryExists Python tool failed");
+
+                if (returnValue.ReturnValue == "1")
+                    return false; // No duplicates found
+
+                List<(long objectId, long id, string siteId, int occurrences)> duplicates = ParseReturnValue(returnValue.ReturnValue);
+                if (duplicates.Count == 0)
+                    return false;
+
+                // 
+                string objectIdField = null;
+                await QueuedTask.Run(() =>
+                {
+                    objectIdField = featureLayer.GetFeatureClass().GetDefinition().GetObjectIDField();
+                });
+
+                // Group duplicates by selected feature (ObjectID)
+                var duplicatesByFeature = duplicates.GroupBy(d => d.objectId);
+
+                List<long> featuresToRemove = new List<long>();
+
+                foreach (var group in duplicatesByFeature)
+                {
+                    long objectId = group.Key;
+                    int totalOccurrences = group.Sum(d => d.occurrences);
+                    string message = $"{totalOccurrences} duplicate geometries have been found in the database:\n\n";
+
+                    foreach (var (objId, id, siteId, occurrences) in group)
+                    {
+                        message += $"     Database ID: {id}, SiteID: {siteId}\n";
+                    }
+                    message += "\nDo you still want to commit this geometry to the database?";
+
+                    MessageBoxResult buttonResult = ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show(
+                        message, $"ArcGIS {objectIdField}: {objectId} Warning", MessageBoxButton.YesNo);
+
+                    if (buttonResult != MessageBoxResult.Yes)
+                    {
+                        featuresToRemove.Add(objectId);
+                    }
                 }
 
-                // A return value of "1" indicates no duplicates were found
-                if (returnValue.ReturnValue == "1")
+                // Remove only the rejected features
+                if (featuresToRemove.Count > 0)
+                {
+                    Selection selection = null;
+                    await QueuedTask.Run(() =>
+                    {
+                        selection = featureLayer.GetSelection();
+                        selection.Remove(featuresToRemove);
+                        featureLayer.SetSelection(selection);
+                    });
+                }
+
+                int selectionCount = 0;
+                await QueuedTask.Run(() =>
+                {
+                    selectionCount = featureLayer.SelectionCount;
+                });
+
+                if (selectionCount != 0)
                 {
                     return false;
                 }
-
-                // Split by semicolon to get individual groups
-                string[] listGroups = returnValue.ReturnValue.Split(';');
-
-                // Convert array to list for easier manipulation
-                List<string> listGroupList = new List<string>(listGroups);
-
-                for (int index = 0; index < listGroupList.Count; index++)
-                {
-                    string group = listGroupList[index];
-                    if (group == "1")
-                    {
-                        continue;
-                    }
-
-                    // Trim trailing ellipses if present
-                    string trimmedGroup = group.Trim('[', ']', ' ', '.', ',');
-
-                    // Split by semicolon to get individual lists within the group
-                    string[] lists = trimmedGroup.Split("], [");
-
-                    // Initialize variables to store parsed values
-                    string numberOfOccurrences = "";
-                    List<string> allIds = new List<string>();
-                    List<string> allSiteIds = new List<string>();
-
-                    foreach (string listStr in lists)
-                    {
-                        // Trim brackets and split by comma
-                        string trimmedListStr = listStr.Trim('[', ']');
-                        string[] parts = trimmedListStr.Split(',');
-
-                        // Ensure at least three parts (assuming format [number, id, siteId])
-                        if (parts.Length >= 3)
-                        {
-                            // Extract values
-                            numberOfOccurrences = parts[0].Trim();
-                            allIds.Add(parts[1].Trim());
-                            allSiteIds.Add(parts[2].Trim());                           
-                        }
-                    }
-
-                    // Join multiple IDs and SiteIDs with commas
-                    string joinedIds = string.Join(", ", allIds);
-                    string joinedSiteIds = string.Join(", ", allSiteIds);
-
-                    // Construct the message for each feature
-                    string message = $"{numberOfOccurrences} Duplicate geometries have been found in the database for the geometry selected:\n" +
-                                     $"     Database ID's: {joinedIds}\n" +
-                                     $"     Database SiteID's: {joinedSiteIds}\n\n" +
-                                     "Do you still want to commit this geometry to the database?";
-
-                    IReadOnlyList<long> list = new List<long>();
-                    Selection selection = null;
-                    string objectIdField = null;
-
-                    // Get the selected entries object ID's
-                    await QueuedTask.Run(() =>
-                    {
-                        list = featureLayer.GetSelection().GetObjectIDs();
-                        selection = featureLayer.GetSelection();
-
-                        // Get the default Object ID field name
-                        var featureClass = featureLayer.GetFeatureClass();
-                        var definition = featureClass.GetDefinition();
-                        objectIdField = definition.GetObjectIDField(); // This gets the default object ID field name
-
-                    });
-
-                    // Show message box for each feature
-                    MessageBoxResult buttonResult = ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show(
-                        message, $"ArcGIS {objectIdField}: {list[index]} Warning", MessageBoxButton.YesNo);
-
-                    // Checking the result of the message box
-                    if (buttonResult != MessageBoxResult.Yes) // OK button was clicked
-                    {
-                        // Remove the selected entry from the map
-                        await QueuedTask.Run(() =>
-                        {
-                            selection.Remove(new List<long> { list[index] });
-                            featureLayer.SetSelection(selection);
-                        });
-
-                        // Remove the group from listGroups and decrement index
-                        listGroupList.RemoveAt(index);
-                        index--;
-                    }
-                    
-                }
-
-                if (listGroupList.Count == 0)
-                {
-                    return true;
-                }
-
-                return false;
-                
             }
             catch (Exception ex)
             {
-                // Handle any exceptions that occur during tool execution
                 ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
             }
 
             return true;
+        }
+
+        private static List<(long objectId, long id, string siteId, int occurrences)> ParseReturnValue(string returnValue)
+        {
+            var duplicates = new List<(long objectId, long id, string siteId, int occurrences)>();
+            var entries = returnValue.Split(';', StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var entry in entries)
+            {
+                var match = Regex.Match(entry, @"\{'id': (\d+), 'site_id': '([^']+)', 'num_occurrences': (\d+), 'OID': (\d+)\}");
+
+                if (match.Success)
+                {
+                    long id = long.Parse(match.Groups[1].Value);
+                    string siteId = match.Groups[2].Value;
+                    int occurrences = int.Parse(match.Groups[3].Value);
+                    long objectId = long.Parse(match.Groups[4].Value);
+
+                    duplicates.Add((objectId, id, siteId, occurrences));
+                }
+            }
+
+            return duplicates;
         }
 
         // Method to execute the Insert Data tool asynchronously

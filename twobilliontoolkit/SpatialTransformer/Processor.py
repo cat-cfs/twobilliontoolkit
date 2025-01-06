@@ -434,7 +434,7 @@ class Processor:
             arcpy.management.AddField(
                 feature_class, 
                 'bt_site_id',
-                'SHORT'               
+                'TEXT'               
             )
             
             # Enable the 4 fields for editor tracking
