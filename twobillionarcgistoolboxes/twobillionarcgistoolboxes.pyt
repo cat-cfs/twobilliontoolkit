@@ -517,7 +517,8 @@ class UpdateDataTool(object):
                 egdb_conn = arcpy.ArcSDESQLExecute(connection_file)
                 
                 # Construct the SQL query for updating the entries 
-                sql_update = f'UPDATE {table} SET "dropped" = true WHERE "site_id" = {site_id}' 
+                sql_update = f"""UPDATE {table} SET "dropped" = true WHERE "site_id" = '{site_id}'""" 
+                arcpy.AddMessage(f"{sql_update}")
                 egdb_conn.execute(sql_update)
                 
                 # Loop through the selected features in the layer
@@ -530,7 +531,8 @@ class UpdateDataTool(object):
                     projected_multipolygon = arcpy.Polygon(array_of_polygons, target_Ref)
                     
                     # Construct the SQL query for insertion
-                    sql_insert = f'INSERT INTO {table} ("site_id", "geom") VALUES ({site_id}, ST_GeomFromText(\'{projected_multipolygon.WKT}\', 102001))'
+                    sql_insert = f"""INSERT INTO {table} ("site_id", "geom") VALUES ('{site_id}', ST_GeomFromText(\'{projected_multipolygon.WKT}\', 102001))"""
+                    arcpy.AddMessage(f"{sql_insert}")
                     egdb_conn.execute(sql_insert)
                
             # Get the feature layer location  
