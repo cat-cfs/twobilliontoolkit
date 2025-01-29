@@ -36,6 +36,7 @@ $datatracker = "OutputDatatracker.xlsx"
 $datatracker_path = "${gdb_output}\${datatracker}"
 $local_dir_path = "C:\LocalTwoBillionToolkit"
 $transfer_files = @("${gdb}", "${gdb_name}_Attachments", "${gdb_name}_Log_${datestamp}_ERROR.txt", "${gdb_name}_Log_${datestamp}_WARNING.txt")
+$year = Get-Date -Format "yyyy" # You can replace this with a string such as "2021" if need to overwrite
 $debug_mode = $false  # or $debug_mode = 0
 $script_location = $MyInvocation.MyCommand.Path
 
@@ -94,15 +95,15 @@ do {
             Write-Host "Running Spatial Transformer..."
             if ($debug_mode) 
             {
-                Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --ini "$database_config" --suppress --debug --ps_script "$script_location"
+                Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --ini "$database_config" --suppress --debug --ps_script "$script_location" --year "$year"
                 Write-Host
-                & $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --ini "$database_config" --suppress --debug --ps_script "$script_location"
+                & $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --ini "$database_config" --suppress --debug --ps_script "$script_location" --year "$year"
             }
             else 
             {
-                Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker_path" --master "$master_data" --ini "$database_config" --suppress --ps_script "$script_location"
+                Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker_path" --master "$master_data" --ini "$database_config" --suppress --ps_script "$script_location" --year "$year"
                 Write-Host
-                & $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker_path" --master "$master_data" --ini "$database_config" --suppress --ps_script "$script_location"
+                & $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker_path" --master "$master_data" --ini "$database_config" --suppress --ps_script "$script_location" --year "$year"
             }
             Write-Host
             Write-Host "The SpatialTransformer has completed its processing!"
@@ -112,15 +113,15 @@ do {
             Write-Host "Resuming Spatial Transformer from failure..."
             if ($debug_mode)
             {
-                Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --ini "$database_config" --suppress --debug --resume --ps_script "$script_location"
+                Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --ini "$database_config" --suppress --debug --resume --ps_script "$script_location" --year "$year"
                 Write-Host
-                & $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --ini "$database_config" --suppress --debug --resume --ps_script "$script_location"
+                & $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --ini "$database_config" --suppress --debug --resume --ps_script "$script_location" --year "$year"
             }
             else
             {
-                Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --ini "$database_config" --suppress --resume --ps_script "$script_location"
+                Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --ini "$database_config" --suppress --resume --ps_script "$script_location" --year "$year"
                 Write-Host
-                & $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --ini "$database_config" --suppress --resume --ps_script "$script_location"
+                & $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --ini "$database_config" --suppress --resume --ps_script "$script_location" --year "$year"
             }
             Write-Host
             Write-Host "The SpatialTransformer has completed its processing!"

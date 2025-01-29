@@ -46,7 +46,7 @@ class Processor:
         self.params = params
         
         # Create the Data class to hold any data tracker information
-        self.data = Datatracker2BT(params.datatracker, params.logger, params.load_from, params.save_to, params.database_config)
+        self.data = Datatracker2BT(params.datatracker, params.logger, params.load_from, params.save_to, params.database_config, params.year)
        
     def del_gdb(self) -> None:
         """

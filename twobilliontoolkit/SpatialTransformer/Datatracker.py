@@ -13,7 +13,7 @@ from twobilliontoolkit.SpatialTransformer.Database import Database
 # Base Class
 #========================================================
 class Datatracker:
-    def __init__(self, data_traker_path: str, logger: Logger, load_from: str = 'database', save_to: str = 'database', database_config: str = None) -> None:
+    def __init__(self, data_traker_path: str, logger: Logger, load_from: str = 'database', save_to: str = 'database', database_config: str = None, year: str = None) -> None:
         """
         Initializes the Datatracker class with input parameters to store data tracker information.
 
@@ -23,12 +23,14 @@ class Datatracker:
             load_from (str): Flag to determine if loading dataframe should be done from the {database, datatracker}. Default: 'database'.
             save_to (str): Flag to determine if saving the dataframe should be done to the {database, datatracker}. Default: 'database'.
             database_config (str): Path to the database configuration file.
+            year (str): Year of the entry.
         """
         self.data_dict = {}
         self.datatracker = data_traker_path
         self.load_from = load_from
         self.save_to = save_to
         self.logger = logger
+        self.year = year
         
         if load_from == 'database' or save_to == 'database':
             # Create database object
@@ -214,7 +216,7 @@ class Datatracker:
 # Inheritance Class
 #========================================================
 class Datatracker2BT(Datatracker):
-    def __init__(self, data_traker_path: str, logger: Logger, load_from: str = 'database', save_to: str = 'database', database_config: str = None) -> None:
+    def __init__(self, data_traker_path: str, logger: Logger, load_from: str = 'database', save_to: str = 'database', database_config: str = None, year: str = None) -> None:
         """
         Initializes the Data class with input parameters. Used to store the data tracker information.
 
@@ -224,8 +226,9 @@ class Datatracker2BT(Datatracker):
             load_from (str): Flag to determine if loading dataframe should be done from the {database, datatracker}. Default: 'database'.
             save_to (str): Flag to determine if saving the dataframe should be done to the {database, datatracker}. Default: 'database'.
             database_config (str): Path to the database configuration file.
+            year (str): Year of the entry being planted.
         """
-        super().__init__(data_traker_path, logger, load_from, save_to, database_config)
+        super().__init__(data_traker_path, logger, load_from, save_to, database_config, year)
     
     def add_data(self, project_spatial_id: str, project_number: str, dropped: bool, raw_data_path: str, raw_gdb_path: str, absolute_file_path: str, in_raw_gdb: bool, contains_pdf: bool, contains_image: bool, extracted_attachments_path: str, editor_tracking_enabled: bool, processed: bool, entry_type: str) -> None:
         """
@@ -258,7 +261,8 @@ class Datatracker2BT(Datatracker):
             'extracted_attachments_path': extracted_attachments_path,
             'editor_tracking_enabled': editor_tracking_enabled,
             'processed': processed,
-            'entry_type': entry_type
+            'entry_type': entry_type,
+            'year': self.year
         }
         
     def set_data(self, project_spatial_id: str, project_number: str = None, dropped: bool = None, raw_data_path: str = None, absolute_file_path: str = None, in_raw_gdb: bool = None, contains_pdf: bool = None, contains_image: bool = None, extracted_attachments_path: str = None, editor_tracking_enabled: bool = None, processed: bool = None, entry_type: str = None) -> None:
@@ -376,7 +380,7 @@ class Datatracker2BT(Datatracker):
         """
         self.database_connection.connect(self.database_parameters)
 
-        columns = ['project_spatial_id', 'project_number', 'dropped', 'raw_data_path','raw_gdb_path','absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image','extracted_attachments_path', 'editor_tracking_enabled', 'processed', 'entry_type', 'created_at']
+        columns = ['project_spatial_id', 'project_number', 'dropped', 'raw_data_path','raw_gdb_path','absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image','extracted_attachments_path', 'editor_tracking_enabled', 'processed', 'entry_type', 'created_at', 'year']
 
         rows = self.database_connection.read(schema=self.database_connection.schema, table=self.database_connection.table, columns=columns)
 
@@ -407,7 +411,8 @@ class Datatracker2BT(Datatracker):
             'extracted_attachments_path': object,
             'editor_tracking_enabled': bool, 
             'processed': bool, 
-            'entry_type': str
+            'entry_type': str,
+            'year': str
         }, index_col=None)
         
         for index, row in data_df.iterrows():
@@ -424,7 +429,8 @@ class Datatracker2BT(Datatracker):
                 extracted_attachments_path=row['extracted_attachments_path'],
                 editor_tracking_enabled=row['editor_tracking_enabled'],
                 processed=row['processed'], 
-                entry_type=row['entry_type']
+                entry_type=row['entry_type'],
+                year=row['year']
             )
                     
     def save_to_database(self, update: bool = False) -> None:
@@ -455,7 +461,7 @@ class Datatracker2BT(Datatracker):
                             'contains_pdf': value['contains_pdf'], 
                             'contains_image': value['contains_image'],
                             'editor_tracking_enabled': value['editor_tracking_enabled'], 
-                            'processed': value['processed'], 'entry_type': value['entry_type']
+                            'processed': value['processed'], 'entry_type': value['entry_type'], 'year': value['year']
                         },
                         condition=f"project_spatial_id='{key}'"
                     )
@@ -464,7 +470,7 @@ class Datatracker2BT(Datatracker):
                     self.database_connection.create(
                         schema=self.database_connection.schema, 
                         table=self.database_connection.table,
-                        columns=('project_spatial_id', 'project_number', 'dropped', 'raw_data_path', 'raw_gdb_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled', 'processed', 'entry_type'),
+                        columns=('project_spatial_id', 'project_number', 'dropped', 'raw_data_path', 'raw_gdb_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled', 'processed', 'entry_type', 'year'),
                         values=(
                             key, 
                             value['project_number'], 
@@ -478,7 +484,8 @@ class Datatracker2BT(Datatracker):
                             value['extracted_attachments_path'],
                             value['editor_tracking_enabled'],
                             value['processed'], 
-                            value['entry_type']
+                            value['entry_type'],
+                            value['year']
                         )
                     ) 
                     
@@ -494,13 +501,13 @@ class Datatracker2BT(Datatracker):
         # TODO: Work on getting the save to file exactly like save to database
         
         # Create a DataFrame and save it to Excel if the data tracker file doesn't exist
-        df = pd.DataFrame(list(self.data_dict.values()), columns=['project_number', 'dropped', 'raw_data_path', 'raw_gdb_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled', 'processed', 'entry_type'])
+        df = pd.DataFrame(list(self.data_dict.values()), columns=['project_number', 'dropped', 'raw_data_path', 'raw_gdb_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled', 'processed', 'entry_type', 'year'])
 
         # Add 'project_spatial_id' to the DataFrame
         df['project_spatial_id'] = list(self.data_dict.keys())
 
         # Reorder columns to have 'project_spatial_id' as the first column
-        df = df[['project_spatial_id', 'project_number', 'dropped', 'raw_data_path', 'raw_gdb_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled', 'processed', 'entry_type']]
+        df = df[['project_spatial_id', 'project_number', 'dropped', 'raw_data_path', 'raw_gdb_path', 'absolute_file_path', 'in_raw_gdb', 'contains_pdf', 'contains_image', 'extracted_attachments_path', 'editor_tracking_enabled', 'processed', 'entry_type', 'year']]
 
         # Sort the rows by the project_spatial_id column
         df = df.sort_values(by=['project_spatial_id'])

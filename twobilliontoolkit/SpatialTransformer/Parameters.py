@@ -15,7 +15,7 @@ from twobilliontoolkit.RippleUnzipple.ripple_unzipple import ripple_unzip
 # Classes
 #========================================================
 class Parameters:
-    def __init__(self, input_path: str, output_path: str, gdb_path: str, master_data_path: str, datatracker: str, attachments: str, logger: Logger, load_from: str = 'database', save_to: str = 'database', database_config: str = None, debug: bool = False, resume: bool = False) -> None:
+    def __init__(self, input_path: str, output_path: str, gdb_path: str, master_data_path: str, datatracker: str, attachments: str, logger: Logger, load_from: str = 'database', save_to: str = 'database', database_config: str = None, year:str = None, debug: bool = False, resume: bool = False) -> None:
         """
         Initializes the Parameters class with input parameters.
 
@@ -28,6 +28,7 @@ class Parameters:
             load_from (str): Either 'database' or 'datatracker' to determine what to load the data from.
             save_to (str): Either 'database' or 'datatracker' to determine what to save the data to.
             database_config (str): Path to the database configuration file.
+            year (str): Year of the entry being planted.
             datatracker (str): Datatracker file name.
             attachments (str): Attachment folder name.
             debug (bool, optional): Determines if the program is in debug mode.
@@ -70,6 +71,7 @@ class Parameters:
         self.datatracker = datatracker
         self.attachments = attachments
         self.database_config = database_config
+        self.year = year
         self.debug = debug
         self.resume = resume
         
