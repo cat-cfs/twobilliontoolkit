@@ -20,9 +20,9 @@ $username = $env:USERNAME
 $ArcPro_original = "C:\Users\$username\AppData\Local\Programs\ArcGIS\Pro\bin\Python\envs\arcgispro-py3"
 $ArcPro_clone = "C:\Users\$username\AppData\Local\ESRI\conda\envs\arcgispro-py3-clone"
 $python_exe = "$ArcPro_clone\python.exe"
-$toolkit_dir = "..."
-$input_path = "..."
-$output_path = "..."
+$toolkit_dir = "A:\2BT\02_Tools\__DEVELOPMENT_ZONE__\twobilliontoolkit"
+$input_path = "\\vic-fas1\projects_a\2BT\01_Data\2BT_program_data\2023\RawData\00_Unprocessed_Spatial\GCDocs_Nov252024_DD9_Fixed3"
+$output_path = "\\vic-fas1\projects_a\2BT\01_Data\2BT_program_data\2023\RawData\01_Processed_Spatial\GCDocs_Nov252024_DD9_Fixed3"
 $master_data = "..."
 $database_config = "..."
 $load = "database"
@@ -36,7 +36,7 @@ $datatracker = "OutputDatatracker.xlsx"
 $datatracker_path = "${gdb_output}\${datatracker}"
 $local_dir_path = "C:\LocalTwoBillionToolkit"
 $transfer_files = @("${gdb}", "${gdb_name}_Attachments", "${gdb_name}_Log_${datestamp}_ERROR.txt", "${gdb_name}_Log_${datestamp}_WARNING.txt")
-$year = Get-Date -Format "yyyy" # You can replace this with a string such as "2021" if need to overwrite
+$year = "..."
 $debug_mode = $false  # or $debug_mode = 0
 $script_location = $MyInvocation.MyCommand.Path
 
