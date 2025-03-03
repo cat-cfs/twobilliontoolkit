@@ -295,7 +295,8 @@ class InsertDataTool(object):
                     projected_multipolygon = arcpy.Polygon(array_of_polygons, target_Ref)
                     
                     # Construct the SQL query for insertion
-                    sql_insert = f'INSERT INTO {table} ("site_id", "geom") VALUES ({site_id}, ST_GeomFromText(\'{projected_multipolygon.WKT}\', 102001))'
+                    sql_insert = f"""INSERT INTO {table} ("site_id", "geom") VALUES ('{site_id}', ST_GeomFromText(\'{projected_multipolygon.WKT}\', 102001))"""
+                    arcpy.AddMessage(sql_insert)
                     egdb_conn.execute(sql_insert)
             
             # Get the feature layer location  
@@ -516,7 +517,8 @@ class UpdateDataTool(object):
                 egdb_conn = arcpy.ArcSDESQLExecute(connection_file)
                 
                 # Construct the SQL query for updating the entries 
-                sql_update = f'UPDATE {table} SET "dropped" = true WHERE "site_id" = {site_id}' 
+                sql_update = f"""UPDATE {table} SET "dropped" = true WHERE "site_id" = '{site_id}'""" 
+                arcpy.AddMessage(f"{sql_update}")
                 egdb_conn.execute(sql_update)
                 
                 # Loop through the selected features in the layer
@@ -529,7 +531,8 @@ class UpdateDataTool(object):
                     projected_multipolygon = arcpy.Polygon(array_of_polygons, target_Ref)
                     
                     # Construct the SQL query for insertion
-                    sql_insert = f'INSERT INTO {table} ("site_id", "geom") VALUES ({site_id}, ST_GeomFromText(\'{projected_multipolygon.WKT}\', 102001))'
+                    sql_insert = f"""INSERT INTO {table} ("site_id", "geom") VALUES ('{site_id}', ST_GeomFromText(\'{projected_multipolygon.WKT}\', 102001))"""
+                    arcpy.AddMessage(f"{sql_insert}")
                     egdb_conn.execute(sql_insert)
                
             # Get the feature layer location  
@@ -753,19 +756,17 @@ class CheckSiteIDExists(object):
             egdb_conn = arcpy.ArcSDESQLExecute(connection_file)
                 
             # Construct the SQL query for checking if a site_id exists
-            check_query = f"""
-                SELECT site_id
-                FROM {table}
-                WHERE site_id = '{site_id}' AND dropped = false;
-            """
+            check_query = f"SELECT 1 FROM {table} WHERE site_id = '{site_id}' AND dropped = false;"
+            arcpy.AddMessage(check_query)
             
             # Get the result of the query into a variable
             try:
                 # Pass the SQL statement to the database.
                 result = egdb_conn.execute(check_query)
-                arcpy.AddMessage(f'Query Result: {result}, Type: {type(result)}')  # Log result type
             except Exception as err:
                 arcpy.AddMessage(err)
+            finally:
+                arcpy.AddMessage(f'Query Result: {result}, Type: {type(result)}')  # Log result type
                         
             exists = False
             arcpy.AddMessage(f'Before Check: result={result}, type={type(result)}')
@@ -773,16 +774,14 @@ class CheckSiteIDExists(object):
             # Check what is returned
             if isinstance(result, (list, int)) and not isinstance(result, bool):
                 exists = True
-                arcpy.AddMessage('here1')  
             else:
-                arcpy.AddMessage('here2')  
                 # If the return value was not a list, the statement was most likely a DDL statement. Check its status.
-                if result == True:
-                    arcpy.AddMessage('here3')  
+                if result == True:  
                     exists = False
                 else:
                     arcpy.AddError(f"Error: SQL statement {check_query} FAILED")
-            arcpy.AddMessage(exists)                            
+            arcpy.AddMessage(exists)     
+                                   
             # Set the output parameter with the result data
             arcpy.SetParameter(3, exists)
 
@@ -795,7 +794,7 @@ class CheckSiteIDExists(object):
 
         arcpy.AddMessage(f"This tool took {start - time.perf_counter():0.4f} seconds")
 
-class CheckGeometryExists(object):
+class CheckGeometryExists(object): 
     def __init__(self):
         """Define the CheckGeometryExists class."""
         # Tool information
@@ -879,60 +878,44 @@ class CheckGeometryExists(object):
             # Define the target spatial reference for all features
             target_Ref = arcpy.SpatialReference(102001)
 
-            # Get all of the selected features' geometries in the layer
-            with arcpy.da.SearchCursor(feature_layer, 'SHAPE@') as cursor:
+            # Initialize result list
+            result_list = []
 
-                # Connect to the enterprise geodatabase
-                arcpy.env.workspace = connection_file
-                egdb_conn = arcpy.ArcSDESQLExecute(connection_file)
-
-                # Initialize list to add all results from for each selected feature
-                result_list = []
-
-                # Loop through the selected features in the layer
-                for row in cursor:           
-                    arcpy.AddMessage(row)         
-                    # Project the polygon to Canadian Albers (wkid 102001)
-                    polygon_projected = row[0].projectAs(target_Ref)   
-
-                    # Get all parts of the project polygon and construct a new polygon with no z or m-coordinates
+            # Get all selected features' geometries
+            with arcpy.da.SearchCursor(feature_layer, ['OID@', 'SHAPE@']) as feature_cursor:
+                for feature in feature_cursor:
+                    # Project the polygon to Canadian Albers
+                    polygon_projected = feature[1].projectAs(target_Ref)   
                     array_of_polygons = arcpy.Array(polygon_projected.getPart())
                     projected_multipolygon = arcpy.Polygon(array_of_polygons, target_Ref)
-                    
-                    # Construct the SQL query for checking the geometries
-                    check_query = f"""
-                        WITH duplicates AS (
-                            SELECT 
-                                id, 
-                                site_id,
-                                geom, 
-                                CAST(COUNT(*) OVER(PARTITION BY geom) AS INTEGER) AS num_occurrences
-                            FROM ONLY {table}
-                            WHERE dropped = false
-                        )
-                        SELECT 
-                            num_occurrences,
-                            id,
-                            site_id
-                        FROM duplicates
-                        WHERE geom = ST_GeomFromText('{projected_multipolygon.WKT}', 102001)
-                        GROUP BY geom, num_occurrences, id, site_id
-                        ORDER BY geom;
-                    """
-                    
-                    # Get the result of the query into a variable
-                    result = egdb_conn.execute(check_query)
-            
-                    # Add the result to the return list
-                    result_list.append(result)
-                    
-                arcpy.AddMessage(result_list)
-                     
-                # Set the output parameter with the result data
-                arcpy.SetParameter(3, result_list)
 
-                # Return the data
-                return result_list
+                    # Use SearchCursor to find matching geometries
+                    with arcpy.da.SearchCursor(table, ['id', 'site_id', 'SHAPE@', 'dropped'], where_clause="dropped = 'false'") as table_cursor:
+                        # Dictionary to count duplicates
+                        geom_count = {}
+                        matching_records = []
+                        
+                        for record in table_cursor:
+                            if record[2].equals(projected_multipolygon):
+                                matching_records.append({
+                                    'id': record[0],
+                                    'site_id': record[1]
+                                })
+                                # Count occurrences of this geometry
+                                geom_key = record[2].WKT
+                                geom_count[geom_key] = geom_count.get(geom_key, 0) + 1
+
+                        # Add number of occurrences to each matching record
+                        for record in matching_records:
+                            record['num_occurrences'] = len(matching_records)
+                            record['OID'] = feature[0]
+                            result_list.append(record)
+
+            # Set the output parameter
+            arcpy.SetParameter(3, result_list)
+            arcpy.AddMessage(f"Found {len(result_list)} matching geometries")
+            arcpy.AddMessage(result_list)
+            return result_list
                 
         except Exception as e:
             # Handle and log errors

@@ -91,19 +91,20 @@ class Logger:
         if not is_absolute_path:
             self.log_file = LOCAL_DIR + self.log_file[:-4] + FILE_EXT
         
-    def log(self, message: str, tag: str = 'ERROR') -> None:
+    def log(self, message: str, tag: str = 'ERROR', override: bool = False) -> None:
         """
         Log a message with a specified severity level (ERROR, WARNING, INFO), and store it in memory.
 
         Args:
             message (str): The message to log.
             tag (str, optional): Severity level of the log message. Can be 'ERROR', 'WARNING', or 'INFO'. Defaults to 'ERROR'.
+            override (bool, optional): Override the check of only printing warnings and errors and log info as well. Defaults to False.
         """
         # Set the tag and print to the console
         log_type = self._get_log_type(tag)
                 
         # Store the message in the log_entries list
-        if tag != 'INFO':
+        if tag != 'INFO' or override:
             self.log_entries.append({
                 'timestamp': datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
                 'tag': tag,
