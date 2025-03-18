@@ -174,8 +174,10 @@ class ReadDataTool(object):
             arcpy.env.workspace = connection_file
             
             # Retrieve data from the table using a SearchCursor
-            ret_list = [row for row in arcpy.da.SearchCursor(table, "*")]
+            ret_list = [row for row in arcpy.da.SearchCursor(table, ["project_number", "site_id", "site_name", "year"])]
 
+            arcpy.AddMessage(ret_list)
+            
             # Convert the list of rows to a dictionary
             data_dict = {"data": ret_list}
 
@@ -416,7 +418,8 @@ class BatchInsertDataTool(object):
                         projected_multipolygon = arcpy.Polygon(array_of_polygons, target_Ref)
                         
                         # Construct the SQL query for insertion
-                        sql_insert = f'INSERT INTO {table} ("site_id", "geom") VALUES ({site_id}, ST_GeomFromText(\'{projected_multipolygon.WKT}\', 102001))'
+                        sql_insert = f"INSERT INTO {table} (site_id, geom) VALUES ('{site_id}', ST_GeomFromText(\'{projected_multipolygon.WKT}\', 102001))"
+                        arcpy.AddMessage(f"{sql_insert}")
                         egdb_conn.execute(sql_insert)
 
         except Exception as e:
@@ -649,20 +652,22 @@ class BatchUpdateDataTool(object):
                         array_of_polygons = arcpy.Array(polygon_projected.getPart())
                         projected_multipolygon = arcpy.Polygon(array_of_polygons, target_Ref)
                         
-                        entries_list.append((site_id, projected_multipolygon)) 
+                        entries_list.append(("'" + site_id + "'", projected_multipolygon)) 
                         
             # Connect to the enterprise geodatabase
             arcpy.env.workspace = connection_file
             egdb_conn = arcpy.ArcSDESQLExecute(connection_file)
             
             # Construct the SQL query for updating the entries 
-            update_sql = f'UPDATE {table} SET "dropped" = true WHERE "site_id" IN ({",".join(str(site_id) for site_id, _ in entries_list)})' 
+            update_sql = f'UPDATE {table} SET "dropped" = true WHERE "site_id" IN ({",".join(site_id for site_id, _ in entries_list)})' 
+            arcpy.AddMessage(f"{update_sql}")
             egdb_conn.execute(update_sql)
 
             # Loop through the entries_list to perform SQL insertion
             for site_id, geom in entries_list:
                 # Construct the SQL query for insertion
-                insert_sql = f'INSERT INTO {table} ("site_id", "geom") VALUES ({site_id}, ST_GeomFromText(\'{geom.WKT}\', 102001))'
+                insert_sql = f"INSERT INTO {table} (site_id, geom) VALUES ({site_id}, ST_GeomFromText(\'{geom.WKT}\', 102001))"
+                arcpy.AddMessage(f"{insert_sql}")
                 egdb_conn.execute(insert_sql)
                                
         except Exception as e:
@@ -750,11 +755,11 @@ class CheckSiteIDExists(object):
             connection_file = parameters[0].valueAsText
             table = parameters[1].valueAsText
             site_id = parameters[2].valueAsText
-            
+
             # Connect to the enterprise geodatabase
             arcpy.env.workspace = connection_file
             egdb_conn = arcpy.ArcSDESQLExecute(connection_file)
-                
+
             # Construct the SQL query for checking if a site_id exists
             check_query = f"SELECT 1 FROM {table} WHERE site_id = '{site_id}' AND dropped = false;"
             arcpy.AddMessage(check_query)

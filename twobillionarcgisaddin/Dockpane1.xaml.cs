@@ -75,6 +75,8 @@ namespace twobillionarcgisaddin
             private string _objectIDColumn;
             private string? _year;
             private string? _projectNum;
+            private bool _removedEntries;
+            private bool _removedSites;
             private bool _disabled;
 
             public string Table
@@ -151,6 +153,32 @@ namespace twobillionarcgisaddin
                     {
                         _projectNum = value;
                         OnPropertyChanged(nameof(ProjectNum));
+                    }
+                }
+            }
+
+            public bool RemovedEntries
+            {
+                get { return _removedEntries; }
+                set
+                {
+                    if (_removedEntries != value)
+                    {
+                        _removedEntries = value;
+                        OnPropertyChanged(nameof(RemovedEntries));
+                    }
+                }
+            }
+
+            public bool RemovedSites
+            {
+                get { return _removedSites; }
+                set
+                {
+                    if (_removedSites != value)
+                    {
+                        _removedSites = value;
+                        OnPropertyChanged(nameof(RemovedSites));
                     }
                 }
             }
@@ -430,18 +458,26 @@ namespace twobillionarcgisaddin
                     // Build the database query based on parameters
                     string databaseSchema = this.DatabaseSchema.Text.Trim();
                     string dataset = $"{databaseSchema}.{entry.Table}";
-                    var sqlQueryBuilder = new StringBuilder($@"SELECT si.*, sii.site_name, sii.project_number, sii.year FROM {dataset} si INNER JOIN {databaseSchema}.site_id sii ON si.site_id = sii.site_id"
+                    var sqlQueryBuilder = new StringBuilder($@"SELECT si.*, sii.site_name, sii.project_number, sii.year, sii.salesforce_removed FROM {dataset} si INNER JOIN {databaseSchema}.site_id sii ON si.site_id = sii.site_id"
                     );
 
                     List<string> conditions = new List<string>();
 
                     if (!string.IsNullOrEmpty(entry.Year))
                     {
-                        conditions.Add($"year = '{int.Parse(entry.Year)}'");
+                        conditions.Add($"sii.year = '{int.Parse(entry.Year)}'");
                     }
                     if (!string.IsNullOrEmpty(entry.ProjectNum))
                     {
-                        conditions.Add($"project_number = '{entry.ProjectNum}'");
+                        conditions.Add($"sii.project_number = '{entry.ProjectNum}'");
+                    }
+                    if (!entry.RemovedEntries)
+                    {
+                        conditions.Add($"si.dropped = FALSE");
+                    }
+                    if (!entry.RemovedSites)
+                    {
+                        conditions.Add($"sii.salesforce_removed = FALSE");
                     }
 
                     if (conditions.Count > 0)
@@ -454,6 +490,7 @@ namespace twobillionarcgisaddin
                     await QueuedTask.Run(() =>
                     {
                         Geodatabase geodatabase = new Geodatabase(new DatabaseConnectionFile(uri));
+
                         CIMSqlQueryDataConnection sqlDataConnection = new CIMSqlQueryDataConnection()
                         {
                             WorkspaceConnectionString = geodatabase.GetConnectionString(),
@@ -582,52 +619,78 @@ namespace twobillionarcgisaddin
                     return;
                 }
 
-                string siteID = this.SiteID_Dropdown.SelectedItem.ToString();
-                bool isOverwrite = (bool)this.OverwriteToggle.IsChecked;
-                bool foundSiteID = await SiteMapperCheckSiteIDExistInDB(siteID);
+                List<string> siteIDs = new List<string>();
 
-                if (isOverwrite)
+                if (SiteMapper_IsBatch)
                 {
-                    bool foundGeometryOrCanceled = await SiteMapperCheckGeometryExistInDB(featureLayer);
-                    if (foundGeometryOrCanceled)
+                    // Get all selected feature site IDs from the 'bt_site_id' field
+                    await QueuedTask.Run(() =>
                     {
-                        this.SendDataButton.IsEnabled = true;
-                        return;
-                    }
-
-                    if (foundSiteID)
-                    {
-                        // Overwrite existing geometries for this SiteID
-                        DirectToSiteMapperOrBatchSiteMapper(featureLayer, true);
-                    }
-                    else
-                    {
-                        // SiteID does not exist, add new geometries without error
-                        DirectToSiteMapperOrBatchSiteMapper(featureLayer, false);
-                    }
+                        using (Selection selection = featureLayer.GetSelection())
+                        using (RowCursor cursor = selection.Search()) // No second parameter needed
+                        {
+                            while (cursor.MoveNext())
+                            {
+                                using (Row row = cursor.Current)
+                                {
+                                    if (row["bt_site_id"] != null)
+                                    {
+                                        siteIDs.Add(row["bt_site_id"].ToString());
+                                    }
+                                }
+                            }
+                        }
+                    });
                 }
                 else
                 {
-                    if (foundSiteID)
-                    {
-                        // Throw error as polygons already exist for this SiteID and overwrite is off
-                        ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show(
-                            $"Geometries already exist for Site ID {siteID}. Cannot add new geometries when overwrite is off.",
-                            "ArcGIS Site Mapper Error",
-                            MessageBoxButton.OK
-                        );
-                    }
-                    else
+                    // Single mode - use dropdown
+                    siteIDs.Add(this.SiteID_Dropdown.SelectedItem.ToString());
+                }
+
+                bool isOverwrite = (bool)this.OverwriteToggle.IsChecked;
+
+                foreach (string siteID in siteIDs)
+                {
+                    bool foundSiteID = await SiteMapperCheckSiteIDExistInDB(siteID);
+
+                    if (isOverwrite)
                     {
                         bool foundGeometryOrCanceled = await SiteMapperCheckGeometryExistInDB(featureLayer);
                         if (foundGeometryOrCanceled)
                         {
-                            this.SendDataButton.IsEnabled = true;
-                            return;
+                            continue; // Skip to next siteID
                         }
 
-                        // SiteID does not exist, so add new polygons
-                        DirectToSiteMapperOrBatchSiteMapper(featureLayer, false);
+                        if (foundSiteID)
+                        {
+                            DirectToSiteMapperOrBatchSiteMapper(featureLayer, true);
+                        }
+                        else
+                        {
+                            DirectToSiteMapperOrBatchSiteMapper(featureLayer, false);
+                        }
+                    }
+                    else
+                    {
+                        if (foundSiteID)
+                        {
+                            ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show(
+                                $"Geometries already exist for Site ID {siteID}. Cannot add new geometries when overwrite is off.",
+                                "ArcGIS Site Mapper Error",
+                                MessageBoxButton.OK
+                            );
+                        }
+                        else
+                        {
+                            bool foundGeometryOrCanceled = await SiteMapperCheckGeometryExistInDB(featureLayer);
+                            if (foundGeometryOrCanceled)
+                            {
+                                continue; // Skip to next siteID
+                            }
+
+                            DirectToSiteMapperOrBatchSiteMapper(featureLayer, false);
+                        }
                     }
                 }
             }
@@ -846,6 +909,14 @@ namespace twobillionarcgisaddin
         {
             try
             {
+                this.SiteID_Dropdown.SelectedIndex = 0;
+
+                // Create a DataContainer instance to process the JSON string
+                dataContainer = new DataContainer(siteMapperToolOutput);
+
+                // Populate filters with the dataContainer
+                PopulateFilters(dataContainer, true);
+
                 Dictionary<string, string> filter = GetSiteMapperFilter();
 
                 // Repopulate the data grid with the filtered data
@@ -1113,7 +1184,8 @@ namespace twobillionarcgisaddin
         // Method to populate filters for the SiteMapper tool
         private void PopulateFilters(DataContainer container, bool updateSecondaryFilter = false)
         {
-            string selectedItem = (string)this.ProjectNumber_Dropdown.SelectedItem;
+            string selectedProjectNumber = (string)this.ProjectNumber_Dropdown.SelectedItem;
+            string selectedPlantingYear = (string)this.PlantingYear_Dropdown.SelectedItem;
 
             // Initialize filter lists with an empty string as the default value
             List<string> filterProjNumberList = new List<string>() { "" };
@@ -1122,7 +1194,8 @@ namespace twobillionarcgisaddin
 
             foreach (DataEntry dataEntry in container.Data)
             {
-                bool isMatchingProject = string.IsNullOrEmpty(selectedItem) || selectedItem == dataEntry.ProjectNumber;
+                bool isMatchingProject = string.IsNullOrEmpty(selectedProjectNumber) || selectedProjectNumber == dataEntry.ProjectNumber;
+                bool isMatchingYear = string.IsNullOrEmpty(selectedPlantingYear) || selectedPlantingYear == dataEntry.Year;
 
                 if (updateSecondaryFilter)
                 {
@@ -1140,15 +1213,14 @@ namespace twobillionarcgisaddin
                 }
 
                 // Common for both primary and other filters
-                if (!filterSiteIDList.Contains(dataEntry.SiteID))
+                if (!filterSiteIDList.Contains(dataEntry.SiteID) && isMatchingYear)
                 {
                     filterSiteIDList.Add(dataEntry.SiteID);
                 }
 
-                string PlantYear = "202" + dataEntry.SiteID[0];
-                if (!filterPlantYearList.Contains(PlantYear))
+                if (!filterPlantYearList.Contains(dataEntry.Year))
                 {
-                    filterPlantYearList.Add(PlantYear);
+                    filterPlantYearList.Add(dataEntry.Year);
                 }
             }
 
@@ -1314,7 +1386,7 @@ namespace twobillionarcgisaddin
         bool ContainsMostParts(string input, string[] parts)
         {
             int matchCount = parts.Count(part => Regex.IsMatch(input, $@"\b{part}\b", RegexOptions.IgnoreCase));
-            return matchCount >= (parts.Length * 0.75); // Adjust threshold as needed
+            return matchCount >= (parts.Length * 0.49); // Adjust threshold as needed
         }
 
         // 
@@ -1324,34 +1396,40 @@ namespace twobillionarcgisaddin
             dataLayersToAdd.Clear(); // Clear the ObservableCollection first
             dataLayersToAdd.Add(new DataLayer()
             {
-                Table = "valid_points",
+                Table = "site_points",
                 Name = "2BT Site Points",
                 GeomType = esriGeometryType.esriGeometryPoint,
                 ObjectIDColumn = "id",
                 Year = null,
                 ProjectNum = null,
+                RemovedEntries = false,
+                RemovedSites = false,
                 Disabled = false
             });
 
             dataLayersToAdd.Add(new DataLayer()
             {
-                Table = "valid_buffered_points",
+                Table = "site_buffered_points",
                 Name = "2BT Site Buffered Points",
                 GeomType = esriGeometryType.esriGeometryPolygon,
                 ObjectIDColumn = "id",
                 Year = null,
                 ProjectNum = null,
+                RemovedEntries = false,
+                RemovedSites = false,
                 Disabled = false
             });
 
             dataLayersToAdd.Add(new DataLayer()
             {
-                Table = "valid_geometry",
+                Table = "site_geometry",
                 Name = "2BT Site Polygons",
                 GeomType = esriGeometryType.esriGeometryPolygon,
                 ObjectIDColumn = "id",
                 Year = null,
                 ProjectNum = null,
+                RemovedEntries = false,
+                RemovedSites = false,
                 Disabled = false
             });
         }

@@ -49,12 +49,27 @@ namespace twobillionarcgisaddin
             }
         }
 
+        private string _year;
+        public string Year
+        {
+            get { return _year; }
+            set
+            {
+                if (_year != value)
+                {
+                    _year = value;
+                    OnPropertyChanged(nameof(Year));
+                }
+            }
+        }
+
         // Constructor
-        public DataEntry(string projectNumber, string siteID, string siteName)
+        public DataEntry(string projectNumber, string siteID, string siteName, string year)
         {
             ProjectNumber = projectNumber;
             SiteID = siteID;
             SiteName = siteName;
+            Year = year;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -89,9 +104,10 @@ namespace twobillionarcgisaddin
                 string projectNumber = rowElement[0].ToString();
                 string siteID = rowElement[1].ToString();
                 string siteName = rowElement[2].ToString();
+                string year = rowElement[3].ToString();
 
                 // Create a DataEntry object with the row data
-                DataEntry entry = new DataEntry(projectNumber, siteID, siteName);
+                DataEntry entry = new DataEntry(projectNumber, siteID, siteName, year);
 
                 // Add the entry to the list
                 Data.Add(entry);
@@ -119,7 +135,7 @@ namespace twobillionarcgisaddin
                 return filteredData.ToList();
             }
 
-            var filteredYearData = filteredData.Where(entry => entry.SiteID.StartsWith(year[year.Length - 1]));
+            var filteredYearData = filteredData.Where(entry => entry.Year == year);
 
             return filteredYearData.ToList();
         }
