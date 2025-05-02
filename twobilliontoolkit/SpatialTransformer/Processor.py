@@ -154,11 +154,11 @@ class Processor:
                                         contain_linestring = True
                                         
                         if contain_point:
-                            project_spatial_id = self.create_entry(file_path, f"{file_path}\Points")
+                            project_spatial_id = self.create_entry(f"{file_path}\Points", f"{file_path}\Points")
                         if contain_polygon:
-                            project_spatial_id = self.create_entry(file_path, f"{file_path}\Polygons")
+                            project_spatial_id = self.create_entry(f"{file_path}\Polygons", f"{file_path}\Polygons")
                         if contain_linestring:
-                            project_spatial_id = self.create_entry(file_path, f"{file_path}\Lines")
+                            project_spatial_id = self.create_entry(f"{file_path}\Lines", f"{file_path}\Lines")
                     except Exception as error:
                         message = f'KML/KMZ file: {file_path} has encountered an error when making a datatracker entry. {error}'
                         if project_spatial_id:
@@ -207,22 +207,18 @@ class Processor:
         if self.params.debug:
             self.params.logger.log(message=feature_path, tag='INFO')
             self.params.logger.log(message=formatted_project_spatial_id, tag='INFO')
-
-        # Convert the raw data path to a relative path           
-        raw_data_path = os.path.relpath(feature_path, self.params.output)
         
         # Convert the absolute path to the correct drive path format
         absolute_file_path = convert_drive_path(absolute_path)
 
         # Call a method to process raw data matching
-        self.call_find_match(formatted_project_spatial_id, raw_data_path, absolute_file_path)
+        self.call_find_match(formatted_project_spatial_id, absolute_file_path)
                 
         # Add data to the data class 
         self.data.add_data(
             project_spatial_id=formatted_project_spatial_id,
             project_number=formatted_result, 
             dropped=False,
-            raw_data_path=raw_data_path, 
             raw_gdb_path=convert_drive_path(self.params.gdb_path),
             absolute_file_path=absolute_file_path,
             in_raw_gdb=in_raw_gdb, 
@@ -261,12 +257,15 @@ class Processor:
                 # Define the name of the geodatabase entry and build path for the feature class in the local geodatabase 
                 gdb_entry_name = f"proj_{entry}"
                 feature_gdb_path = os.path.join(self.params.local_gdb_path, gdb_entry_name)
+
+                # Determine the and entry basename
+                entry_data_basename = os.path.basename(entry_absolute_path)
                 
                 # Check the file type and export features accordingly
                 if entry_absolute_path.endswith('.gdb'):
                     # Export features from one geodatabase to the output geodatabase
                     arcpy.conversion.ExportFeatures(
-                        os.path.join(self.params.output, self.data.data_dict[entry].get('raw_data_path')),
+                        os.path.join(self.params.output, entry_data_basename),
                         feature_gdb_path
                     )
 
@@ -277,16 +276,17 @@ class Processor:
                         feature_gdb_path
                     )
                                     
-                elif entry_absolute_path.endswith(('.kml', '.kmz')):
+                elif entry_absolute_path.endswith(('.kml', '.kmz', 'Polygons', 'Points', 'Lines')):
                     # Initialize an empty GeoDataFrame
                     data = gpd.GeoDataFrame()
 
                     # List all layers in the KML/KMZ file
-                    layers = fiona.listlayers(entry_absolute_path)
+                    layers = fiona.listlayers(os.path.dirname(entry_absolute_path))
+
                     for layer in layers:
                         # Read each layer into a temporary GeoDataFrame
-                        layer_gdb = gpd.read_file(entry_absolute_path, driver='LIBKML', layer=layer)
-                                               
+                        layer_gdb = gpd.read_file(os.path.dirname(entry_absolute_path), driver='LIBKML', layer=layer)
+
                         # Check if the temporary GeoDataFrame is empty before concatenating
                         if not layer_gdb.empty:
                             data = pd.concat([data, layer_gdb], ignore_index=True)
@@ -302,10 +302,6 @@ class Processor:
                     # Check if 'timestamp' column exists
                     if 'timestamp' in data.columns:
                         data['timestamp'] = pd.to_datetime(data['timestamp'], utc=True, errors='coerce').dt.strftime('%Y-%m-%d')
-                    
-                    # Determine the path for raw data and entry basename
-                    raw_data_path = self.data.data_dict[entry].get('raw_data_path')
-                    entry_data_basename = os.path.basename(raw_data_path)
 
                     # Export the GeoDataFrame to the appropriate feature class based on geometry type
                     if entry_data_basename == 'Points':
@@ -317,7 +313,6 @@ class Processor:
                     elif entry_data_basename == 'Lines':
                         lines_gdf = data[data.geometry.type == 'LineString']
                         lines_gdf.to_file(self.params.local_gdb_path, driver='OpenFileGDB', layer=gdb_entry_name)     
-                
                 elif entry_absolute_path.endswith('.geojson'):
                     # Export features from GeoJSON to the output geodatabase
                     arcpy.conversion.JSONToFeatures(
@@ -384,20 +379,18 @@ class Processor:
             
         return formatted_result
         
-    def call_find_match(self, current_spatial_id: str, raw_data_path: str, absolute_file_path: str) -> None:
+    def call_find_match(self, current_spatial_id: str, absolute_file_path: str) -> None:
         """
         Call the method that finds a matching raw data path and returns the project spatial id.
 
         Args:
             current_spatial_id (str): The current spatial project id being checked.
-            raw_data_path (str): The raw data path to be searched in the dictionary.
             absolute_file_path (str): The absolute data path to be searched in the dictionary.
         """
-        # Find a corresponding project spatial ID in the data dictionary based on the raw data path
-        (found_match_raw, _) = self.data.find_matching_data(raw_data_path=raw_data_path)
+        # Find a corresponding project spatial ID in the data dictionary based on the absolute file path
         (found_match_absolute, _) = self.data.find_matching_data(absolute_file_path=absolute_file_path)
-        if found_match_raw and found_match_absolute:
-            self.params.logger.log(message=f'- Project Spatial ID: {current_spatial_id} - Absolute Path: {absolute_file_path} already exists in the data tracker! -  Current Spatial ID: {current_spatial_id} Matching Spatial ID: {found_match_raw}', tag='WARNING')  
+        if found_match_absolute:
+            self.params.logger.log(message=f'- Project Spatial ID: {current_spatial_id} - Absolute Path: {absolute_file_path} already exists in the data tracker! -  Current Spatial ID: {current_spatial_id} Matching Spatial ID: {found_match_absolute}', tag='WARNING')  
             
     def extract_attachments(self) -> None:
         """

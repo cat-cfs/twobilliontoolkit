@@ -105,14 +105,12 @@ class TestDataHandling(unittest.TestCase):
         # Test the add_data method
         project_spatial_id = 1
         project_number = '0000 XXX - 111'
-        raw_data_path = '/path/to/raw/data1'
         raw_gdb_path = '/path/to/gdb,gdb'
 
         # Add initial data
         self.datatracker.add_data(
             project_spatial_id=project_spatial_id, 
             project_number=project_number, 
-            raw_data_path=raw_data_path, 
             raw_gdb_path=raw_gdb_path,
             in_raw_gdb=False, 
             contains_pdf=False, 
@@ -123,7 +121,6 @@ class TestDataHandling(unittest.TestCase):
         self.assertNotEqual(self.datatracker.get_data(project_spatial_id), None)
         self.assertEqual(self.datatracker.get_data(project_spatial_id)['project_number'], project_number)
         self.assertEqual(self.datatracker.get_data(project_spatial_id)['raw_gdb_path'], raw_gdb_path)
-        self.assertEqual(self.datatracker.get_data(project_spatial_id)['raw_data_path'], raw_data_path)
         self.assertFalse(self.datatracker.get_data(project_spatial_id)['in_raw_gdb'])
         self.assertFalse(self.datatracker.get_data(project_spatial_id)['contains_pdf'])
         self.assertFalse(self.datatracker.get_data(project_spatial_id)['contains_image'])
@@ -132,14 +129,12 @@ class TestDataHandling(unittest.TestCase):
         # Test the set_data method
         project_spatial_id = 2
         project_number = '0000 XXX - 222'
-        raw_data_path = '/path/to/raw/data2'
         raw_gdb_path = '/path/to/gdb.gdb'
 
         # Add initial data
         self.datatracker.add_data(
             project_spatial_id=project_spatial_id, 
             project_number=project_number, 
-            raw_data_path=raw_data_path, 
             raw_gdb_path=raw_gdb_path,
             in_raw_gdb=False, 
             contains_pdf=False, 
@@ -147,37 +142,33 @@ class TestDataHandling(unittest.TestCase):
         )
         
         project_number = '0000 XXX - 222Set'
-        raw_data_path = '/path/to/raw/data2Set'
 
         # Update the data
         self.datatracker.set_data(
             project_spatial_id=project_spatial_id, 
-            project_number=project_number, 
-            raw_data_path=raw_data_path
+            project_number=project_number
         )
 
         # Check if the data was updated correctly
         updated_data = self.datatracker.get_data(project_spatial_id)
         self.assertEqual(updated_data['project_number'], project_number)
-        self.assertEqual(updated_data['raw_data_path'], raw_data_path)
         self.assertFalse(updated_data['in_raw_gdb'])
 
     def test_find_matching_spatial_id(self):
         # Test the find_matching_spatial_id method
         project_spatial_id = 3
         project_number = '0000 XXX - 333'
-        raw_data_path = '/path/to/raw/data3'
         raw_gdb_path = '/path/to/gdb.gdb'
+        abs_file_path = '/'
 
         # Test the method before adding the data
-        matching_spatial_id = self.datatracker.find_matching_spatial_id(raw_data_path)
+        matching_spatial_id = self.datatracker.find_matching_spatial_id(abs_file_path)
         self.assertIsNone(matching_spatial_id)
 
         # Add initial data
         self.datatracker.add_data(
             project_spatial_id=project_spatial_id, 
             project_number=project_number, 
-            raw_data_path=raw_data_path, 
             raw_gdb_path=raw_gdb_path,
             in_raw_gdb=False, 
             contains_pdf=False, 
@@ -185,7 +176,7 @@ class TestDataHandling(unittest.TestCase):
         )
 
         # Test the method again
-        matching_spatial_id = self.datatracker.find_matching_spatial_id(raw_data_path)
+        matching_spatial_id = self.datatracker.find_matching_spatial_id(abs_file_path)
         self.assertIsNotNone(matching_spatial_id)
         self.assertEqual(matching_spatial_id, 3)
 
@@ -193,14 +184,12 @@ class TestDataHandling(unittest.TestCase):
         # Test the count_occurances method        
         project_spatial_id = 4
         project_number = '0000 XXX - 444'
-        raw_data_path = '/path/to/raw/data4'
         raw_gdb_path = '/path/to/gdb.gdb'
 
         # Add initial data
         self.datatracker.add_data(
             project_spatial_id=project_spatial_id, 
             project_number=project_number, 
-            raw_data_path=raw_data_path, 
             raw_gdb_path=raw_gdb_path,
             in_raw_gdb=False, 
             contains_pdf=False, 
@@ -215,7 +204,6 @@ class TestDataHandling(unittest.TestCase):
         self.datatracker.add_data(
             project_spatial_id=44, 
             project_number=project_number, 
-            raw_data_path=raw_data_path, 
             raw_gdb_path=raw_gdb_path,
             in_raw_gdb=False, 
             contains_pdf=False, 
@@ -224,7 +212,6 @@ class TestDataHandling(unittest.TestCase):
         self.datatracker.add_data(
             project_spatial_id=444, 
             project_number=project_number, 
-            raw_data_path=raw_data_path, 
             raw_gdb_path=raw_gdb_path,
             in_raw_gdb=False, 
             contains_pdf=False, 
@@ -233,7 +220,6 @@ class TestDataHandling(unittest.TestCase):
         self.datatracker.add_data(
             project_spatial_id=4444, 
             project_number=project_number, 
-            raw_data_path=raw_data_path, 
             raw_gdb_path=raw_gdb_path,
             in_raw_gdb=False, 
             contains_pdf=False, 
@@ -248,7 +234,6 @@ class TestDataHandling(unittest.TestCase):
         # Test the create_project_spatial_id method
         project_spatial_id = 5
         project_number = '0000 XXX - 555'
-        raw_data_path = '/path/to/raw/data5'
         raw_gdb_path = '/path/to/gdb.gdb'
         
         # Test the method before addng the data, so it should be ..._1
@@ -259,7 +244,6 @@ class TestDataHandling(unittest.TestCase):
         self.datatracker.add_data(
             project_spatial_id=project_spatial_id, 
             project_number=project_number, 
-            raw_data_path=raw_data_path, 
             raw_gdb_path=raw_gdb_path,
             in_raw_gdb=False, 
             contains_pdf=False, 
@@ -270,7 +254,6 @@ class TestDataHandling(unittest.TestCase):
         self.datatracker.add_data(
             project_spatial_id=55, 
             project_number=project_number, 
-            raw_data_path=raw_data_path, 
             raw_gdb_path=raw_gdb_path,
             in_raw_gdb=False, 
             contains_pdf=False, 
@@ -285,14 +268,12 @@ class TestDataHandling(unittest.TestCase):
         # Test the load_data and _save_data methods
         project_spatial_id = 6
         project_number = '0000 XXX - 666'
-        raw_data_path = '/path/to/raw/data6'
         raw_gdb_path = '/path/to/gdb.gdb'
 
         # Add initial data
         self.datatracker.add_data(
             project_spatial_id=project_spatial_id, 
             project_number=project_number, 
-            raw_data_path=raw_data_path, 
             raw_gdb_path=raw_gdb_path,
             in_raw_gdb=False, 
             contains_pdf=False, 
@@ -308,7 +289,6 @@ class TestDataHandling(unittest.TestCase):
         # Check if the data was loaded correctly
         loaded_data = loaded_datatracker.get_data(project_spatial_id)
         self.assertEqual(loaded_data['project_number'], project_number)
-        self.assertEqual(loaded_data['raw_data_path'], raw_data_path)
         self.assertFalse(loaded_data['in_raw_gdb'])
         self.assertFalse(loaded_data['contains_pdf'])
         self.assertFalse(loaded_data['contains_image'])

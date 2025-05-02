@@ -49,12 +49,14 @@ arcpy_environment_python_path path/to/spatial_transformer.py [-h] --input_path i
 
 Example from root of project:
 ```
-python ./twobilliontoolkit/SpatialTransformer/spatial_transformer.py --input_path ./Testing/Data/TestFolder.zip --output_path ./Testing/OutputFolder --gdb_path ./Testing/OutputGDB.gdb --datatracker OutputDataSheet.xlsx --load datatracker --save datatracker --master ./MasterDatasheet --attachments ./Testing/Attachments --suppress
+python ./twobilliontoolkit/SpatialTransformer/spatial_transformer.py --input_path ./Testing/Data/TestFolder.zip --output_path ./Testing/OutputFolder --gdb_path ./Testing/OutputGDB.gdb --datatracker OutputDataSheet.xlsx --load datatracker --save datatracker --master ./MasterDatasheet --attachments ./Testing/Attachments --suppress --skip_unzip
 ```
+
+**Note**: If you include the --skip_unzip flag it will skip over unzipping and transfering the folders to a new location. It will keep the files where they are and the output location will be copied to what the input is.
 
 You also have the option of calling this function from a module import with the following syntax (you may need to use relative or absolute paths depending on your environment and where you are calling from):
 ```
-from twobilliontoolkit.Logger.logger import log, Colors
+from twobilliontoolkit.Logger.Logger import Logger
 from twobilliontoolkit.SpatialTransformer.Parameters import Parameters
 from twobilliontoolkit.SpatialTransformer.Processor import Processor
 from twobilliontoolkit.SpatialTransformer.spatial_transformer import spatial_transformer
@@ -68,12 +70,20 @@ gdb_path ="./Testing/geodatabase.gdb"
 datatracker = "datatracker.xlsx"
 debug = True
 resume = False
+skip_unzip = False
 suppress = True
+
+# Create the logger
+logger = Logger(
+    log_file=log_file, is_absolute_path=False, seperate_logs=True, suppress_warnings=suppress, auto_commit=True, tool_name=os.path.abspath(__file__)
+)
+        
 
 # Call the spatial_transformer function
 spatial_transformer(
-    input_path=input_path, output_path=output_path, load=load_from, save=save_to, gdb_path=gdb_path, datatracker=datatracker, debug=debug, resume=resume, suppress=suppress
+    input_path=input_path, output_path=output_path, load_from=load, save_to=save, gdb_path=gdb_path, datatracker=datatracker, attachments=attachments, master_data_path=master, logger=logger, database_config=ini, year=year, debug=debug, resume=resume, skip_unzip=skip_unzip
 )
+    
 ```
 
 ## Configuration
