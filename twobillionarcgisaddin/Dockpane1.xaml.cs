@@ -10,6 +10,7 @@ using ArcGIS.Desktop.Framework.Dialogs;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Internal.Mapping;
 using ArcGIS.Desktop.Internal.Mapping.CommonControls;
+using ArcGIS.Desktop.Layouts;
 using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
 using System;
@@ -75,7 +76,7 @@ namespace twobillionarcgisaddin
             private string _objectIDColumn;
             private string? _year;
             private string? _projectNum;
-            private bool _removedEntries;
+            //private bool _removedEntries;
             private bool _removedSites;
             private bool _disabled;
 
@@ -157,18 +158,18 @@ namespace twobillionarcgisaddin
                 }
             }
 
-            public bool RemovedEntries
-            {
-                get { return _removedEntries; }
-                set
-                {
-                    if (_removedEntries != value)
-                    {
-                        _removedEntries = value;
-                        OnPropertyChanged(nameof(RemovedEntries));
-                    }
-                }
-            }
+            //public bool RemovedEntries
+            //{
+            //    get { return _removedEntries; }
+            //    set
+            //    {
+            //        if (_removedEntries != value)
+            //        {
+            //            _removedEntries = value;
+            //            OnPropertyChanged(nameof(RemovedEntries));
+            //        }
+            //    }
+            //}
 
             public bool RemovedSites
             {
@@ -440,83 +441,125 @@ namespace twobillionarcgisaddin
         {
             try
             {
-                // Disable the button (spam prevention)
                 this.ImportDataButton.IsEnabled = false;
-
-                // Store the active map and connection file path in variables
                 Map map = MapView.Active.Map;
                 Uri uri = new Uri(this.ArcConnectionFilePath.Text);
+                string databaseSchema = this.DatabaseSchema.Text.Trim();
 
-                // loop through each entry in the dictionary
-                foreach (DataLayer entry in dataLayersToAdd)
+                foreach (DataLayer entry in dataLayersToAdd.Where(e => !e.Disabled))
                 {
-                    if (entry.Disabled)
+                    try
                     {
-                        continue;
-                    }
+                        string dataset = $"{databaseSchema}.{entry.Table}";
+                        string sqlQuery = BuildSqlQuery(entry, databaseSchema, dataset);
 
-                    // Build the database query based on parameters
-                    string databaseSchema = this.DatabaseSchema.Text.Trim();
-                    string dataset = $"{databaseSchema}.{entry.Table}";
-                    var sqlQueryBuilder = new StringBuilder($@"SELECT si.*, sii.site_name, sii.project_number, sii.year, sii.salesforce_removed FROM {dataset} si INNER JOIN {databaseSchema}.site_id sii ON si.site_id = sii.site_id"
-                    );
-
-                    List<string> conditions = new List<string>();
-
-                    if (!string.IsNullOrEmpty(entry.Year))
-                    {
-                        conditions.Add($"sii.year = '{int.Parse(entry.Year)}'");
-                    }
-                    if (!string.IsNullOrEmpty(entry.ProjectNum))
-                    {
-                        conditions.Add($"sii.project_number = '{entry.ProjectNum}'");
-                    }
-                    if (!entry.RemovedEntries)
-                    {
-                        conditions.Add($"si.dropped = FALSE");
-                    }
-                    if (!entry.RemovedSites)
-                    {
-                        conditions.Add($"sii.salesforce_removed = FALSE");
-                    }
-
-                    if (conditions.Count > 0)
-                    {
-                        sqlQueryBuilder.Append(" WHERE " + string.Join(" AND ", conditions));
-                    } 
-
-                    string sqlQuery = sqlQueryBuilder.ToString();
-
-                    await QueuedTask.Run(() =>
-                    {
-                        Geodatabase geodatabase = new Geodatabase(new DatabaseConnectionFile(uri));
-
-                        CIMSqlQueryDataConnection sqlDataConnection = new CIMSqlQueryDataConnection()
+                        await QueuedTask.Run(() =>
                         {
-                            WorkspaceConnectionString = geodatabase.GetConnectionString(),
-                            GeometryType = entry.GeomType,
-                            OIDFields = entry.ObjectIDColumn,
-                            Srid = "102001",
-                            SqlQuery = sqlQuery,
-                            Dataset = dataset
-                        };
-
-                        var layerParameters = new LayerCreationParams(sqlDataConnection)
-                        {
-                            Name = entry.Name
-                        };
-
-                        FeatureLayer featureLayer = LayerFactory.Instance.CreateLayer<FeatureLayer>(layerParameters, map);
-                    });
+                            try
+                            {
+                                CreateFeatureLayer(uri, sqlQuery, dataset, entry, map);
+                            }
+                            catch (Exception ex)
+                            {
+                                // Log the specific error for this layer
+                                System.Diagnostics.Debug.WriteLine($"Error creating layer {entry.Name}: {ex.Message}");
+                                throw; // Re-throw to be caught by the outer catch
+                            }
+                        });
+                    }
+                    catch (Exception layerEx)
+                    {
+                        // Handle per-layer exceptions but continue processing other layers
+                        ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show(
+                            $"Error with layer '{entry.Name}': {layerEx.Message}",
+                            "Layer Error");
+                    }
                 }
             }
             catch (Exception ex)
             {
-                // Handle any exceptions that occur during tool execution
                 ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show($"Error: {ex.Message}", "Error");
             }
+            finally
+            {
+                this.ImportDataButton.IsEnabled = true;
+            }
+        }
 
-            this.ImportDataButton.IsEnabled = true;
+        // Method was needed becuase an issue arose where site_geometry needed to cast added_by to text specifically
+        private string GetColumnsForTable(string tableName, string tableAlias)
+        {
+            switch (tableName.ToLower())
+            {
+                case "bt.site_geometry":
+                    return $"{tableAlias}.id, {tableAlias}.site_id, {tableAlias}.geom, {tableAlias}.dropped, " +
+                           $"{tableAlias}.created_by, {tableAlias}.created_at, {tableAlias}.edited_by, {tableAlias}.edited_at, " +
+                           $"{tableAlias}.area_ha, {tableAlias}.duplicate_geometry_ids, {tableAlias}.added_by::TEXT";
+                // Add cases for other tables with their specific column requirements
+                default:
+                    return $"{tableAlias}.*"; // Default fallback to all columns when no special handling is needed
+            }
+        }
+
+        private string BuildSqlQuery(DataLayer entry, string databaseSchema, string dataset)
+        {
+            string tableColumns = GetColumnsForTable(dataset, "si");
+
+            var sqlQueryBuilder = new StringBuilder($@"
+                SELECT 
+                    {tableColumns}, 
+                    sii.site_name, 
+                    sii.project_number, 
+                    sii.year, 
+                    sii.salesforce_removed 
+                FROM {dataset} si 
+                INNER JOIN {databaseSchema}.site_id sii 
+                    ON si.site_id = sii.site_id");
+
+            var conditions = new List<string>();
+
+            if (!string.IsNullOrEmpty(entry.Year))
+            {
+                conditions.Add($"sii.year = '{int.Parse(entry.Year)}'");
+            }
+            if (!string.IsNullOrEmpty(entry.ProjectNum))
+            {
+                conditions.Add($"sii.project_number = '{entry.ProjectNum}'");
+            }
+            if (!entry.RemovedSites)
+            {
+                conditions.Add($"sii.salesforce_removed = FALSE");
+            }
+
+            if (conditions.Count > 0)
+            {
+                sqlQueryBuilder.Append(" WHERE " + string.Join(" AND ", conditions));
+            }
+
+            return sqlQueryBuilder.ToString();
+        }
+
+        private void CreateFeatureLayer(Uri uri, string sqlQuery, string dataset, DataLayer entry, Map map)
+        {
+            Geodatabase geodatabase = new Geodatabase(new DatabaseConnectionFile(uri));
+
+            CIMSqlQueryDataConnection sqlDataConnection = new CIMSqlQueryDataConnection()
+            {
+                WorkspaceConnectionString = geodatabase.GetConnectionString(),
+                GeometryType = entry.GeomType,
+                OIDFields = entry.ObjectIDColumn,
+                Srid = "102001",
+                SqlQuery = sqlQuery,
+                Dataset = dataset, // Use a property from DataLayer to specify the geometry field
+                DatasetType = esriDatasetType.esriDTFeatureClass
+            };
+
+            var layerParameters = new LayerCreationParams(sqlDataConnection)
+            {
+                Name = entry.Name
+            };
+
+            FeatureLayer featureLayer = LayerFactory.Instance.CreateLayer<FeatureLayer>(layerParameters, map);
         }
 
         // Method to handle the click event of the SiteMapper button
@@ -1402,7 +1445,7 @@ namespace twobillionarcgisaddin
                 ObjectIDColumn = "id",
                 Year = null,
                 ProjectNum = null,
-                RemovedEntries = false,
+                //RemovedEntries = false,
                 RemovedSites = false,
                 Disabled = false
             });
@@ -1415,7 +1458,7 @@ namespace twobillionarcgisaddin
                 ObjectIDColumn = "id",
                 Year = null,
                 ProjectNum = null,
-                RemovedEntries = false,
+                //RemovedEntries = false,
                 RemovedSites = false,
                 Disabled = false
             });
@@ -1428,7 +1471,7 @@ namespace twobillionarcgisaddin
                 ObjectIDColumn = "id",
                 Year = null,
                 ProjectNum = null,
-                RemovedEntries = false,
+                //RemovedEntries = false,
                 RemovedSites = false,
                 Disabled = false
             });

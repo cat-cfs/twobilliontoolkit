@@ -161,8 +161,8 @@
                                 <TextBlock Grid.Row="3" Grid.Column="0" Text="Object ID Column:" Margin="5"/>
                                 <TextBlock Grid.Row="4" Grid.Column="0" Text="Year:" Margin="5"/>
                                 <TextBlock Grid.Row="5" Grid.Column="0" Text="Project Number:" Margin="5"/>
-                                <TextBlock Grid.Row="6" Grid.Column="0" Text="Display Removed Polygons:" Margin="5"/>
-                                <TextBlock Grid.Row="7" Grid.Column="0" Text="Display Removed SiteIDs:" Margin="5"/>
+                                <!-- <TextBlock Grid.Row="6" Grid.Column="0" Text="Display Removed Polygons:" Margin="5"/> -->
+                                <TextBlock Grid.Row="6" Grid.Column="0" Text="Display Removed SiteIDs:" Margin="5"/>
 
                                 <!-- Data Items -->
                                 <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Table, Mode=TwoWay}" Margin="5" FontWeight="Normal"/>
@@ -171,8 +171,8 @@
                                 <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding ObjectIDColumn, Mode=TwoWay}" Margin="5" FontWeight="Normal"/>
                                 <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding Year, Mode=TwoWay}" Margin="5" FontWeight="Normal"/>
                                 <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding ProjectNum, Mode=TwoWay}" Margin="5" FontWeight="Normal"/>
-                                <CheckBox Grid.Row="6" Grid.Column="1" IsChecked="{Binding RemovedEntries, Mode=TwoWay}" Margin="5" FontWeight="Normal"/>
-                                <CheckBox Grid.Row="7" Grid.Column="1" IsChecked="{Binding RemovedSites, Mode=TwoWay}" Margin="5" FontWeight="Normal"/>
+                                <!-- <CheckBox Grid.Row="6" Grid.Column="1" IsChecked="{Binding RemovedEntries, Mode=TwoWay}" Margin="5" FontWeight="Normal"/> -->
+                                <CheckBox Grid.Row="6" Grid.Column="1" IsChecked="{Binding RemovedSites, Mode=TwoWay}" Margin="5" FontWeight="Normal"/>
 
                             </Grid>
                         </DataTemplate>

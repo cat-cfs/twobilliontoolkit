@@ -15,6 +15,7 @@
       <groups>
         <group id="TwoBillionTrees_Group1" caption="Group 1" appearsOnAddInTab="true" keytip="TwoBillionTrees">
           <button refID="TwoBillionTrees_ShowButton" size="large" />
+          <button refID="twobillionarcgisaddin_Button1" size="large" />
         </group>
       </groups>
       <controls>
