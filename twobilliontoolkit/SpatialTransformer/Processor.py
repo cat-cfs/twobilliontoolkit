@@ -81,13 +81,13 @@ class Processor:
                 if dir.endswith('.gdb'):
                     # Set the workspace to the specified .gdb
                     arcpy.env.workspace = directory_path
-                                        
+                      
                     # Iterate through the feature classes and tables
                     feature_tables = arcpy.ListTables()
                     feature_classes = arcpy.ListFeatureClasses()
                     for feature in feature_classes + feature_tables:
                         if arcpy.Exists(feature) and arcpy.Describe(feature).dataType == 'FeatureClass':
-                            project_spatial_id = self.create_entry(directory_path, f"{directory_path}\{feature}")
+                            project_spatial_id = self.create_entry(f"{directory_path}\{feature}")
                         
                     # Remove the gdb from the dirs list so it doesnt walk through    
                     dirs.remove(dir)
@@ -108,28 +108,28 @@ class Processor:
                         continue
                      
                 if lowercase_file.endswith(LAYOUT_FILE_EXTENSIONS):
-                    project_spatial_id = self.create_entry(file_path, file_path, entry_type='Aspatial', processed=True)
+                    project_spatial_id = self.create_entry(feature_path=file_path, entry_type='Aspatial', processed=True)
                     
                     # Log it
                     self.params.logger.log(message=f'- Project Spatial ID: {project_spatial_id} - Layout file: {file_path} will be added to data tracker but not resulting gdb.', tag='WARNING')   
                 
                 elif lowercase_file.endswith(DATA_SHEET_EXTENSIONS):
-                    project_spatial_id = self.create_entry(file_path, file_path, entry_type='Aspatial', processed=True)
+                    project_spatial_id = self.create_entry(feature_path=file_path, entry_type='Aspatial', processed=True)
                                         
                     # Log it
                     self.params.logger.log(message=f'- Project Spatial ID: {project_spatial_id} - Datasheet: {file_path} will be added to data tracker but not resulting gdb.', tag='WARNING')
                                                             
                 elif lowercase_file.endswith(IMAGE_FILE_EXTENSIONS):
                     if lowercase_file.endswith('.pdf'):
-                        project_spatial_id = self.create_entry(file_path, file_path, contains_pdf=True, entry_type='Aspatial', processed=True)                
+                        project_spatial_id = self.create_entry(feature_path=file_path, contains_pdf=True, entry_type='Aspatial', processed=True)                
                     else:
-                        project_spatial_id = self.create_entry(file_path, file_path, contains_image=True, entry_type='Aspatial', processed=True)
+                        project_spatial_id = self.create_entry(feature_path=file_path, contains_image=True, entry_type='Aspatial', processed=True)
                                            
                     # Log it
                     self.params.logger.log(message=f'- Project Spatial ID: {project_spatial_id} - Image/PDF file: {file_path} will be added to data tracker but not resulting gdb.', tag='WARNING')
                      
                 elif lowercase_file.endswith('.shp'):
-                    project_spatial_id = self.create_entry(file_path, file_path)
+                    project_spatial_id = self.create_entry(feature_path=file_path)
                       
                 elif lowercase_file.endswith(('.kml', '.kmz')):
                     try:
@@ -154,11 +154,11 @@ class Processor:
                                         contain_linestring = True
                                         
                         if contain_point:
-                            project_spatial_id = self.create_entry(f"{file_path}\Points", f"{file_path}\Points")
+                            project_spatial_id = self.create_entry(f"{file_path}\Points")
                         if contain_polygon:
-                            project_spatial_id = self.create_entry(f"{file_path}\Polygons", f"{file_path}\Polygons")
+                            project_spatial_id = self.create_entry(f"{file_path}\Polygons")
                         if contain_linestring:
-                            project_spatial_id = self.create_entry(f"{file_path}\Lines", f"{file_path}\Lines")
+                            project_spatial_id = self.create_entry(f"{file_path}\Lines")
                     except Exception as error:
                         message = f'KML/KMZ file: {file_path} has encountered an error when making a datatracker entry. {error}'
                         if project_spatial_id:
@@ -166,10 +166,10 @@ class Processor:
                         self.params.logger.log(message=message, tag='ERROR')
                                             
                 elif lowercase_file.endswith('.geojson'):
-                    project_spatial_id = self.create_entry(file_path, file_path)
+                    project_spatial_id = self.create_entry(file_path)
                     
                 elif lowercase_file.endswith(('.gpkg', '.sqlite')):
-                    project_spatial_id = self.create_entry(file_path, file_path, processed=True)
+                    project_spatial_id = self.create_entry(feature_path=file_path, processed=True)
                                         
                     # Log it
                     self.params.logger.log(message=f'- Project Spatial ID: {project_spatial_id} - GeoPackage/SQLite file: {file_path} will be added to data tracker but not resulting gdb.', tag='WARNING')
@@ -178,14 +178,13 @@ class Processor:
                     # Log it
                     self.params.logger.log(message=f'Unsupported Filetype: {file_path} has been found and logged but not added to the datatracker or the geodatabase because it is not implemented or supported.', tag='WARNING')
     
-    def create_entry(self, absolute_path: str, feature_path: str, in_raw_gdb: bool = False, contains_pdf: bool = False, contains_image: bool = False, entry_type: str = 'Spatial', processed: bool = False) -> str:
+    def create_entry(self, feature_path: str, in_raw_gdb: bool = False, contains_pdf: bool = False, contains_image: bool = False, entry_type: str = 'Spatial', processed: bool = False) -> str:
         """
         Creates a new entry in the data dictionary for spatial data processing.
 
         This function generates a unique project spatial ID, formats the paths, processes raw data matching, and adds the entry to the data dictionary with the given attributes.
 
         Args:
-            absolute_path (str): The absolute path of the input file.
             feature_path (str): The path to the feature data.
             in_raw_gdb (bool): Indicates if the data is in the raw geodatabase format. Default is False.
             contains_pdf (bool): Indicates if the entry contains a PDF. Default is False.
@@ -209,7 +208,7 @@ class Processor:
             self.params.logger.log(message=formatted_project_spatial_id, tag='INFO')
         
         # Convert the absolute path to the correct drive path format
-        absolute_file_path = convert_drive_path(absolute_path)
+        absolute_file_path = convert_drive_path(feature_path)
 
         # Call a method to process raw data matching
         self.call_find_match(formatted_project_spatial_id, absolute_file_path)
@@ -262,12 +261,18 @@ class Processor:
                 entry_data_basename = os.path.basename(entry_absolute_path)
                 
                 # Check the file type and export features accordingly
-                if entry_absolute_path.endswith('.gdb'):
+                if os.path.dirname(entry_absolute_path).endswith('.gdb'):
                     # Export features from one geodatabase to the output geodatabase
-                    arcpy.conversion.ExportFeatures(
-                        os.path.join(self.params.output, entry_data_basename),
-                        feature_gdb_path
-                    )
+                    if os.path.exists(os.path.join(self.params.output, entry_data_basename)):
+                        arcpy.conversion.ExportFeatures( # Used for old implementation (still used in case an edge case will use this)
+                            os.path.join(self.params.output, entry_data_basename),
+                            feature_gdb_path
+                        )
+                    else:
+                        arcpy.conversion.ExportFeatures(
+                            entry_absolute_path,
+                            feature_gdb_path
+                        )
 
                 elif entry_absolute_path.endswith('.shp'):
                     # Export features from shapefile to the output geodatabase
@@ -276,7 +281,7 @@ class Processor:
                         feature_gdb_path
                     )
                                     
-                elif entry_absolute_path.endswith(('.kml', '.kmz', 'Polygons', 'Points', 'Lines')):
+                elif os.path.dirname(entry_absolute_path).endswith(('.kml', '.kmz')):
                     # Initialize an empty GeoDataFrame
                     data = gpd.GeoDataFrame()
 
@@ -448,6 +453,10 @@ def convert_drive_path(file_path):
     """
     abs_file_path = os.path.abspath(file_path)
     actual_drive_path = abs_file_path
+
+    if actual_drive_path.startswith('C:'):
+        # If the path starts with C:\, it is already in UNC format
+        return actual_drive_path
 
     try:
         # Extract drive letter from absolute file path
