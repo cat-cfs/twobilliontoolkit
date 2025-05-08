@@ -96,19 +96,6 @@ do {
         }
         "3" {
             Write-Host "Running Spatial Transformer..."
-            # if ($debug_mode) 
-            # {
-            #     Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --ini "$database_config" --suppress --debug --ps_script "$script_location" --year "$year"
-            #     Write-Host
-            #     & $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --ini "$database_config" --suppress --debug --ps_script "$script_location" --year "$year"
-            
-            # }
-            # else 
-            # {
-            #     Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker_path" --master "$master_data" --ini "$database_config" --suppress --ps_script "$script_location" --year "$year"
-            #     Write-Host
-            #     & $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker_path" --master "$master_data" --ini "$database_config" --suppress --ps_script "$script_location" --year "$year"
-            # }
             
             # Construct the base command arguments
             $args = @(
@@ -142,18 +129,33 @@ do {
         }
         "4" {
             Write-Host "Resuming Spatial Transformer from failure..."
-            if ($debug_mode)
-            {
-                Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --ini "$database_config" --suppress --debug --resume --ps_script "$script_location" --year "$year"
-                Write-Host
-                & $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --ini "$database_config" --suppress --debug --resume --ps_script "$script_location" --year "$year"
-            }
-            else
-            {
-                Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --ini "$database_config" --suppress --resume --ps_script "$script_location" --year "$year"
-                Write-Host
-                & $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" --load $load --save $save --input_path "$input_path" --output_path "$output_path" --gdb_path "$gdb_path" --datatracker "$datatracker" --master "$master_data" --ini "$database_config" --suppress --resume --ps_script "$script_location" --year "$year"
-            }
+
+            # Construct the base command arguments
+            $args = @(
+                "--load", $load
+                "--save", $save
+                "--input_path", "$input_path"
+                "--output_path", "$output_path"
+                "--gdb_path", "$gdb_path"
+                "--datatracker", "$datatracker"
+                "--master", "$master_data"
+                "--ini", "$database_config"
+                "--ps_script", "$script_location"
+                "--year", "$year"
+            )
+
+            # Conditionally add flags
+            if ($skip_unzip) { $args += "--skip_unzip" }
+            if ($debug)      { $args += "--debug" }
+            if ($suppress)   { $args += "--suppress" }
+
+            # Print out the command
+            Write-Host $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" @args --resume
+            Write-Host
+            
+            # Execute the command
+            & $python_exe "$toolkit_dir\twobilliontoolkit\SpatialTransformer\spatial_transformer.py" @args --resume
+
             Write-Host
             Write-Host "The SpatialTransformer has completed its processing!"
             Pause
