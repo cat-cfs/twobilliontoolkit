@@ -33,7 +33,7 @@ namespace twobillionarcgisaddin
         }
 
         // Add this function to populate the DataGrid with the dictionary
-        public void PopulateDataGrid(DataContainer container, Dictionary<string, string> filter = null, string siteNameFitler = null)
+        public void PopulateDataGrid(DataContainer container, Dictionary<string, string> filter = null, string siteNameFilter = null)
         {
             // Clear existing rows in the DataGrid
             this.ProjectItems.Clear();
@@ -44,10 +44,10 @@ namespace twobillionarcgisaddin
                 if  ( filter == null || (
                     (string.IsNullOrEmpty(filter["ProjectNumber"]) || filter["ProjectNumber"] == entry.ProjectNumber) &&
                     (string.IsNullOrEmpty(filter["SiteID"]) || filter["SiteID"] == entry.SiteID) &&
-                    (string.IsNullOrEmpty(filter["Year"]) || entry.SiteID.StartsWith(filter["Year"][filter["Year"].Length - 1])
-                    )))
+                    (string.IsNullOrEmpty(filter["Year"]) || filter["Year"] == entry.Year)
+                    ))
                 {
-                    if (string.IsNullOrEmpty(siteNameFitler) || entry.SiteName.ToLower().StartsWith(siteNameFitler.ToLower()))
+                    if (string.IsNullOrEmpty(siteNameFilter) || entry.SiteName.ToLower().StartsWith(siteNameFilter.ToLower()))
                     {
                         // Add the object to the DataGrid
                         this.ProjectItems.Add(entry);

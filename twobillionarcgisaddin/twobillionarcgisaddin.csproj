@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>net6.0-windows</TargetFramework>
+		<TargetFramework>net8.0-windows</TargetFramework>
 		<UseWPF>true</UseWPF>
-		<RuntimeIdentifier>win10-x64</RuntimeIdentifier>
+		<RuntimeIdentifier>win11-x64</RuntimeIdentifier>
 		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 		<NoWarn>CA1416</NoWarn>
@@ -14,6 +14,7 @@
 		<None Remove="Images\cat2.png" />
 		<None Remove="Images\folder.png" />
 		<None Remove="Images\question.png" />
+		<None Remove="Images\cat_gif.gif" />
 	</ItemGroup>
 	<ItemGroup>
 		<Content Include="Config.daml" />
@@ -35,11 +36,15 @@
 		<Resource Include="Images\question.png">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Resource>
+		<Resource Include="Images\cat_gif.gif">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Resource>
 		<Content Include="DarkImages\AddInDesktop16.png" />
 		<Content Include="DarkImages\AddInDesktop32.png" />
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="WpfAnimatedGif" Version="2.0.2" />
 	</ItemGroup>
 	<ItemGroup>
 		<Reference Include="ArcGIS.Desktop.Framework">

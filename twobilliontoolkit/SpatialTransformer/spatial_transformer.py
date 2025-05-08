@@ -44,7 +44,7 @@ from twobilliontoolkit.NetworkTransfer.network_transfer import network_transfer
 #========================================================
 # Entry Function
 #========================================================  
-def spatial_transformer(input_path: str, output_path: str, load_from: str, save_to: str, gdb_path: str, datatracker: str, attachments: str, master_data_path: str, logger: Logger, database_config: str = None, year: str = None, debug: bool = False, resume: bool = False) -> None:
+def spatial_transformer(input_path: str, output_path: str, load_from: str, save_to: str, gdb_path: str, datatracker: str, attachments: str, master_data_path: str, logger: Logger, database_config: str = None, year: str = None, debug: bool = False, resume: bool = False, skip_unzip: bool = False) -> None:
     """
     The spatial_transformer function serves as the main entry point for the spatial transformation script. Its primary purpose is to handle various tasks related to spatial data processing, such as starting the ripple_unzipple tool and geodatabase creation.
 
@@ -74,10 +74,15 @@ def spatial_transformer(input_path: str, output_path: str, load_from: str, save_
             
         # Initialize Parameters class
         setup_parameters = Parameters(input_path, output_path, gdb_path, master_data_path, datatracker, attachments, logger, load_from, save_to, database_config, year,debug, resume)
-        
+
         # Start the unzip tool 
-        setup_parameters.handle_unzip()
-        logger.log(message=f'Ripple Unzipple has completed extracted the files. Now starting to create the datatracker entries from the files. Time: {datetime.datetime.now().strftime("%H:%M:%S")}', tag='INFO')
+        if skip_unzip:
+            setup_parameters.output = setup_parameters.input
+            logger.log(message=f'Skipping Ripple Unzipple, output is being set as the input. Now starting to create the datatracker entries from the files. Time: {datetime.datetime.now().strftime("%H:%M:%S")}', tag='INFO')
+        else:
+            setup_parameters.handle_unzip()
+            logger.log(message=f'Ripple Unzipple has completed extracted the files. Now starting to create the datatracker entries from the files. Time: {datetime.datetime.now().strftime("%H:%M:%S")}', tag='INFO')
+        
 
         # Create the GDB
         setup_parameters.create_gdb()
@@ -167,6 +172,7 @@ def main():
     parser.add_argument('--year', default='', help='The year that the planting occured for the entry.')
     parser.add_argument('--debug', action='store_true', default=False, help='Enable debug mode.')
     parser.add_argument('--resume', action='store_true', default=False, help='Resume from where a crash happened.')
+    parser.add_argument('--skip_unzip', action='store_true', default=False, help='Skip the recursive unzipping process if your input is already processed or unzipped. This will also overwrite your output location with the input.')
     parser.add_argument('--suppress', action='store_true', default=False, help='Suppress Warnings in the command-line and only show Errors.')
     parser.add_argument('--ps_script', default='', help='The location of the script to run commands if used.')
     
@@ -184,7 +190,7 @@ def main():
     logger.log(message=f'Tool is starting... Time: {datetime.datetime.now().strftime("%H:%M:%S")}', tag='INFO')
         
     # Call the entry function
-    spatial_transformer(input_path=args.input_path, output_path=args.output_path, load_from=args.load, save_to=args.save, gdb_path=args.gdb_path, datatracker=args.datatracker, attachments=args.attachments, master_data_path=args.master, logger=logger, database_config=args.ini, year=args.year, debug=args.debug, resume=args.resume)
+    spatial_transformer(input_path=args.input_path, output_path=args.output_path, load_from=args.load, save_to=args.save, gdb_path=args.gdb_path, datatracker=args.datatracker, attachments=args.attachments, master_data_path=args.master, logger=logger, database_config=args.ini, year=args.year, debug=args.debug, resume=args.resume, skip_unzip=args.skip_unzip)
     
     # Get the end time of the script and calculate the elapsed time
     end_time = time.time()

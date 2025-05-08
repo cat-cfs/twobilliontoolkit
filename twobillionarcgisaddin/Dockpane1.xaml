@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"   
              xmlns:ui="clr-namespace:twobillionarcgisaddin"
+             xmlns:gif="http://wpfanimatedgif.codeplex.com"
              xmlns:extensions="clr-namespace:ArcGIS.Desktop.Extensions;assembly=ArcGIS.Desktop.Extensions"
              mc:Ignorable="d" 
              d:DesignHeight="500" d:DesignWidth="300"
@@ -60,6 +61,9 @@
                     <Label Content="Meow" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,140,20" FontSize="20"/>
                     <Image Source="pack://application:,,,/twobillionarcgisaddin;component/Images/cat.png" Height="80"/>
                 </Grid>
+
+                <!-- <Image DockPanel.Dock="Top" gif:ImageBehavior.AnimatedSource="pack://application:,,,/twobillionarcgisaddin;component/Images/cat_gif.gif"/>-->
+
             </DockPanel>
 
             <!-- DockPanel for Button Tool List -->
@@ -129,7 +133,7 @@
                     <Label Content="Import 2BT Data" Grid.Row="0" HorizontalAlignment="Center" FontSize="17" FontWeight="Normal" Style="{StaticResource LabelStyle}"/>
                 </Grid>
 
-                <Label Content="Data layers being added to the map" FontSize="15" FontWeight="Normal" DockPanel.Dock="Top"/>
+                <Label Content="Data layers being added to the map:" FontSize="15" FontWeight="Bold" DockPanel.Dock="Top"/>
                 <ListBox x:Name="DataLayers" ItemsSource="{Binding dataLayersToAdd, Mode=TwoWay}" DockPanel.Dock="Top" AlternationCount="2">
 
                     <ListBox.ItemTemplate>
@@ -146,6 +150,8 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
                                 <!-- Labels -->
@@ -155,6 +161,8 @@
                                 <TextBlock Grid.Row="3" Grid.Column="0" Text="Object ID Column:" Margin="5"/>
                                 <TextBlock Grid.Row="4" Grid.Column="0" Text="Year:" Margin="5"/>
                                 <TextBlock Grid.Row="5" Grid.Column="0" Text="Project Number:" Margin="5"/>
+                                <!-- <TextBlock Grid.Row="6" Grid.Column="0" Text="Display Removed Polygons:" Margin="5"/> -->
+                                <TextBlock Grid.Row="6" Grid.Column="0" Text="Display Removed SiteIDs:" Margin="5"/>
 
                                 <!-- Data Items -->
                                 <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Table, Mode=TwoWay}" Margin="5" FontWeight="Normal"/>
@@ -163,6 +171,8 @@
                                 <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding ObjectIDColumn, Mode=TwoWay}" Margin="5" FontWeight="Normal"/>
                                 <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding Year, Mode=TwoWay}" Margin="5" FontWeight="Normal"/>
                                 <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding ProjectNum, Mode=TwoWay}" Margin="5" FontWeight="Normal"/>
+                                <!-- <CheckBox Grid.Row="6" Grid.Column="1" IsChecked="{Binding RemovedEntries, Mode=TwoWay}" Margin="5" FontWeight="Normal"/> -->
+                                <CheckBox Grid.Row="6" Grid.Column="1" IsChecked="{Binding RemovedSites, Mode=TwoWay}" Margin="5" FontWeight="Normal"/>
 
                             </Grid>
                         </DataTemplate>
@@ -221,7 +231,7 @@
                     <Button x:Name="SiteMapperProjectNumberClearButton" Content="Clear" Click="SiteMapperClearButtonClicked" ToolTip="Clear the below dropdown" Style="{StaticResource ButtonStyle2}" Template="{StaticResource ButtonTemplate2}"  Width="55" HorizontalAlignment="Right" IsEnabled="True"/>
                 </Grid>
 
-                <ComboBox x:Name="ProjectNumber_Dropdown" Background="{DynamicResource Esri_ControlBackgroundBrush}" Foreground="{DynamicResource Esri_TextMenuBrush}" SelectionChanged="SiteMapperProjectNumberFilterChanged" DockPanel.Dock="Top" Height="55" FontWeight="Normal" IsEditable="True" KeyUp="SiteMapperProjectNumberFilterKeyUp" StaysOpenOnEdit="True">
+                <ComboBox x:Name="ProjectNumber_Dropdown" Background="{DynamicResource Esri_ControlBackgroundBrush}" Foreground="{DynamicResource Esri_TextStyleEmphasisBrush}" SelectionChanged="SiteMapperProjectNumberFilterChanged" DockPanel.Dock="Top" Height="55" FontWeight="Normal" IsEditable="True" KeyUp="SiteMapperProjectNumberFilterKeyUp" StaysOpenOnEdit="True">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding}" Padding="10,0,0,0" Foreground="{DynamicResource Esri_TextStyleEmphasisBrush}"/>

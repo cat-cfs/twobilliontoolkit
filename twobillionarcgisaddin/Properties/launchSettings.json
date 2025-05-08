@@ -3,7 +3,7 @@
     "twobillionarcgisaddin": {
       "commandName": "Executable",
       "executablePath": "$(USERPROFILE)\\AppData\\Local\\Programs\\ArcGIS\\Pro\\bin\\ArcGISPro.exe",
-      "commandLineArgs": "$(USERPROFILE)\\Documents\\ArcGIS\\Projects\\viewer\\viewer.aprx"
+      "commandLineArgs": "$(USERPROFILE)\\Documents\\ArcGIS\\Projects\\Main\\Main.aprx"
     }
   }
 }

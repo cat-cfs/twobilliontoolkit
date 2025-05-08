@@ -37,6 +37,8 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <!-- Table -->
@@ -63,7 +65,15 @@
             <TextBlock Grid.Row="5" Grid.Column="0" Text="Project Number:" VerticalAlignment="Center" Margin="0,0,0,10" FontWeight="Bold"/>
             <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding ProjectNum, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBoxStyle}" Margin="10,0,0,10"/>
 
-            <Button Grid.Row="6" Grid.ColumnSpan="2" Content="Close" Click="CloseButton_Click" Template="{StaticResource ButtonTemplate}" Style="{StaticResource ButtonStyle}"/>
+            <!-- Removed Entries Column -->
+            <!--<TextBlock Grid.Row="6" Grid.Column="0" Text="Include Data Entries Removed:" VerticalAlignment="Center" Margin="0,0,0,10" FontWeight="Bold"/>
+            <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding RemovedEntries, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBoxStyle}" Margin="10,0,0,10"/> -->
+
+            <!-- Removed Sites Column -->
+            <TextBlock Grid.Row="6" Grid.Column="0" Text="Include Sites Removed:" VerticalAlignment="Center" Margin="0,0,0,10" FontWeight="Bold"/>
+            <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding RemovedSites, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBoxStyle}" Margin="10,0,0,10"/>
+
+            <Button Grid.Row="7" Grid.ColumnSpan="2" Content="Close" Click="CloseButton_Click" Template="{StaticResource ButtonTemplate}" Style="{StaticResource ButtonStyle}"/>
         </Grid>
     </Grid>
 </controls:ProWindow>

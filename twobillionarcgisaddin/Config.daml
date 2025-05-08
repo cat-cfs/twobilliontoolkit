@@ -1,5 +1,5 @@
 ﻿<ArcGIS defaultAssembly="twobillionarcgisaddin.dll" defaultNamespace="twobillionarcgisaddin" xmlns="http://schemas.esri.com/DADF/Registry" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schemas.esri.com/DADF/Registry file:///C:/Users/arodway/AppData/Local/Programs/ArcGIS/Pro/bin/ArcGIS.Desktop.Framework.xsd">
-  <AddInInfo id="{497c2e89-3e66-4ea6-a5f6-c5e3f5c6b8cb}" version="1.0" desktopVersion="3.1.41833">
+  <AddInInfo id="{497c2e89-3e66-4ea6-a5f6-c5e3f5c6b8cb}" version="1.5" desktopVersion="3.1.41833">
     <Name>twobillionarcgisaddin</Name>
     <Description>twobillionarcgisaddin description</Description>
     <Image>Images\AddinDesktop32.png</Image>
@@ -15,6 +15,7 @@
       <groups>
         <group id="TwoBillionTrees_Group1" caption="Group 1" appearsOnAddInTab="true" keytip="TwoBillionTrees">
           <button refID="TwoBillionTrees_ShowButton" size="large" />
+          <button refID="twobillionarcgisaddin_Button1" size="large" />
         </group>
       </groups>
       <controls>
