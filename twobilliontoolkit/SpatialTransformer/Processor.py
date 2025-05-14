@@ -148,7 +148,7 @@ class Processor:
                                     geom_type = feat.geometry.type
                                     if geom_type == 'Point':
                                         contain_point = True
-                                    elif geom_type == 'Polygon':
+                                    elif geom_type == 'Polygon' or geom_type == 'MultiPolygon':
                                         contain_polygon = True
                                     elif geom_type == 'LineString':
                                         contain_linestring = True
@@ -313,8 +313,13 @@ class Processor:
                         points_gdf = data[data.geometry.type == 'Point']
                         points_gdf.to_file(self.params.local_gdb_path, driver='OpenFileGDB', layer=gdb_entry_name)
                     elif entry_data_basename == 'Polygons':
-                        polygons_gdf = data[data.geometry.type == 'Polygon']
-                        polygons_gdf.to_file(self.params.local_gdb_path, driver='OpenFileGDB', layer=gdb_entry_name)
+                        polygons_gdf = pd.DataFrame()  # Initialize an empty DataFrame for polygons
+                        if (data.geometry.type == 'Polygon').any():
+                            polygons_gdf = pd.concat([polygons_gdf, data[data.geometry.type == 'Polygon']], ignore_index=True)
+                        if (data.geometry.type == 'MultiPolygon').any():
+                            polygons_gdf = pd.concat([polygons_gdf, data[data.geometry.type == 'MultiPolygon']], ignore_index=True)
+                        if not polygons_gdf.empty:
+                            polygons_gdf.to_file(self.params.local_gdb_path, driver='OpenFileGDB', layer=gdb_entry_name)
                     elif entry_data_basename == 'Lines':
                         lines_gdf = data[data.geometry.type == 'LineString']
                         lines_gdf.to_file(self.params.local_gdb_path, driver='OpenFileGDB', layer=gdb_entry_name)     

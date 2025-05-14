@@ -89,7 +89,7 @@ def spatial_transformer(input_path: str, output_path: str, load_from: str, save_
         
         # Initialize the SpatialData class
         spatial_processor = Processor(setup_parameters)
-        
+
         # Search for any spatial data and create an entry in the datatracker for each one
         spatial_processor.create_datatracker_entries()
         logger.log(message=f'All entries have been created in the datatracker for the aspatial and spatial files. Now starting to process those found spatial files. Time: {datetime.datetime.now().strftime("%H:%M:%S")}', tag='INFO')
