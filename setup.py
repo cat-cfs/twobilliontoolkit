@@ -23,7 +23,7 @@ if platform.system() == "Windows":
     
 setup(
     name='twobilliontoolkit',
-    version='1.7',
+    version='1.8',
     packages=find_packages(exclude=['ArcGISAddin', 'ArcGISToolbox', 'tests']),
     install_requires=requirements,
     extras_require={},
